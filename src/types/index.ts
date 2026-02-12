@@ -82,3 +82,15 @@ export interface CollectionItem {
   created_at: string;
   updated_at: string;
 }
+
+// Admin
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
+  notes_count: number;
+  collections_count: number;
+  labels_count: number;
+}

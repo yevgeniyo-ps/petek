@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X } from 'lucide-react';
+import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLabels } from '../../context/LabelsContext';
 import { useCollections } from '../../context/CollectionsContext';
 import { getCollectionIcon } from '../../lib/icons';
 import { useGravatar } from '../../hooks/useGravatar';
+import { useAdmin } from '../../context/AdminContext';
 import CreateCollectionModal from '../collections/CreateCollectionModal';
 
 interface SidebarProps {
@@ -20,6 +21,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { labels, createLabel, deleteLabel } = useLabels();
   const { collections } = useCollections();
+  const { isAdmin } = useAdmin();
   const avatarUrl = useGravatar(user?.email ?? undefined, 64);
   const [newTagName, setNewTagName] = useState('');
   const [addingTag, setAddingTag] = useState(false);
@@ -185,6 +187,13 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
             ))}
           </div>
         </div>
+
+        {/* Admin */}
+        {isAdmin && (
+          <div className={`${open ? 'px-4' : 'px-2'} mb-1`}>
+            <NavItem icon={Shield} label="Admin" active={location.pathname === '/admin'} onClick={() => navigate('/admin')} collapsed={!open} />
+          </div>
+        )}
 
         {/* User trigger */}
         <div className={`pb-4 border-t border-white/[0.06] pt-4 mt-2 ${open ? 'px-4' : 'px-2'}`}>
