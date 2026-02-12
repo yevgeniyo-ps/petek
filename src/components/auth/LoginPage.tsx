@@ -151,7 +151,7 @@ export default function LoginPage() {
           petek<span className="text-[#ec4899]">.</span>
         </h1>
         <p className="text-[14px] text-[#7a7890] mb-10">
-          Keep your notes markdown too.
+          Keep everything in one place.
         </p>
 
         <button
