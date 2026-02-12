@@ -146,31 +146,8 @@ function AbstractAnimation() {
 }
 
 export default function LoginPage() {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signInWithGoogle } = useAuth();
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setLoading(true);
-
-    const { error } = isSignUp
-      ? await signUp(email, password)
-      : await signIn(email, password);
-
-    if (error) {
-      setError(error.message);
-    } else if (isSignUp) {
-      setMessage('Check your email for a confirmation link.');
-    }
-    setLoading(false);
-  };
 
   return (
     <div className="min-h-screen bg-[#0c0a12] flex relative overflow-hidden">
@@ -206,59 +183,9 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-[#1c1928]" />
-            <span className="text-[11px] text-[#4a4660] uppercase">or</span>
-            <div className="flex-1 h-px bg-[#1c1928]" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label className="block text-[12px] text-[#7a7890] mb-1.5 ml-1">Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 bg-[#13111c] border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#ec489960] transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-[12px] text-[#7a7890] mb-1.5 ml-1">Password</label>
-              <input
-                type="password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-4 py-2.5 bg-[#13111c] border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#ec489960] transition-colors"
-              />
-            </div>
-
-            {error && (
-              <p className="text-[13px] text-[#f87171]">{error}</p>
-            )}
-            {message && (
-              <p className="text-[13px] text-[#ec4899]">{message}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 mt-2 bg-[#ec4899] hover:bg-[#db2777] text-white text-[13px] font-medium rounded-lg transition-all disabled:opacity-50"
-            >
-              {loading ? '...' : isSignUp ? 'Sign Up' : 'Sign In'}
-            </button>
-          </form>
-
-          <button
-            onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage(''); }}
-            className="w-full mt-6 text-[13px] text-[#7a7890] hover:text-[#b0adc0] transition-colors"
-          >
-            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-          </button>
+          {error && (
+            <p className="text-[13px] text-[#f87171] mt-3">{error}</p>
+          )}
         </div>
       </div>
     </div>
