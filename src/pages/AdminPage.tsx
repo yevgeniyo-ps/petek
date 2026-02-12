@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Users, StickyNote, Shield } from 'lucide-react';
+import { Search, Trash2, Users, StickyNote, Shield, HardDrive } from 'lucide-react';
 import { AdminUser } from '../types';
 import { fetchUsers, deleteUserData } from '../lib/admin';
 import { formatDate } from '../lib/utils';
@@ -23,7 +23,7 @@ export default function AdminPage() {
     setUsers(prev =>
       prev.map(u =>
         u.id === deleteTarget.id
-          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0 }
+          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, disk_usage: 0 }
           : u
       )
     );
@@ -55,10 +55,11 @@ export default function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-4 gap-4 mb-8">
         <StatCard icon={Users} label="Total users" value={users.length} />
         <StatCard icon={Users} label="Active today" value={activeToday} />
         <StatCard icon={StickyNote} label="Total notes" value={totalNotes} />
+        <StatCard icon={HardDrive} label="Total disk" value={formatBytes(users.reduce((sum, u) => sum + u.disk_usage, 0))} />
       </div>
 
       {/* Search */}
@@ -84,6 +85,7 @@ export default function AdminPage() {
               <th className="px-4 py-3 font-medium text-right">Notes</th>
               <th className="px-4 py-3 font-medium text-right">Collections</th>
               <th className="px-4 py-3 font-medium text-right">Labels</th>
+              <th className="px-4 py-3 font-medium text-right">Disk</th>
               <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
@@ -98,6 +100,7 @@ export default function AdminPage() {
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.notes_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.collections_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.labels_count}</td>
+                <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => setDeleteTarget(user)}
@@ -111,7 +114,7 @@ export default function AdminPage() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-[#7a7890]">
+                <td colSpan={8} className="px-4 py-8 text-center text-[#7a7890]">
                   No users found
                 </td>
               </tr>
@@ -132,10 +135,18 @@ export default function AdminPage() {
   );
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + units[i];
+}
+
 function StatCard({ icon: Icon, label, value }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   label: string;
-  value: number;
+  value: number | string;
 }) {
   return (
     <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">

@@ -93,4 +93,5 @@ export interface AdminUser {
   notes_count: number;
   collections_count: number;
   labels_count: number;
+  disk_usage: number;
 }

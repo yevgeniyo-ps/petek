@@ -39,6 +39,7 @@ $$;
 -- admin_get_users() — list all users with stats
 -- ============================================
 
+DROP FUNCTION IF EXISTS admin_get_users();
 CREATE OR REPLACE FUNCTION admin_get_users()
 RETURNS TABLE (
   id uuid,
@@ -47,7 +48,8 @@ RETURNS TABLE (
   last_sign_in_at timestamptz,
   notes_count bigint,
   collections_count bigint,
-  labels_count bigint
+  labels_count bigint,
+  disk_usage bigint
 )
 LANGUAGE plpgsql
 STABLE
@@ -66,11 +68,24 @@ BEGIN
     u.last_sign_in_at,
     COALESCE(n.cnt, 0) AS notes_count,
     COALESCE(c.cnt, 0) AS collections_count,
-    COALESCE(l.cnt, 0) AS labels_count
+    COALESCE(l.cnt, 0) AS labels_count,
+    COALESCE(n.sz, 0) + COALESCE(c.sz, 0) + COALESCE(l.sz, 0)
+      + COALESCE(ci.sz, 0) + COALESCE(cf.sz, 0) + COALESCE(nl.sz, 0) AS disk_usage
   FROM auth.users u
-  LEFT JOIN (SELECT user_id, count(*) AS cnt FROM notes GROUP BY user_id) n ON n.user_id = u.id
-  LEFT JOIN (SELECT user_id, count(*) AS cnt FROM collections GROUP BY user_id) c ON c.user_id = u.id
-  LEFT JOIN (SELECT user_id, count(*) AS cnt FROM labels GROUP BY user_id) l ON l.user_id = u.id
+  LEFT JOIN (SELECT user_id, count(*) AS cnt, sum(pg_column_size(notes.*)) AS sz FROM notes GROUP BY user_id) n ON n.user_id = u.id
+  LEFT JOIN (SELECT user_id, count(*) AS cnt, sum(pg_column_size(collections.*)) AS sz FROM collections GROUP BY user_id) c ON c.user_id = u.id
+  LEFT JOIN (SELECT user_id, count(*) AS cnt, sum(pg_column_size(labels.*)) AS sz FROM labels GROUP BY user_id) l ON l.user_id = u.id
+  LEFT JOIN (SELECT user_id, sum(pg_column_size(collection_items.*)) AS sz FROM collection_items GROUP BY user_id) ci ON ci.user_id = u.id
+  LEFT JOIN (
+    SELECT cc.user_id, sum(pg_column_size(cf2.*)) AS sz
+    FROM collection_fields cf2 JOIN collections cc ON cc.id = cf2.collection_id
+    GROUP BY cc.user_id
+  ) cf ON cf.user_id = u.id
+  LEFT JOIN (
+    SELECT nn.user_id, sum(pg_column_size(nl2.*)) AS sz
+    FROM note_labels nl2 JOIN notes nn ON nn.id = nl2.note_id
+    GROUP BY nn.user_id
+  ) nl ON nl.user_id = u.id
   ORDER BY u.created_at DESC;
 END;
 $$;
