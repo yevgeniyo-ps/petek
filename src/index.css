@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    background-color: #0c0a12;
+    color: #e0dfe4;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* Override md-editor dark theme */
+.w-md-editor {
+  --color-canvas-default: transparent !important;
+  --color-fg-default: #e0dfe4 !important;
+  --color-border-default: rgba(255,255,255,0.06) !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  font-size: 14px !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 6px 4px !important;
+}
+
+.w-md-editor-toolbar li > button {
+  color: #6b6882 !important;
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.w-md-editor-toolbar li > button:hover {
+  color: #b0adc0 !important;
+  background-color: rgba(255,255,255,0.05) !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input,
+.w-md-editor-text {
+  color: #e0dfe4 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  color: #e0dfe4 !important;
+  font-size: 14px !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Abstract login animation */
+@keyframes blob-drift {
+  0% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  25% {
+    transform: translate(8%, -12%) scale(1.1);
+  }
+  50% {
+    transform: translate(-5%, 8%) scale(0.95);
+  }
+  75% {
+    transform: translate(-10%, -5%) scale(1.08);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+}
+
+@keyframes mesh-shift {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes ribbon-flow {
+  0% {
+    d: path("M-50,200 C100,180 200,350 350,300 S550,200 650,250");
+    opacity: 1;
+  }
+  50% {
+    d: path("M-50,220 C130,150 220,380 370,320 S530,230 650,270");
+    opacity: 0.6;
+  }
+  100% {
+    d: path("M-50,200 C100,180 200,350 350,300 S550,200 650,250");
+    opacity: 1;
+  }
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
