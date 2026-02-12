@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Tag, X, ChevronDown } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
+const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
 import ColorPicker from '../ui/ColorPicker';
 import { Note, NoteColor, Label } from '../../types';
@@ -82,15 +82,17 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
           className="w-full px-6 pt-6 pb-2 bg-transparent text-white text-[16px] font-semibold placeholder-[#4a4660] outline-none"
         />
         <div className="px-6">
-          <MDEditor
-            value={content}
-            onChange={(val) => setContent(val ?? '')}
-            preview="edit"
-            hideToolbar={false}
-            height={300}
-            visibleDragbar={false}
-            style={{ backgroundColor: 'transparent', border: 'none' }}
-          />
+          <Suspense fallback={<div className="h-[300px] flex items-center justify-center text-[#7a7890] text-[13px]">Loading editor...</div>}>
+            <MDEditor
+              value={content}
+              onChange={(val) => setContent(val ?? '')}
+              preview="edit"
+              hideToolbar={false}
+              height={300}
+              visibleDragbar={false}
+              style={{ backgroundColor: 'transparent', border: 'none' }}
+            />
+          </Suspense>
         </div>
         <div className="px-5 py-3.5 flex items-center justify-between border-t border-white/[0.04]">
           <div className="flex items-center gap-3 flex-1 min-w-0">
