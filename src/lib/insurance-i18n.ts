@@ -40,6 +40,20 @@ export const VISIBLE_COLUMNS: ColumnKey[] = [
   'policy_number',
 ];
 
+export const EXPANDED_COLUMNS: ColumnKey[] = [
+  'company',
+  'sub_branch',
+  'main_branch',
+  'category',
+  'product_type',
+  'coverage_period',
+  'premium_nis',
+  'premium_type',
+  'policy_number',
+  'plan_classification',
+  'additional_details',
+];
+
 const CATEGORY_TRANSLATIONS: Record<string, string> = {
   'כללי': 'General',
   'בריאות ותאונות אישיות': 'Health & Personal Accidents',

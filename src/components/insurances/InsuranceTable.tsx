@@ -1,7 +1,10 @@
+import { useState } from 'react';
+import { Columns3, Columns4 } from 'lucide-react';
 import type { InsurancePolicy } from '../../types';
 import {
   COLUMN_LABELS,
   VISIBLE_COLUMNS,
+  EXPANDED_COLUMNS,
   translateValue,
   translateCategory,
   type InsuranceLang,
@@ -37,15 +40,30 @@ function getCellValue(policy: InsurancePolicy, col: ColumnKey, lang: InsuranceLa
 }
 
 export default function InsuranceTable({ policies, lang }: InsuranceTableProps) {
+  const [expanded, setExpanded] = useState(false);
+  const columns = expanded ? EXPANDED_COLUMNS : VISIBLE_COLUMNS;
   const labels = COLUMN_LABELS[lang];
+  const isHe = lang === 'he';
 
   return (
     <div className="rounded-xl border border-[#1c1928] overflow-hidden">
+      <div className="flex items-center justify-end px-4 py-2 bg-[#0f0d18] border-b border-[#1c1928]">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1.5 text-[12px] text-[#7a7890] hover:text-white transition-colors"
+        >
+          {expanded ? <Columns3 size={14} /> : <Columns4 size={14} />}
+          {expanded
+            ? (isHe ? 'תצוגה מצומצמת' : 'Compact view')
+            : (isHe ? 'כל העמודות' : 'All columns')
+          }
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#1c1928]">
-              {VISIBLE_COLUMNS.map(col => (
+              {columns.map(col => (
                 <th
                   key={col}
                   className={`px-4 py-3 text-left text-[12px] font-medium text-[#7a7890] uppercase tracking-wider whitespace-nowrap bg-[#0f0d18] ${
@@ -63,13 +81,15 @@ export default function InsuranceTable({ policies, lang }: InsuranceTableProps) 
                 key={policy.id}
                 className="border-b border-[#1c1928] last:border-b-0 hover:bg-white/[0.02] transition-colors"
               >
-                {VISIBLE_COLUMNS.map(col => (
+                {columns.map(col => (
                   <td
                     key={col}
-                    className={`px-4 py-3 text-[13px] whitespace-nowrap ${
+                    className={`px-4 py-3 text-[13px] ${
                       col === 'premium_nis'
-                        ? 'text-right text-white font-medium tabular-nums'
-                        : 'text-[#e0dfe4]'
+                        ? 'text-right text-white font-medium tabular-nums whitespace-nowrap'
+                        : col === 'additional_details'
+                        ? 'text-[#e0dfe4] max-w-[200px] truncate'
+                        : 'text-[#e0dfe4] whitespace-nowrap'
                     }`}
                   >
                     {getCellValue(policy, col, lang)}
