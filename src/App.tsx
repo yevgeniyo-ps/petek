@@ -11,7 +11,6 @@ import AdminGuard from './components/admin/AdminGuard';
 import Layout from './components/layout/Layout';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
-const TrashPage = lazy(() => import('./pages/TrashPage'));
 const ArchivePage = lazy(() => import('./pages/ArchivePage'));
 const CollectionPage = lazy(() => import('./pages/CollectionPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -36,7 +35,6 @@ export default function App() {
                         <Routes>
                           <Route path="/" element={<HomePage />} />
                           <Route path="/archive" element={<ArchivePage />} />
-                          <Route path="/trash" element={<TrashPage />} />
                           <Route path="/c/:slug" element={<CollectionPage />} />
                           <Route path="/insurances" element={<InsurancesPage />} />
                           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />

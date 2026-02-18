@@ -17,7 +17,7 @@ export default function ArchivePage() {
   const selectedTagId = searchParams.get('tag');
 
   const archivedNotes = useMemo(() => {
-    let filtered = notes.filter(n => n.is_archived && !n.is_trashed);
+    let filtered = notes.filter(n => n.is_archived);
     if (selectedTagId) {
       const noteIds = getNoteIdsForLabel(selectedTagId);
       filtered = filtered.filter(n => noteIds.includes(n.id));

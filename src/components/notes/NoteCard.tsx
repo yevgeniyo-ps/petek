@@ -56,12 +56,11 @@ export default function NoteCard({ note, onClick }: NoteCardProps) {
           <NoteToolbar
             isPinned={note.is_pinned}
             isArchived={note.is_archived}
-            isTrashed={note.is_trashed}
             onTogglePin={() => updateNote(note.id, { is_pinned: !note.is_pinned })}
             onColorChange={(color) => updateNote(note.id, { color })}
-            onTrash={() => note.is_trashed ? setConfirmDelete(true) : updateNote(note.id, { is_trashed: true })}
-            onArchive={() => updateNote(note.id, { is_archived: !note.is_archived })}
-            onRestore={() => updateNote(note.id, { is_trashed: false })}
+            onArchive={() => updateNote(note.id, { is_archived: true })}
+            onRestore={() => updateNote(note.id, { is_archived: false })}
+            onDelete={() => setConfirmDelete(true)}
             currentColor={note.color}
           />
           <span className="text-[11px] text-[#4a4660]">{formatDate(note.updated_at)}</span>

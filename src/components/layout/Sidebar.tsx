@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, Settings } from 'lucide-react';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, Settings } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLabels } from '../../context/LabelsContext';
@@ -72,13 +72,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
-          <NavItem icon={StickyNote} label="Notes" active={['/', '/archive', '/trash'].includes(location.pathname)} onClick={() => navigate('/')} collapsed={!open} />
-          {open && (
-            <div className="space-y-0.5">
-              <SubNavItem label="Archive" icon={Archive} active={location.pathname === '/archive'} onClick={() => navigate('/archive')} />
-              <SubNavItem label="Trash" icon={Trash2} active={location.pathname === '/trash'} onClick={() => navigate('/trash')} />
-            </div>
-          )}
+          <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => navigate('/')} collapsed={!open} />
           {menuSettings.insurances && (
             <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
           )}
@@ -301,23 +295,3 @@ function NavItem({ label, icon: Icon, active, onClick, collapsed }: {
   );
 }
 
-function SubNavItem({ label, icon: Icon, active, onClick }: {
-  label: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-2.5 pl-10 pr-3 py-1.5 rounded-lg text-[13px] transition-all ${
-        active
-          ? 'text-white font-medium'
-          : 'text-[#7a7890] hover:bg-white/[0.04] hover:text-[#b0adc0]'
-      }`}
-    >
-      <Icon size={14} className={`shrink-0 ${active ? 'text-[#ec4899]' : ''}`} />
-      <span>{label}</span>
-    </button>
-  );
-}

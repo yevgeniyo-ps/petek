@@ -17,7 +17,7 @@ export default function HomePage() {
   const selectedTagId = searchParams.get('tag');
 
   const activeNotes = useMemo(() => {
-    let filtered = notes.filter(n => !n.is_trashed && !n.is_archived);
+    let filtered = notes.filter(n => !n.is_archived);
     if (selectedTagId) {
       const noteIds = getNoteIdsForLabel(selectedTagId);
       filtered = filtered.filter(n => noteIds.includes(n.id));

@@ -6,17 +6,16 @@ import { NoteColor } from '../../types';
 interface NoteToolbarProps {
   isPinned: boolean;
   isArchived?: boolean;
-  isTrashed?: boolean;
   onTogglePin: () => void;
   onColorChange: (color: NoteColor) => void;
-  onTrash: () => void;
   onArchive?: () => void;
   onRestore?: () => void;
+  onDelete?: () => void;
   currentColor: string;
 }
 
 export default function NoteToolbar({
-  isPinned, isTrashed, onTogglePin, onColorChange, onTrash, onArchive, onRestore, currentColor,
+  isPinned, isArchived, onTogglePin, onColorChange, onArchive, onRestore, onDelete, currentColor,
 }: NoteToolbarProps) {
   const [showColors, setShowColors] = useState(false);
 
@@ -24,7 +23,7 @@ export default function NoteToolbar({
 
   return (
     <div className="flex items-center gap-1 relative">
-      {!isTrashed && (
+      {!isArchived && (
         <>
           <button onClick={onTogglePin} className={btnClass} title={isPinned ? 'Unpin' : 'Pin'}>
             {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
@@ -49,14 +48,20 @@ export default function NoteToolbar({
           )}
         </>
       )}
-      {isTrashed && onRestore && (
-        <button onClick={onRestore} className={btnClass} title="Restore">
-          <ArchiveRestore size={16} />
-        </button>
+      {isArchived && (
+        <>
+          {onRestore && (
+            <button onClick={onRestore} className={btnClass} title="Restore">
+              <ArchiveRestore size={16} />
+            </button>
+          )}
+          {onDelete && (
+            <button onClick={onDelete} className="p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#f87171] transition-colors" title="Delete permanently">
+              <Trash2 size={16} />
+            </button>
+          )}
+        </>
       )}
-      <button onClick={onTrash} className="p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#f87171] transition-colors" title={isTrashed ? 'Delete permanently' : 'Trash'}>
-        <Trash2 size={16} />
-      </button>
     </div>
   );
 }
