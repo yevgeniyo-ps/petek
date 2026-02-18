@@ -18,6 +18,7 @@ interface Recommendation {
   description: string;
   icon: React.ReactNode;
   policies: { number: string; company: string }[];
+  savingsPerYear: number;
 }
 
 function annualize(premium: number | null, type: string): number {
@@ -55,7 +56,7 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
     const now = new Date();
     const sixtyDaysMs = 60 * 24 * 60 * 60 * 1000;
 
-    // 1. Expiring soon
+    // 1. Expiring soon (no direct savings)
     for (const p of policies) {
       const end = parseEndDate(p.coverage_period);
       if (!end) continue;
@@ -73,11 +74,12 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
             : `Policy ${p.policy_number} at ${translateValue(p.company, 'en')} expires soon. Consider renewing.`,
           icon: <Clock size={16} />,
           policies: [{ number: p.policy_number, company: isHe ? p.company : translateValue(p.company, 'en') }],
+          savingsPerYear: 0,
         });
       }
     }
 
-    // 2. Possible duplicates
+    // 2. Possible duplicates — savings = cancel all but cheapest
     const combos = new Map<string, InsurancePolicy[]>();
     for (const p of policies) {
       const key = `${p.main_branch}|${p.sub_branch}`;
@@ -89,6 +91,8 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
       if (group.length < 2) continue;
       const p = group[0]!;
       const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
+      const annuals = group.map(g => annualize(g.premium_nis, g.premium_type)).sort((a, b) => a - b);
+      const dupSavings = annuals.slice(1).reduce((sum, v) => sum + v, 0);
       recs.push({
         severity: 'yellow',
         title: isHe
@@ -99,10 +103,11 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
           : `Found ${group.length} policies with the same main & sub branch. Check if this is redundant coverage.`,
         icon: <Copy size={16} />,
         policies: group.map(g => ({ number: g.policy_number, company: isHe ? g.company : translateValue(g.company, 'en') })),
+        savingsPerYear: dupSavings,
       });
     }
 
-    // 3. High premium alert
+    // 3. High premium — estimated ~20% savings by shopping around
     for (const p of policies) {
       const annual = annualize(p.premium_nis, p.premium_type);
       if (annual > 2000) {
@@ -117,6 +122,7 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
             : 'Consider comparing quotes from other insurers.',
           icon: <AlertTriangle size={16} />,
           policies: [{ number: p.policy_number, company: isHe ? p.company : translateValue(p.company, 'en') }],
+          savingsPerYear: Math.round(annual * 0.2),
         });
       }
     }
@@ -124,9 +130,15 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
     return recs;
   }, [policies, lang]);
 
+  const totalSavings = useMemo(
+    () => recommendations.reduce((sum, r) => sum + r.savingsPerYear, 0),
+    [recommendations],
+  );
+
   if (recommendations.length === 0) return null;
 
   const isHe = lang === 'he';
+  const fmtSavings = (n: number) => `₪${Math.round(n).toLocaleString('en-IL')}`;
 
   return (
     <div className="mb-6">
@@ -137,6 +149,14 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
         <span className="text-[13px] text-[#7a7890] font-medium">
           {isHe ? 'המלצות' : 'Recommendations'} ({recommendations.length})
         </span>
+        {totalSavings > 0 && (
+          <span className="text-[12px] text-emerald-400 font-medium">
+            {isHe
+              ? `חיסכון פוטנציאלי: ~${fmtSavings(totalSavings)}/שנה`
+              : `Potential savings: ~${fmtSavings(totalSavings)}/yr`
+            }
+          </span>
+        )}
         {collapsed
           ? <ChevronDown size={14} className="text-[#7a7890]" />
           : <ChevronUp size={14} className="text-[#7a7890]" />
@@ -168,7 +188,14 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
                   {rec.icon}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] text-white font-medium">{rec.title}</div>
+                  <div className="text-[13px] text-white font-medium flex items-center gap-2 flex-wrap">
+                    {rec.title}
+                    {rec.savingsPerYear > 0 && (
+                      <span className="text-[11px] text-emerald-400 font-normal">
+                        {isHe ? `~${fmtSavings(rec.savingsPerYear)}/שנה` : `~${fmtSavings(rec.savingsPerYear)}/yr`}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
                   <div className="text-[11px] mt-1 flex items-center gap-2 flex-wrap">
                     {rec.policies.map((p, j) => (
