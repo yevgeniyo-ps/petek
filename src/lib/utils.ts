@@ -2,14 +2,17 @@ import { NoteColor, NoteColorConfig } from '../types';
 
 export const NOTE_COLORS: Record<NoteColor, NoteColorConfig> = {
   default:  { name: 'Default',  bg: '#13111c', border: '#1c1928' },
-  coral:    { name: 'Coral',    bg: '#1c1112', border: '#2a1a1c' },
-  peach:    { name: 'Peach',    bg: '#1c1711', border: '#2a231a' },
-  sand:     { name: 'Sand',     bg: '#1c1b11', border: '#2a281a' },
-  mint:     { name: 'Mint',     bg: '#111c15', border: '#1a2a20' },
-  sage:     { name: 'Sage',     bg: '#111c1a', border: '#1a2a28' },
-  sky:      { name: 'Sky',      bg: '#11151c', border: '#1a202a' },
-  lavender: { name: 'Lavender', bg: '#17111c', border: '#231a2a' },
-  rose:     { name: 'Rose',     bg: '#1c1118', border: '#2a1a25' },
+  coral:    { name: 'Coral',    bg: '#2d1518', border: '#4a2228' },
+  peach:    { name: 'Peach',    bg: '#2d1f12', border: '#4a3320' },
+  sand:     { name: 'Sand',     bg: '#2d2a12', border: '#4a4520' },
+  mint:     { name: 'Mint',     bg: '#122d1c', border: '#204a30' },
+  sage:     { name: 'Sage',     bg: '#122d28', border: '#204a42' },
+  sky:      { name: 'Sky',      bg: '#121e2d', border: '#20334a' },
+  lavender: { name: 'Lavender', bg: '#22152d', border: '#38244a' },
+  rose:     { name: 'Rose',     bg: '#2d1226', border: '#4a2040' },
+  ember:    { name: 'Ember',    bg: '#2d1a0e', border: '#4a2c18' },
+  teal:     { name: 'Teal',     bg: '#0e2d2a', border: '#184a45' },
+  plum:     { name: 'Plum',     bg: '#261228', border: '#402040' },
 };
 
 export function formatDate(dateStr: string): string {

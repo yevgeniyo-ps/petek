@@ -33,7 +33,10 @@ export type NoteColor =
   | 'sage'
   | 'sky'
   | 'lavender'
-  | 'rose';
+  | 'rose'
+  | 'ember'
+  | 'teal'
+  | 'plum';
 
 export interface NoteColorConfig {
   name: string;

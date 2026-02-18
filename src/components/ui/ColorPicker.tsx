@@ -8,7 +8,7 @@ interface ColorPickerProps {
 
 export default function ColorPicker({ current, onChange }: ColorPickerProps) {
   return (
-    <div className="flex gap-2.5 p-3">
+    <div className="flex flex-wrap gap-2 p-3 max-w-[260px]">
       {(Object.entries(NOTE_COLORS) as [NoteColor, typeof NOTE_COLORS[NoteColor]][]).map(([key, config]) => (
         <button
           key={key}
