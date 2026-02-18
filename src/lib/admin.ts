@@ -38,3 +38,8 @@ export async function approveUser(userId: string): Promise<void> {
   const { error } = await supabase.rpc('admin_approve_user', { target_user_id: userId });
   if (error) throw error;
 }
+
+export async function removeUser(userId: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_remove_user', { target_user_id: userId });
+  if (error) throw error;
+}

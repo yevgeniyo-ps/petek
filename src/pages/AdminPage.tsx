@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock } from 'lucide-react';
+import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock, UserMinus } from 'lucide-react';
 import { AdminUser } from '../types';
-import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser } from '../lib/admin';
+import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser } from '../lib/admin';
 import { formatDate } from '../lib/utils';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<AdminUser | null>(null);
   const [approveTarget, setApproveTarget] = useState<AdminUser | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<AdminUser | null>(null);
 
   useEffect(() => {
     fetchUsers()
@@ -52,6 +53,13 @@ export default function AdminPage() {
     await approveUser(approveTarget.id);
     setUsers(prev => prev.map(u => u.id === approveTarget.id ? { ...u, approved_at: new Date().toISOString() } : u));
     setApproveTarget(null);
+  };
+
+  const handleRemoveUser = async () => {
+    if (!removeTarget) return;
+    await removeUser(removeTarget.id);
+    setUsers(prev => prev.filter(u => u.id !== removeTarget.id));
+    setRemoveTarget(null);
   };
 
   const filtered = users.filter(u =>
@@ -171,6 +179,13 @@ export default function AdminPage() {
                   >
                     <Trash2 size={14} />
                   </button>
+                  <button
+                    onClick={() => setRemoveTarget(user)}
+                    className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
+                    title="Remove user"
+                  >
+                    <UserMinus size={14} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -215,6 +230,15 @@ export default function AdminPage() {
         message={`Approve ${approveTarget?.email}? They will receive an email and gain access to Petek.`}
         confirmLabel="Approve"
         variant="success"
+      />
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveUser}
+        title="Remove user"
+        message={`This will permanently delete all data AND the account for ${removeTarget?.email}. This cannot be undone.`}
+        confirmLabel="Remove user"
       />
     </div>
   );
