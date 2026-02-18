@@ -5,6 +5,7 @@ import { AdminProvider } from './context/AdminContext';
 import { NotesProvider } from './context/NotesContext';
 import { LabelsProvider } from './context/LabelsContext';
 import { CollectionsProvider } from './context/CollectionsContext';
+import { InsurancesProvider } from './context/InsurancesContext';
 import AuthGuard from './components/auth/AuthGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import Layout from './components/layout/Layout';
@@ -14,6 +15,7 @@ const TrashPage = lazy(() => import('./pages/TrashPage'));
 const ArchivePage = lazy(() => import('./pages/ArchivePage'));
 const CollectionPage = lazy(() => import('./pages/CollectionPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const InsurancesPage = lazy(() => import('./pages/InsurancesPage'));
 
 function PageLoader() {
   return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
@@ -28,17 +30,20 @@ export default function App() {
             <NotesProvider>
               <LabelsProvider>
                 <CollectionsProvider>
-                  <Layout>
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/archive" element={<ArchivePage />} />
-                        <Route path="/trash" element={<TrashPage />} />
-                        <Route path="/c/:slug" element={<CollectionPage />} />
-                        <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
-                      </Routes>
-                    </Suspense>
-                  </Layout>
+                  <InsurancesProvider>
+                    <Layout>
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          <Route path="/" element={<HomePage />} />
+                          <Route path="/archive" element={<ArchivePage />} />
+                          <Route path="/trash" element={<TrashPage />} />
+                          <Route path="/c/:slug" element={<CollectionPage />} />
+                          <Route path="/insurances" element={<InsurancesPage />} />
+                          <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
+                        </Routes>
+                      </Suspense>
+                    </Layout>
+                  </InsurancesProvider>
                 </CollectionsProvider>
               </LabelsProvider>
             </NotesProvider>

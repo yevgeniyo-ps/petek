@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield } from 'lucide-react';
+import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLabels } from '../../context/LabelsContext';
@@ -72,6 +72,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
           <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/'} onClick={() => navigate('/')} collapsed={!open} />
           <NavItem icon={Archive} label="Archive" active={location.pathname === '/archive'} onClick={() => navigate('/archive')} collapsed={!open} />
           <NavItem icon={Trash2} label="Trash" active={location.pathname === '/trash'} onClick={() => navigate('/trash')} collapsed={!open} />
+          <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
 
           {/* Collections */}
           {collections.length > 0 && (

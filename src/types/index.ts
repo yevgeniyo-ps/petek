@@ -83,6 +83,27 @@ export interface CollectionItem {
   updated_at: string;
 }
 
+// Insurances
+
+export interface InsurancePolicy {
+  id: string;
+  user_id: string;
+  upload_batch_id: string;
+  category: string;
+  identity_number: string;
+  main_branch: string;
+  sub_branch: string;
+  product_type: string;
+  company: string;
+  coverage_period: string;
+  additional_details: string;
+  premium_nis: number | null;
+  premium_type: string;
+  policy_number: string;
+  plan_classification: string;
+  created_at: string;
+}
+
 // Admin
 
 export interface AdminUser {
