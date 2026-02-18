@@ -15,6 +15,23 @@ export function parseInsuranceFile(file: ArrayBuffer, batchId: string): ParseRes
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return { policies: [], errors: ['Empty workbook.'] };
 
+  // Har HaBituach exports have incorrect !ref range — recalculate from actual cells
+  const cellKeys = Object.keys(sheet).filter(k => k[0] !== '!');
+  if (cellKeys.length > 0) {
+    let maxRow = 0;
+    let maxCol = 0;
+    let minRow = Infinity;
+    let minCol = Infinity;
+    for (const key of cellKeys) {
+      const decoded = XLSX.utils.decode_cell(key);
+      if (decoded.r > maxRow) maxRow = decoded.r;
+      if (decoded.c > maxCol) maxCol = decoded.c;
+      if (decoded.r < minRow) minRow = decoded.r;
+      if (decoded.c < minCol) minCol = decoded.c;
+    }
+    sheet['!ref'] = XLSX.utils.encode_range({ s: { r: minRow, c: minCol }, e: { r: maxRow, c: maxCol } });
+  }
+
   const rows: (string | number | null)[][] = XLSX.utils.sheet_to_json(sheet, {
     header: 1,
     defval: '',
