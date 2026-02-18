@@ -111,6 +111,7 @@ export interface AdminUser {
   email: string;
   created_at: string;
   last_sign_in_at: string | null;
+  banned_until: string | null;
   notes_count: number;
   collections_count: number;
   labels_count: number;
@@ -118,4 +119,5 @@ export interface AdminUser {
   disk_usage: number;
   notes_this_month: number;
   policies_this_month: number;
+  approved_at: string | null;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen } from 'lucide-react';
+import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock } from 'lucide-react';
 import { AdminUser } from '../types';
-import { fetchUsers, deleteUserData } from '../lib/admin';
+import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser } from '../lib/admin';
 import { formatDate } from '../lib/utils';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -10,6 +10,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<AdminUser | null>(null);
+  const [approveTarget, setApproveTarget] = useState<AdminUser | null>(null);
 
   useEffect(() => {
     fetchUsers()
@@ -30,10 +32,33 @@ export default function AdminPage() {
     setDeleteTarget(null);
   };
 
+  const isPending = (u: AdminUser) => !u.approved_at;
+  const isSuspended = (u: AdminUser) => u.banned_until && new Date(u.banned_until) > new Date();
+
+  const handleToggleSuspend = async () => {
+    if (!suspendTarget) return;
+    if (isSuspended(suspendTarget)) {
+      await unsuspendUser(suspendTarget.id);
+      setUsers(prev => prev.map(u => u.id === suspendTarget.id ? { ...u, banned_until: null } : u));
+    } else {
+      await suspendUser(suspendTarget.id);
+      setUsers(prev => prev.map(u => u.id === suspendTarget.id ? { ...u, banned_until: '2999-12-31T00:00:00Z' } : u));
+    }
+    setSuspendTarget(null);
+  };
+
+  const handleApprove = async () => {
+    if (!approveTarget) return;
+    await approveUser(approveTarget.id);
+    setUsers(prev => prev.map(u => u.id === approveTarget.id ? { ...u, approved_at: new Date().toISOString() } : u));
+    setApproveTarget(null);
+  };
+
   const filtered = users.filter(u =>
     u.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const pendingCount = users.filter(u => isPending(u)).length;
   const totalNotes = users.reduce((sum, u) => sum + u.notes_count, 0);
   const totalPolicies = users.reduce((sum, u) => sum + u.policies_count, 0);
   const totalCollections = users.reduce((sum, u) => sum + u.collections_count, 0);
@@ -59,6 +84,7 @@ export default function AdminPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <StatCard icon={Users} label="Total users" value={users.length} />
+        <StatCard icon={Clock} label="Pending users" value={pendingCount} />
         <StatCard icon={Users} label="Active today" value={activeToday} />
         <StatCard icon={StickyNote} label="Total notes" value={totalNotes} />
         <StatCard icon={Umbrella} label="Total policies" value={totalPolicies} />
@@ -97,7 +123,15 @@ export default function AdminPage() {
           <tbody>
             {filtered.map(user => (
               <tr key={user.id} className="border-t border-[#1c1928] hover:bg-white/[0.02] transition-colors">
-                <td className="px-4 py-3 text-white">{user.email}</td>
+                <td className="px-4 py-3 text-white">
+                  {user.email}
+                  {isPending(user) && (
+                    <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">Pending</span>
+                  )}
+                  {isSuspended(user) && (
+                    <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">Suspended</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at)}</td>
                 <td className="px-4 py-3 text-[#7a7890]">
                   {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : '—'}
@@ -113,7 +147,23 @@ export default function AdminPage() {
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.collections_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.labels_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                  {isPending(user) && (
+                    <button
+                      onClick={() => setApproveTarget(user)}
+                      className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
+                      title="Approve user"
+                    >
+                      <CheckCircle size={14} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSuspendTarget(user)}
+                    className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
+                    title={isSuspended(user) ? 'Unsuspend user' : 'Suspend user'}
+                  >
+                    {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
+                  </button>
                   <button
                     onClick={() => setDeleteTarget(user)}
                     className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
@@ -142,6 +192,29 @@ export default function AdminPage() {
         title="Delete user data"
         message={`This will permanently delete all notes, collections, labels, and policies for ${deleteTarget?.email}. The user account itself will remain.`}
         confirmLabel="Delete data"
+      />
+
+      <ConfirmDialog
+        open={!!suspendTarget}
+        onClose={() => setSuspendTarget(null)}
+        onConfirm={handleToggleSuspend}
+        title={suspendTarget && isSuspended(suspendTarget) ? 'Unsuspend user' : 'Suspend user'}
+        message={
+          suspendTarget && isSuspended(suspendTarget)
+            ? `Unsuspend user? ${suspendTarget?.email} will be able to sign in again.`
+            : `Suspend user? ${suspendTarget?.email} will not be able to sign in.`
+        }
+        confirmLabel={suspendTarget && isSuspended(suspendTarget) ? 'Unsuspend' : 'Suspend'}
+      />
+
+      <ConfirmDialog
+        open={!!approveTarget}
+        onClose={() => setApproveTarget(null)}
+        onConfirm={handleApprove}
+        title="Approve user"
+        message={`Approve ${approveTarget?.email}? They will receive an email and gain access to Petek.`}
+        confirmLabel="Approve"
+        variant="success"
       />
     </div>
   );

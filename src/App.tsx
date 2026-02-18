@@ -7,6 +7,8 @@ import { LabelsProvider } from './context/LabelsContext';
 import { CollectionsProvider } from './context/CollectionsContext';
 import { InsurancesProvider } from './context/InsurancesContext';
 import AuthGuard from './components/auth/AuthGuard';
+import { ApprovalProvider } from './context/ApprovalContext';
+import ApprovalGuard from './components/auth/ApprovalGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import Layout from './components/layout/Layout';
 
@@ -25,6 +27,8 @@ export default function App() {
     <HashRouter>
       <AuthProvider>
         <AuthGuard>
+          <ApprovalProvider>
+          <ApprovalGuard>
           <AdminProvider>
             <NotesProvider>
               <LabelsProvider>
@@ -46,6 +50,8 @@ export default function App() {
               </LabelsProvider>
             </NotesProvider>
           </AdminProvider>
+          </ApprovalGuard>
+          </ApprovalProvider>
         </AuthGuard>
       </AuthProvider>
     </HashRouter>

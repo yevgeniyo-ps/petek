@@ -7,9 +7,14 @@ interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmLabel?: string;
+  variant?: 'danger' | 'success';
 }
 
-export default function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Delete' }: ConfirmDialogProps) {
+export default function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Delete', variant = 'danger' }: ConfirmDialogProps) {
+  const btnClass = variant === 'success'
+    ? 'bg-emerald-500 hover:bg-emerald-600'
+    : 'bg-[#f87171] hover:bg-[#ef4444]';
+
   return (
     <Modal open={open} onClose={onClose}>
       <div className="p-6">
@@ -24,7 +29,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
-            className="px-5 py-2 text-[13px] bg-[#f87171] hover:bg-[#ef4444] text-white font-medium rounded-full transition-colors"
+            className={`px-5 py-2 text-[13px] ${btnClass} text-white font-medium rounded-full transition-colors`}
           >
             {confirmLabel}
           </button>
