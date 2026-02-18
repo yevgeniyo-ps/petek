@@ -17,6 +17,7 @@ const ArchivePage = lazy(() => import('./pages/ArchivePage'));
 const CollectionPage = lazy(() => import('./pages/CollectionPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const InsurancesPage = lazy(() => import('./pages/InsurancesPage'));
+const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 
 function PageLoader() {
   return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
@@ -41,6 +42,7 @@ export default function App() {
                           <Route path="/archive" element={<ArchivePage />} />
                           <Route path="/c/:slug" element={<CollectionPage />} />
                           <Route path="/insurances" element={<InsurancesPage />} />
+                          <Route path="/subscriptions" element={<SubscriptionsPage />} />
                           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
                         </Routes>
                       </Suspense>

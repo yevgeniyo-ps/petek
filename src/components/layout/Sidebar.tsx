@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, Settings } from 'lucide-react';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, RepeatIcon, Settings } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLabels } from '../../context/LabelsContext';
@@ -77,6 +77,9 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
           )}
           {menuSettings.insurances && (
             <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
+          )}
+          {menuSettings.subscriptions && (
+            <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => navigate('/subscriptions')} collapsed={!open} />
           )}
 
           {/* Collections */}

@@ -4,6 +4,7 @@ import Modal from '../ui/Modal';
 export interface MenuSettings {
   notes: boolean;
   insurances: boolean;
+  subscriptions: boolean;
   collections: boolean;
   tags: boolean;
 }
@@ -11,6 +12,7 @@ export interface MenuSettings {
 export const defaultMenuSettings: MenuSettings = {
   notes: true,
   insurances: true,
+  subscriptions: true,
   collections: true,
   tags: true,
 };
@@ -46,6 +48,7 @@ export default function SettingsModal({ open, onClose, settings, onChange }: Set
   const items: { key: keyof MenuSettings; label: string }[] = [
     { key: 'notes', label: 'Notes' },
     { key: 'insurances', label: 'Insurances' },
+    { key: 'subscriptions', label: 'Subscriptions' },
     { key: 'collections', label: 'Collections' },
     { key: 'tags', label: 'Tags' },
   ];
