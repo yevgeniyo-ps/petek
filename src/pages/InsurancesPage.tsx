@@ -8,7 +8,7 @@ import InsuranceRecommendations, { type Severity } from '../components/insurance
 import HarbImportGuide from '../components/insurances/HarbImportGuide';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
-import { translateCategory, type InsuranceLang } from '../lib/insurance-i18n';
+import { translateCategory, translateValue, type InsuranceLang } from '../lib/insurance-i18n';
 import { formatDate } from '../lib/utils';
 
 export default function InsurancesPage() {
@@ -16,6 +16,7 @@ export default function InsurancesPage() {
   const [lang, setLang] = useState<InsuranceLang>('he');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [activeRecIndex, setActiveRecIndex] = useState<number | null>(null);
@@ -42,11 +43,23 @@ export default function InsurancesPage() {
     return Array.from(cats);
   }, [policies]);
 
+  const companies = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of policies) {
+      if (p.company) set.add(p.company);
+    }
+    return Array.from(set);
+  }, [policies]);
+
   const filteredPolicies = useMemo(() => {
     let result = policies;
 
     if (selectedCategory) {
       result = result.filter(p => p.category === selectedCategory);
+    }
+
+    if (selectedCompany) {
+      result = result.filter(p => p.company === selectedCompany);
     }
 
     if (search) {
@@ -66,7 +79,7 @@ export default function InsurancesPage() {
     }
 
     return result;
-  }, [policies, search, selectedCategory]);
+  }, [policies, search, selectedCategory, selectedCompany]);
 
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
@@ -165,34 +178,56 @@ export default function InsurancesPage() {
         </div>
       </div>
 
-      {/* Category chips */}
-      {categories.length > 1 && (
-        <div className="flex items-center gap-2 mb-6 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
-              !selectedCategory
-                ? 'bg-[#ec4899] text-white'
-                : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
-            }`}
-          >
-            All
-          </button>
-          {categories.map(cat => (
+      {/* Filter chips */}
+      <div className="flex items-center gap-6 mb-6 flex-wrap">
+        {/* Category */}
+        {categories.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              onClick={() => setSelectedCategory(null)}
               className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
-                selectedCategory === cat
+                !selectedCategory
                   ? 'bg-[#ec4899] text-white'
                   : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
               }`}
             >
-              {translateCategory(cat, lang)}
+              {lang === 'he' ? 'הכל' : 'All'}
             </button>
-          ))}
-        </div>
-      )}
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  selectedCategory === cat
+                    ? 'bg-[#ec4899] text-white'
+                    : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
+                }`}
+              >
+                {translateCategory(cat, lang)}
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Company */}
+        {companies.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-[#4a4660] uppercase tracking-wider">{lang === 'he' ? 'חברה' : 'Company'}</span>
+            {companies.map(co => (
+              <button
+                key={co}
+                onClick={() => setSelectedCompany(selectedCompany === co ? null : co)}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                  selectedCompany === co
+                    ? 'bg-[#ec4899] text-white'
+                    : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
+                }`}
+              >
+                {translateValue(co, lang)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Table */}
       <InsuranceTable policies={filteredPolicies} lang={lang} highlightedPolicies={highlightedPolicies} highlightSeverity={highlightSeverity} />
