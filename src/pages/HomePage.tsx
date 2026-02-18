@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Search, Plus, Archive } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
 import NoteBoard from '../components/notes/NoteBoard';
@@ -10,6 +10,7 @@ import { Note } from '../types';
 export default function HomePage() {
   const { notes, loading, createNote, updateNote } = useNotes();
   const { getNoteIdsForLabel } = useLabels();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -92,6 +93,17 @@ export default function HomePage() {
           <NoteBoard notes={pinned} onNoteClick={handleNoteClick} sectionTitle={pinned.length > 0 ? 'Pinned' : undefined} />
           <NoteBoard notes={others} onNoteClick={handleNoteClick} sectionTitle={pinned.length > 0 ? 'Others' : undefined} />
         </>
+      )}
+
+      {/* Archive link */}
+      {notes.some(n => n.is_archived) && (
+        <button
+          onClick={() => navigate('/archive')}
+          className="mt-10 mx-auto flex items-center gap-2 text-[13px] text-[#7a7890] hover:text-[#b0adc0] transition-colors"
+        >
+          <Archive size={14} />
+          <span>{notes.filter(n => n.is_archived).length} archived notes</span>
+        </button>
       )}
 
       <NoteEditor
