@@ -1,20 +1,58 @@
-import { useState, useMemo } from 'react';
-import { Umbrella, Search, Upload } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Umbrella, Search, Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useInsurances } from '../context/InsurancesContext';
 import InsuranceTable from '../components/insurances/InsuranceTable';
 import InsuranceUpload from '../components/insurances/InsuranceUpload';
 import InsuranceDashboard from '../components/insurances/InsuranceDashboard';
 import InsuranceRecommendations from '../components/insurances/InsuranceRecommendations';
+import HarbImportGuide from '../components/insurances/HarbImportGuide';
 import Modal from '../components/ui/Modal';
 import { translateCategory, type InsuranceLang } from '../lib/insurance-i18n';
+import { parseInsuranceFile } from '../lib/insurance-parser';
 import { formatDate } from '../lib/utils';
 
+type HarbStatus = 'idle' | 'importing' | 'success' | 'error';
+
 export default function InsurancesPage() {
-  const { policies, loading, lastUploadDate } = useInsurances();
+  const { policies, loading, lastUploadDate, replacePolicies } = useInsurances();
   const [lang, setLang] = useState<InsuranceLang>('he');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [harbStatus, setHarbStatus] = useState<HarbStatus>('idle');
+  const [harbError, setHarbError] = useState('');
+
+  const handleHarbImport = useCallback(async (base64: string) => {
+    setHarbStatus('importing');
+    setHarbError('');
+    try {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const batchId = crypto.randomUUID();
+      const result = parseInsuranceFile(bytes.buffer, batchId);
+      if (result.errors.length > 0) {
+        setHarbStatus('error');
+        setHarbError(result.errors.join('; '));
+        return;
+      }
+      await replacePolicies(result.policies);
+      setHarbStatus('success');
+      setTimeout(() => setHarbStatus('idle'), 4000);
+    } catch (e) {
+      setHarbStatus('error');
+      setHarbError(e instanceof Error ? e.message : 'Import failed');
+    }
+  }, [replacePolicies]);
+
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'harb-import' || typeof e.data?.data !== 'string') return;
+      handleHarbImport(e.data.data);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [handleHarbImport]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -66,6 +104,8 @@ export default function InsurancesPage() {
           Upload your insurance file from Har HaBituach to get started.
         </p>
         <InsuranceUpload />
+        {harbStatus !== 'idle' && <HarbStatusBanner status={harbStatus} error={harbError} />}
+        <HarbImportGuide lang={lang} />
       </div>
     );
   }
@@ -171,6 +211,9 @@ export default function InsurancesPage() {
       {/* Table */}
       <InsuranceTable policies={filteredPolicies} lang={lang} />
 
+      {/* Harb import status */}
+      {harbStatus !== 'idle' && <HarbStatusBanner status={harbStatus} error={harbError} />}
+
       {/* Upload modal */}
       <Modal open={uploadOpen} onClose={() => setUploadOpen(false)}>
         <div className="p-6">
@@ -179,8 +222,37 @@ export default function InsurancesPage() {
             This will replace all existing insurance data with the new file.
           </p>
           <InsuranceUpload onDone={() => setUploadOpen(false)} />
+          <HarbImportGuide lang={lang} />
         </div>
       </Modal>
     </div>
   );
+}
+
+function HarbStatusBanner({ status, error }: { status: HarbStatus; error: string }) {
+  if (status === 'importing') {
+    return (
+      <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-[#ec4899]/10 border border-[#ec4899]/20">
+        <Loader2 size={14} className="text-[#ec4899] animate-spin" />
+        <span className="text-[13px] text-[#ec4899]">Importing from Har HaBituach...</span>
+      </div>
+    );
+  }
+  if (status === 'success') {
+    return (
+      <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+        <CheckCircle size={14} className="text-green-400" />
+        <span className="text-[13px] text-green-400">Import successful!</span>
+      </div>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+        <AlertCircle size={14} className="text-red-400" />
+        <span className="text-[13px] text-red-400">{error || 'Import failed'}</span>
+      </div>
+    );
+  }
+  return null;
 }
