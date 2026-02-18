@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Copy, AlertTriangle, ShieldQuestion, Building2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Copy, AlertTriangle } from 'lucide-react';
 import { InsurancePolicy } from '../../types';
 import { type InsuranceLang, translateValue } from '../../lib/insurance-i18n';
 
@@ -8,13 +8,14 @@ interface Props {
   lang: InsuranceLang;
 }
 
-type Severity = 'orange' | 'yellow' | 'blue' | 'gray';
+type Severity = 'orange' | 'yellow' | 'blue';
 
 interface Recommendation {
   severity: Severity;
   title: string;
   description: string;
   icon: React.ReactNode;
+  policies: { number: string; company: string }[];
 }
 
 function annualize(premium: number | null, type: string): number {
@@ -39,7 +40,6 @@ const BORDER_COLORS: Record<Severity, string> = {
   orange: 'border-l-orange-500',
   yellow: 'border-l-yellow-500',
   blue: 'border-l-blue-500',
-  gray: 'border-l-[#4a4660]',
 };
 
 export default function InsuranceRecommendations({ policies, lang }: Props) {
@@ -68,6 +68,7 @@ export default function InsuranceRecommendations({ policies, lang }: Props) {
             ? `פוליסה ${p.policy_number} ב-${p.company} מסתיימת בקרוב. שקול לחדש.`
             : `Policy ${p.policy_number} at ${translateValue(p.company, 'en')} expires soon. Consider renewing.`,
           icon: <Clock size={16} />,
+          policies: [{ number: p.policy_number, company: isHe ? p.company : translateValue(p.company, 'en') }],
         });
       }
     }
@@ -93,6 +94,7 @@ export default function InsuranceRecommendations({ policies, lang }: Props) {
           ? `נמצאו ${group.length} פוליסות עם אותו ענף ראשי ומשני. בדוק אם מדובר בכיסוי כפול.`
           : `Found ${group.length} policies with the same main & sub branch. Check if this is redundant coverage.`,
         icon: <Copy size={16} />,
+        policies: group.map(g => ({ number: g.policy_number, company: isHe ? g.company : translateValue(g.company, 'en') })),
       });
     }
 
@@ -110,60 +112,8 @@ export default function InsuranceRecommendations({ policies, lang }: Props) {
             ? 'שקול להשוות הצעות מחיר מחברות ביטוח אחרות.'
             : 'Consider comparing quotes from other insurers.',
           icon: <AlertTriangle size={16} />,
+          policies: [{ number: p.policy_number, company: isHe ? p.company : translateValue(p.company, 'en') }],
         });
-      }
-    }
-
-    // 4. Missing coverage
-    const allSubBranches = new Set(policies.map(p => p.sub_branch));
-    const allMainBranches = new Set(policies.map(p => p.main_branch));
-    const missing: { name: string; nameEn: string }[] = [];
-    if (!allSubBranches.has('אובדן כושר עבודה') && !allMainBranches.has('אובדן כושר עבודה')) {
-      missing.push({ name: 'אובדן כושר עבודה', nameEn: 'Disability (Loss of Work Capacity)' });
-    }
-    if (!allSubBranches.has('ביטוח נסיעות לחו"ל') && !allMainBranches.has('ביטוח נסיעות לחו"ל')) {
-      missing.push({ name: 'ביטוח נסיעות לחו"ל', nameEn: 'Travel Insurance' });
-    }
-    if (!allSubBranches.has('ביטוח צד ג') && !allMainBranches.has('ביטוח צד ג')) {
-      missing.push({ name: 'ביטוח צד ג', nameEn: 'Third Party Liability' });
-    }
-    for (const m of missing) {
-      recs.push({
-        severity: 'gray',
-        title: isHe
-          ? `כיסוי חסר: ${m.name}`
-          : `Missing coverage: ${m.nameEn}`,
-        description: isHe
-          ? 'לא נמצא כיסוי זה בפוליסות שלך. שקול אם הוא נחוץ עבורך.'
-          : 'This coverage type was not found in your policies. Consider if you need it.',
-        icon: <ShieldQuestion size={16} />,
-      });
-    }
-
-    // 5. Single provider concentration
-    const byCompany = new Map<string, number>();
-    let totalAnnual = 0;
-    for (const p of policies) {
-      const annual = annualize(p.premium_nis, p.premium_type);
-      totalAnnual += annual;
-      byCompany.set(p.company, (byCompany.get(p.company) ?? 0) + annual);
-    }
-    if (totalAnnual > 0) {
-      for (const [company, amount] of byCompany) {
-        const ratio = amount / totalAnnual;
-        if (ratio > 0.7) {
-          const name = isHe ? company : translateValue(company, 'en');
-          recs.push({
-            severity: 'gray',
-            title: isHe
-              ? `ריכוז גבוה: ${Math.round(ratio * 100)}% מהפרמיות ב-${name}`
-              : `High concentration: ${Math.round(ratio * 100)}% of premiums at ${name}`,
-            description: isHe
-              ? 'שקול לפזר סיכונים בין מספר חברות ביטוח.'
-              : 'Consider diversifying across multiple insurance providers.',
-            icon: <Building2 size={16} />,
-          });
-        }
       }
     }
 
@@ -199,14 +149,23 @@ export default function InsuranceRecommendations({ policies, lang }: Props) {
               <div className={`mt-0.5 shrink-0 ${
                 rec.severity === 'orange' ? 'text-orange-500' :
                 rec.severity === 'yellow' ? 'text-yellow-500' :
-                rec.severity === 'blue' ? 'text-blue-500' :
-                'text-[#7a7890]'
+                'text-blue-500'
               }`}>
                 {rec.icon}
               </div>
               <div className="min-w-0">
                 <div className="text-[13px] text-white font-medium">{rec.title}</div>
                 <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
+                {rec.policies.length > 0 && (
+                  <div className="text-[11px] text-[#4a4660] mt-1">
+                    {rec.policies.map((p, j) => (
+                      <span key={j}>
+                        {j > 0 && ', '}
+                        {isHe ? 'פוליסה' : 'Policy'} {p.number} · {p.company}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

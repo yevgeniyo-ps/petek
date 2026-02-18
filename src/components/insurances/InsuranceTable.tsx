@@ -13,16 +13,24 @@ interface InsuranceTableProps {
   lang: InsuranceLang;
 }
 
-function formatPremium(value: number | null): string {
+const PREMIUM_SUFFIX: Record<string, string> = {
+  'חודשית': '/mo',
+  'שנתית': '/yr',
+  'רבעונית': '/qtr',
+};
+
+function formatPremium(value: number | null, premiumType: string): string {
   if (value == null) return '—';
-  return value.toLocaleString('en-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatted = value.toLocaleString('en-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const suffix = PREMIUM_SUFFIX[premiumType] ?? '';
+  return `₪${formatted}${suffix}`;
 }
 
 function getCellValue(policy: InsurancePolicy, col: ColumnKey, lang: InsuranceLang): string {
   const raw = policy[col as keyof InsurancePolicy];
   if (raw == null || raw === '') return '—';
 
-  if (col === 'premium_nis') return formatPremium(raw as number | null);
+  if (col === 'premium_nis') return formatPremium(raw as number | null, policy.premium_type);
   if (col === 'category') return translateCategory(String(raw), lang);
 
   return translateValue(String(raw), lang);
@@ -58,12 +66,10 @@ export default function InsuranceTable({ policies, lang }: InsuranceTableProps) 
                 {VISIBLE_COLUMNS.map(col => (
                   <td
                     key={col}
-                    className={`px-4 py-3 text-[13px] ${
+                    className={`px-4 py-3 text-[13px] whitespace-nowrap ${
                       col === 'premium_nis'
                         ? 'text-right text-white font-medium tabular-nums'
                         : 'text-[#e0dfe4]'
-                    } ${
-                      col === 'additional_details' ? 'max-w-[200px] truncate' : 'whitespace-nowrap'
                     }`}
                   >
                     {getCellValue(policy, col, lang)}

@@ -32,17 +32,12 @@ export type InsuranceLang = 'he' | 'en';
 export type ColumnKey = keyof typeof COLUMN_LABELS.he;
 
 export const VISIBLE_COLUMNS: ColumnKey[] = [
-  'category',
-  'main_branch',
-  'sub_branch',
-  'product_type',
   'company',
+  'sub_branch',
+  'category',
   'coverage_period',
-  'additional_details',
   'premium_nis',
-  'premium_type',
   'policy_number',
-  'plan_classification',
 ];
 
 const CATEGORY_TRANSLATIONS: Record<string, string> = {
