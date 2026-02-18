@@ -87,27 +87,27 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
       combos.set(p.sub_branch, arr);
     }
     for (const [, group] of combos) {
-      if (group.length < 2) continue;
-      const p = group[0]!;
-      const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
-      const annuals = group.map(g => annualize(g.premium_nis, g.premium_type)).sort((a, b) => a - b);
-      const dupSavings = annuals.slice(1).reduce((sum, v) => sum + v, 0);
-      // Deduplicate policy numbers for display only
-      const seen = new Set<string>();
-      const displayPolicies: { number: string; company: string }[] = [];
+      // Deduplicate by policy_number
+      const uniqueByNumber = new Map<string, InsurancePolicy>();
       for (const g of group) {
-        if (seen.has(g.policy_number)) continue;
-        seen.add(g.policy_number);
-        displayPolicies.push({ number: g.policy_number, company: isHe ? g.company : translateValue(g.company, 'en') });
+        if (!uniqueByNumber.has(g.policy_number)) uniqueByNumber.set(g.policy_number, g);
       }
+      const unique = Array.from(uniqueByNumber.values());
+      // Skip if all rows share the same policy number
+      if (unique.length < 2) continue;
+      const p = unique[0]!;
+      const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
+      const annuals = unique.map(g => annualize(g.premium_nis, g.premium_type)).sort((a, b) => a - b);
+      const dupSavings = annuals.slice(1).reduce((sum, v) => sum + v, 0);
+      const displayPolicies = unique.map(g => ({ number: g.policy_number, company: isHe ? g.company : translateValue(g.company, 'en') }));
       recs.push({
         severity: 'yellow',
         title: isHe
-          ? `כפילות אפשרית: ${name} (${group.length} רשומות)`
-          : `Possible duplicate: ${name} (${group.length} entries)`,
+          ? `כפילות אפשרית: ${name} (${unique.length} פוליסות)`
+          : `Possible duplicate: ${name} (${unique.length} policies)`,
         description: isHe
-          ? `נמצאו ${group.length} רשומות עם אותו סוג כיסוי. בדוק אם מדובר בכיסוי כפול.`
-          : `Found ${group.length} entries with the same coverage type. Check if this is redundant.`,
+          ? `נמצאו ${unique.length} פוליסות שונות עם אותו סוג כיסוי. בדוק אם מדובר בכיסוי כפול.`
+          : `Found ${unique.length} distinct policies with the same coverage type. Check if this is redundant.`,
         icon: <Copy size={16} />,
         policies: displayPolicies,
         savingsPerYear: dupSavings,
