@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Users, StickyNote, Shield, HardDrive } from 'lucide-react';
+import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen } from 'lucide-react';
 import { AdminUser } from '../types';
 import { fetchUsers, deleteUserData } from '../lib/admin';
 import { formatDate } from '../lib/utils';
@@ -23,7 +23,7 @@ export default function AdminPage() {
     setUsers(prev =>
       prev.map(u =>
         u.id === deleteTarget.id
-          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, disk_usage: 0 }
+          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, policies_count: 0, disk_usage: 0, notes_this_month: 0, policies_this_month: 0 }
           : u
       )
     );
@@ -35,6 +35,8 @@ export default function AdminPage() {
   );
 
   const totalNotes = users.reduce((sum, u) => sum + u.notes_count, 0);
+  const totalPolicies = users.reduce((sum, u) => sum + u.policies_count, 0);
+  const totalCollections = users.reduce((sum, u) => sum + u.collections_count, 0);
   const activeToday = users.filter(u => {
     if (!u.last_sign_in_at) return false;
     const d = new Date(u.last_sign_in_at);
@@ -55,10 +57,12 @@ export default function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-4 mb-8">
         <StatCard icon={Users} label="Total users" value={users.length} />
         <StatCard icon={Users} label="Active today" value={activeToday} />
         <StatCard icon={StickyNote} label="Total notes" value={totalNotes} />
+        <StatCard icon={Umbrella} label="Total policies" value={totalPolicies} />
+        <StatCard icon={FolderOpen} label="Total collections" value={totalCollections} />
         <StatCard icon={HardDrive} label="Total disk" value={formatBytes(users.reduce((sum, u) => sum + u.disk_usage, 0))} />
       </div>
 
@@ -83,6 +87,7 @@ export default function AdminPage() {
               <th className="px-4 py-3 font-medium">Signed up</th>
               <th className="px-4 py-3 font-medium">Last active</th>
               <th className="px-4 py-3 font-medium text-right">Notes</th>
+              <th className="px-4 py-3 font-medium text-right">Policies</th>
               <th className="px-4 py-3 font-medium text-right">Collections</th>
               <th className="px-4 py-3 font-medium text-right">Labels</th>
               <th className="px-4 py-3 font-medium text-right">Disk</th>
@@ -97,7 +102,14 @@ export default function AdminPage() {
                 <td className="px-4 py-3 text-[#7a7890]">
                   {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : '—'}
                 </td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">{user.notes_count}</td>
+                <td className="px-4 py-3 text-[#7a7890] text-right">
+                  {user.notes_count}
+                  {user.notes_this_month > 0 && <span className="ml-1.5 text-[11px] text-emerald-400">+{user.notes_this_month}</span>}
+                </td>
+                <td className="px-4 py-3 text-[#7a7890] text-right">
+                  {user.policies_count}
+                  {user.policies_this_month > 0 && <span className="ml-1.5 text-[11px] text-emerald-400">+{user.policies_this_month}</span>}
+                </td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.collections_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.labels_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
@@ -114,7 +126,7 @@ export default function AdminPage() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#7a7890]">
+                <td colSpan={9} className="px-4 py-8 text-center text-[#7a7890]">
                   No users found
                 </td>
               </tr>
@@ -128,7 +140,7 @@ export default function AdminPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteData}
         title="Delete user data"
-        message={`This will permanently delete all notes, collections, and labels for ${deleteTarget?.email}. The user account itself will remain.`}
+        message={`This will permanently delete all notes, collections, labels, and policies for ${deleteTarget?.email}. The user account itself will remain.`}
         confirmLabel="Delete data"
       />
     </div>

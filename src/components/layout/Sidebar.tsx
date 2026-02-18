@@ -72,7 +72,9 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
-          <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => navigate('/')} collapsed={!open} />
+          {menuSettings.notes && (
+            <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => navigate('/')} collapsed={!open} />
+          )}
           {menuSettings.insurances && (
             <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
           )}

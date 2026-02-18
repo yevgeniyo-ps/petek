@@ -2,12 +2,14 @@ import { Settings } from 'lucide-react';
 import Modal from '../ui/Modal';
 
 export interface MenuSettings {
+  notes: boolean;
   insurances: boolean;
   collections: boolean;
   tags: boolean;
 }
 
 export const defaultMenuSettings: MenuSettings = {
+  notes: true,
   insurances: true,
   collections: true,
   tags: true,
@@ -42,6 +44,7 @@ export default function SettingsModal({ open, onClose, settings, onChange }: Set
   };
 
   const items: { key: keyof MenuSettings; label: string }[] = [
+    { key: 'notes', label: 'Notes' },
     { key: 'insurances', label: 'Insurances' },
     { key: 'collections', label: 'Collections' },
     { key: 'tags', label: 'Tags' },
