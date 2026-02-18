@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Umbrella, Search, Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Umbrella, Search, Upload, Trash2, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useInsurances } from '../context/InsurancesContext';
 import InsuranceTable from '../components/insurances/InsuranceTable';
 import InsuranceUpload from '../components/insurances/InsuranceUpload';
@@ -7,6 +7,7 @@ import InsuranceDashboard from '../components/insurances/InsuranceDashboard';
 import InsuranceRecommendations from '../components/insurances/InsuranceRecommendations';
 import HarbImportGuide from '../components/insurances/HarbImportGuide';
 import Modal from '../components/ui/Modal';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { translateCategory, type InsuranceLang } from '../lib/insurance-i18n';
 import { parseInsuranceFile } from '../lib/insurance-parser';
 import { formatDate } from '../lib/utils';
@@ -14,11 +15,12 @@ import { formatDate } from '../lib/utils';
 type HarbStatus = 'idle' | 'importing' | 'success' | 'error';
 
 export default function InsurancesPage() {
-  const { policies, loading, lastUploadDate, replacePolicies } = useInsurances();
+  const { policies, loading, lastUploadDate, replacePolicies, clearAll } = useInsurances();
   const [lang, setLang] = useState<InsuranceLang>('he');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [harbStatus, setHarbStatus] = useState<HarbStatus>('idle');
   const [harbError, setHarbError] = useState('');
 
@@ -156,6 +158,13 @@ export default function InsurancesPage() {
             <Upload size={14} />
             Re-upload
           </button>
+          {/* Clear all button */}
+          <button
+            onClick={() => setClearOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[13px] text-[#7a7890] hover:text-red-400 border border-[#1c1928] hover:border-red-500/30 rounded-lg transition-all"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
 
@@ -213,6 +222,16 @@ export default function InsurancesPage() {
 
       {/* Harb import status */}
       {harbStatus !== 'idle' && <HarbStatusBanner status={harbStatus} error={harbError} />}
+
+      {/* Clear all confirmation */}
+      <ConfirmDialog
+        open={clearOpen}
+        onClose={() => setClearOpen(false)}
+        onConfirm={clearAll}
+        title="Delete all insurance data?"
+        message="This will permanently remove all your insurance policies. You can re-upload anytime."
+        confirmLabel="Delete all"
+      />
 
       {/* Upload modal */}
       <Modal open={uploadOpen} onClose={() => setUploadOpen(false)}>
