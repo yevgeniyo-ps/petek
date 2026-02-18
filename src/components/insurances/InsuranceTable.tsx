@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Columns3, Columns4 } from 'lucide-react';
 import type { InsurancePolicy } from '../../types';
 import {
@@ -57,9 +57,18 @@ const HIGHLIGHT_BORDER: Record<Severity, string> = {
 
 export default function InsuranceTable({ policies, lang, highlightedPolicies, highlightSeverity }: InsuranceTableProps) {
   const [expanded, setExpanded] = useState(false);
+  const [selectedPolicyNumber, setSelectedPolicyNumber] = useState<string | null>(null);
   const columns = expanded ? EXPANDED_COLUMNS : VISIBLE_COLUMNS;
   const labels = COLUMN_LABELS[lang];
   const isHe = lang === 'he';
+
+  // Clear row selection when recommendation highlight activates
+  useEffect(() => {
+    if (highlightedPolicies && highlightedPolicies.size > 0) setSelectedPolicyNumber(null);
+  }, [highlightedPolicies]);
+
+  const hasRecHighlight = highlightedPolicies && highlightedPolicies.size > 0;
+  const activeHighlight = hasRecHighlight ? highlightedPolicies : selectedPolicyNumber ? new Set([selectedPolicyNumber]) : null;
 
   return (
     <div className="rounded-xl border border-[#1c1928] overflow-hidden">
@@ -93,14 +102,24 @@ export default function InsuranceTable({ policies, lang, highlightedPolicies, hi
           </thead>
           <tbody>
             {policies.map(policy => {
-              const isHighlighted = highlightedPolicies?.has(policy.policy_number) && highlightSeverity;
+              const recHighlighted = highlightedPolicies?.has(policy.policy_number) && highlightSeverity;
+              const rowSelected = !hasRecHighlight && selectedPolicyNumber === policy.policy_number;
+              const dimmed = activeHighlight && !activeHighlight.has(policy.policy_number);
               return (
               <tr
                 key={policy.id}
-                className={`border-b border-[#1c1928] last:border-b-0 transition-colors ${
-                  isHighlighted
+                onClick={() => {
+                  if (hasRecHighlight) return; // don't override recommendation highlight
+                  setSelectedPolicyNumber(
+                    selectedPolicyNumber === policy.policy_number ? null : policy.policy_number
+                  );
+                }}
+                className={`border-b border-[#1c1928] last:border-b-0 transition-colors cursor-pointer ${
+                  recHighlighted
                     ? `${HIGHLIGHT_BG[highlightSeverity]} ${HIGHLIGHT_BORDER[highlightSeverity]}`
-                    : highlightedPolicies?.size
+                    : rowSelected
+                    ? 'bg-[#ec4899]/[0.08] border-l-2 border-l-[#ec4899]'
+                    : dimmed
                     ? 'opacity-40'
                     : 'hover:bg-white/[0.02]'
                 }`}
