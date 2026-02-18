@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Copy, AlertTriangle } from 'lucide-react';
+import { useMemo, useState, useCallback } from 'react';
+import { ChevronDown, ChevronUp, Clock, Copy, AlertTriangle, X, RotateCcw } from 'lucide-react';
 import { InsurancePolicy } from '../../types';
 import { type InsuranceLang, translateValue } from '../../lib/insurance-i18n';
 
@@ -13,12 +13,26 @@ interface Props {
 type Severity = 'orange' | 'yellow' | 'blue';
 
 interface Recommendation {
+  key: string;
   severity: Severity;
   title: string;
   description: string;
   icon: React.ReactNode;
   policies: { number: string; company: string }[];
   savingsPerYear: number;
+}
+
+const DISMISSED_KEY = 'petek:dismissed-recs';
+
+function loadDismissed(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveDismissed(set: Set<string>) {
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set]));
 }
 
 function annualize(premium: number | null, type: string): number {
@@ -49,8 +63,24 @@ export { type Severity };
 
 export default function InsuranceRecommendations({ policies, lang, activeRecIndex, onSelect }: Props) {
   const [collapsed, setCollapsed] = useState(false);
+  const [dismissed, setDismissed] = useState(loadDismissed);
 
-  const recommendations = useMemo(() => {
+  const dismiss = useCallback((key: string) => {
+    setDismissed(prev => {
+      const next = new Set(prev);
+      next.add(key);
+      saveDismissed(next);
+      return next;
+    });
+    onSelect(null, [], 'blue'); // clear any active highlight
+  }, [onSelect]);
+
+  const restoreAll = useCallback(() => {
+    setDismissed(new Set());
+    saveDismissed(new Set());
+  }, []);
+
+  const allRecommendations = useMemo(() => {
     const recs: Recommendation[] = [];
     const isHe = lang === 'he';
     const now = new Date();
@@ -65,6 +95,7 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
         const daysLeft = Math.ceil(diff / (24 * 60 * 60 * 1000));
         const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
         recs.push({
+          key: `expiring:${p.policy_number}`,
           severity: 'orange',
           title: isHe
             ? `${name} פג תוקף בעוד ${daysLeft} ימים`
@@ -98,6 +129,7 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
       const annuals = unique.map(g => annualize(g.premium_nis, g.premium_type)).sort((a, b) => a - b);
       const dupSavings = annuals.slice(1).reduce((sum, v) => sum + v, 0);
       recs.push({
+        key: `dup:${p.sub_branch}`,
         severity: 'yellow',
         title: isHe
           ? `כפילות אפשרית: ${name} (${unique.length} פוליסות)`
@@ -117,6 +149,7 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
       if (annual > 2000) {
         const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
         recs.push({
+          key: `premium:${p.policy_number}`,
           severity: 'blue',
           title: isHe
             ? `פרמיה גבוהה: ${name} — ₪${Math.round(annual).toLocaleString('en-IL')}/שנה`
@@ -134,12 +167,22 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
     return recs;
   }, [policies, lang]);
 
+  const recommendations = useMemo(
+    () => allRecommendations.filter(r => !dismissed.has(r.key)),
+    [allRecommendations, dismissed],
+  );
+
+  const dismissedRecs = useMemo(
+    () => allRecommendations.filter(r => dismissed.has(r.key)),
+    [allRecommendations, dismissed],
+  );
+
   const totalSavings = useMemo(
     () => recommendations.reduce((sum, r) => sum + r.savingsPerYear, 0),
     [recommendations],
   );
 
-  if (recommendations.length === 0) return null;
+  if (allRecommendations.length === 0) return null;
 
   const isHe = lang === 'he';
   const fmtSavings = (n: number) => `₪${Math.round(n).toLocaleString('en-IL')}`;
@@ -172,52 +215,72 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
           {recommendations.map((rec, i) => {
             const isActive = activeRecIndex === i;
             return (
-              <button
-                key={i}
-                onClick={() => {
-                  const numbers = rec.policies.map(p => p.number);
-                  onSelect(isActive ? null : i, numbers, rec.severity);
-                }}
-                className={`flex items-start gap-3 w-full text-left border border-l-[3px] ${BORDER_COLORS[rec.severity]} rounded-lg px-4 py-3 transition-colors cursor-pointer ${
-                  isActive
-                    ? 'bg-[#1a1730] border-[#2d2a40]'
-                    : 'bg-[#13111c] border-[#1c1928] hover:bg-[#16141f]'
-                }`}
-              >
-                <div className={`mt-0.5 shrink-0 ${
-                  rec.severity === 'orange' ? 'text-orange-500' :
-                  rec.severity === 'yellow' ? 'text-yellow-500' :
-                  'text-blue-500'
-                }`}>
-                  {rec.icon}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[13px] text-white font-medium flex items-center gap-2 flex-wrap">
-                    {rec.title}
-                    {rec.savingsPerYear > 0 && (
-                      <span className="text-[11px] text-emerald-400 font-normal">
-                        {isHe ? `~${fmtSavings(rec.savingsPerYear)}/שנה` : `~${fmtSavings(rec.savingsPerYear)}/yr`}
-                      </span>
-                    )}
+              <div key={rec.key} className="relative group/rec">
+                <button
+                  onClick={() => {
+                    const numbers = rec.policies.map(p => p.number);
+                    onSelect(isActive ? null : i, numbers, rec.severity);
+                  }}
+                  className={`flex items-start gap-3 w-full text-left border border-l-[3px] ${BORDER_COLORS[rec.severity]} rounded-lg px-4 py-3 pr-9 transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-[#1a1730] border-[#2d2a40]'
+                      : 'bg-[#13111c] border-[#1c1928] hover:bg-[#16141f]'
+                  }`}
+                >
+                  <div className={`mt-0.5 shrink-0 ${
+                    rec.severity === 'orange' ? 'text-orange-500' :
+                    rec.severity === 'yellow' ? 'text-yellow-500' :
+                    'text-blue-500'
+                  }`}>
+                    {rec.icon}
                   </div>
-                  <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
-                  <div className="text-[11px] mt-1 flex items-center gap-2 flex-wrap">
-                    {rec.policies.map((p, j) => (
-                      <span key={j} className={isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}>
-                        {isHe ? 'פוליסה' : 'Policy'} {p.number} · {p.company}
+                  <div className="min-w-0">
+                    <div className="text-[13px] text-white font-medium flex items-center gap-2 flex-wrap">
+                      {rec.title}
+                      {rec.savingsPerYear > 0 && (
+                        <span className="text-[11px] text-emerald-400 font-normal">
+                          {isHe ? `~${fmtSavings(rec.savingsPerYear)}/שנה` : `~${fmtSavings(rec.savingsPerYear)}/yr`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
+                    <div className="text-[11px] mt-1 flex items-center gap-2 flex-wrap">
+                      {rec.policies.map((p, j) => (
+                        <span key={j} className={isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}>
+                          {isHe ? 'פוליסה' : 'Policy'} {p.number} · {p.company}
+                        </span>
+                      ))}
+                      <span className={`text-[11px] ${isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}`}>
+                        {isActive
+                          ? (isHe ? '— לחץ לביטול' : '— click to clear')
+                          : (isHe ? '— לחץ להדגשה בטבלה' : '— click to highlight')
+                        }
                       </span>
-                    ))}
-                    <span className={`text-[11px] ${isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}`}>
-                      {isActive
-                        ? (isHe ? '— לחץ לביטול' : '— click to clear')
-                        : (isHe ? '— לחץ להדגשה בטבלה' : '— click to highlight')
-                      }
-                    </span>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); dismiss(rec.key); }}
+                  className="absolute top-3 right-3 p-0.5 rounded text-[#4a4660] opacity-0 group-hover/rec:opacity-100 hover:text-white hover:bg-white/[0.08] transition-all"
+                  title={isHe ? 'השתק' : 'Dismiss'}
+                >
+                  <X size={14} />
+                </button>
+              </div>
             );
           })}
+          {dismissedRecs.length > 0 && (
+            <button
+              onClick={restoreAll}
+              className="flex items-center gap-1.5 text-[11px] text-[#4a4660] hover:text-[#7a7890] transition-colors mt-1"
+            >
+              <RotateCcw size={12} />
+              {isHe
+                ? `הצג ${dismissedRecs.length} המלצות מושתקות`
+                : `Show ${dismissedRecs.length} dismissed`
+              }
+            </button>
+          )}
         </div>
       )}
     </div>
