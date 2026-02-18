@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Note, NoteColor } from '../../types';
-import { NOTE_COLORS, truncateMarkdown, formatDate } from '../../lib/utils';
+import { Note } from '../../types';
+import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
 import { useLabels } from '../../context/LabelsContext';
 import NoteToolbar from './NoteToolbar';
@@ -17,19 +17,22 @@ export default function NoteCard({ note, onClick }: NoteCardProps) {
   const { updateNote, deleteNote } = useNotes();
   const { getLabelsForNote } = useLabels();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const colorConfig = NOTE_COLORS[note.color as NoteColor] ?? NOTE_COLORS.default;
   const noteLabels = getLabelsForNote(note.id);
 
   return (
     <>
       <div
         onClick={onClick}
-        className="group rounded-xl border cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px]"
-        style={{ backgroundColor: colorConfig.bg, borderColor: colorConfig.border }}
+        className="group rounded-xl border border-[#1c1928] bg-[#13111c] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative"
       >
+        {note.emoji && (
+          <span className="absolute top-3 right-3 text-[20px] opacity-70 pointer-events-none">
+            {note.emoji}
+          </span>
+        )}
         <div className="p-4 flex-1 min-h-0">
           {note.title && (
-            <h3 className="text-[14px] font-semibold text-white mb-2 line-clamp-2">
+            <h3 className="text-[14px] font-semibold text-white mb-2 line-clamp-2 pr-8">
               {note.title}
             </h3>
           )}
@@ -57,11 +60,11 @@ export default function NoteCard({ note, onClick }: NoteCardProps) {
             isPinned={note.is_pinned}
             isArchived={note.is_archived}
             onTogglePin={() => updateNote(note.id, { is_pinned: !note.is_pinned })}
-            onColorChange={(color) => updateNote(note.id, { color })}
+            onEmojiChange={(emoji) => updateNote(note.id, { emoji })}
             onArchive={() => updateNote(note.id, { is_archived: true })}
             onRestore={() => updateNote(note.id, { is_archived: false })}
             onDelete={() => setConfirmDelete(true)}
-            currentColor={note.color}
+            currentEmoji={note.emoji}
           />
           <span className="text-[11px] text-[#4a4660]">{formatDate(note.updated_at)}</span>
         </div>

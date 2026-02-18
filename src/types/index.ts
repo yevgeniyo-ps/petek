@@ -4,6 +4,7 @@ export interface Note {
   title: string;
   content: string;
   color: string;
+  emoji: string | null;
   is_pinned: boolean;
   is_archived: boolean;
   is_trashed: boolean;
@@ -22,26 +23,6 @@ export interface Label {
 export interface NoteLabel {
   note_id: string;
   label_id: string;
-}
-
-export type NoteColor =
-  | 'default'
-  | 'coral'
-  | 'peach'
-  | 'sand'
-  | 'mint'
-  | 'sage'
-  | 'sky'
-  | 'lavender'
-  | 'rose'
-  | 'ember'
-  | 'teal'
-  | 'plum';
-
-export interface NoteColorConfig {
-  name: string;
-  bg: string;
-  border: string;
 }
 
 // Collections

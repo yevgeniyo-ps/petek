@@ -18,7 +18,7 @@ export async function createNote(note: Partial<Note>): Promise<Note> {
     .insert({
       title: note.title ?? '',
       content: note.content ?? '',
-      color: note.color ?? 'default',
+      emoji: note.emoji ?? null,
     })
     .select()
     .single();

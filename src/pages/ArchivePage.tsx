@@ -31,7 +31,7 @@ export default function ArchivePage() {
     return filtered;
   }, [notes, search, selectedTagId, getNoteIdsForLabel]);
 
-  const handleSave = async (data: { title: string; content: string; color: string }) => {
+  const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
     if (editingNote) {
       await updateNote(editingNote.id, data);
     }

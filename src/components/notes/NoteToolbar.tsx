@@ -1,23 +1,22 @@
 import { useState } from 'react';
-import { Pin, PinOff, Palette, Trash2, ArchiveRestore, Archive } from 'lucide-react';
-import ColorPicker from '../ui/ColorPicker';
-import { NoteColor } from '../../types';
+import { Pin, PinOff, Smile, Trash2, ArchiveRestore, Archive } from 'lucide-react';
+import EmojiPicker from '../ui/EmojiPicker';
 
 interface NoteToolbarProps {
   isPinned: boolean;
   isArchived?: boolean;
   onTogglePin: () => void;
-  onColorChange: (color: NoteColor) => void;
+  onEmojiChange: (emoji: string | null) => void;
   onArchive?: () => void;
   onRestore?: () => void;
   onDelete?: () => void;
-  currentColor: string;
+  currentEmoji: string | null;
 }
 
 export default function NoteToolbar({
-  isPinned, isArchived, onTogglePin, onColorChange, onArchive, onRestore, onDelete, currentColor,
+  isPinned, isArchived, onTogglePin, onEmojiChange, onArchive, onRestore, onDelete, currentEmoji,
 }: NoteToolbarProps) {
-  const [showColors, setShowColors] = useState(false);
+  const [showEmojis, setShowEmojis] = useState(false);
 
   const btnClass = "p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors";
 
@@ -29,14 +28,14 @@ export default function NoteToolbar({
             {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
           </button>
           <div className="relative">
-            <button onClick={() => setShowColors(!showColors)} className={btnClass} title="Color">
-              <Palette size={16} />
+            <button onClick={() => setShowEmojis(!showEmojis)} className={btnClass} title="Emoji">
+              <Smile size={16} />
             </button>
-            {showColors && (
+            {showEmojis && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowColors(false)} />
+                <div className="fixed inset-0 z-10" onClick={() => setShowEmojis(false)} />
                 <div className="absolute bottom-full left-0 mb-2 z-20 bg-[#1e1b2e] border border-[#2d2a40] rounded-xl shadow-xl shadow-black/40">
-                  <ColorPicker current={currentColor} onChange={(c) => { onColorChange(c); setShowColors(false); }} />
+                  <EmojiPicker current={currentEmoji} onChange={(e) => { onEmojiChange(e); setShowEmojis(false); }} />
                 </div>
               </>
             )}

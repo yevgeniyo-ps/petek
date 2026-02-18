@@ -35,7 +35,7 @@ export default function HomePage() {
   const pinned = activeNotes.filter(n => n.is_pinned);
   const others = activeNotes.filter(n => !n.is_pinned);
 
-  const handleSave = async (data: { title: string; content: string; color: string }) => {
+  const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
     if (editingNote) {
       await updateNote(editingNote.id, data);
     } else {

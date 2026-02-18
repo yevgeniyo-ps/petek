@@ -1,39 +1,40 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Tag, X, ChevronDown } from 'lucide-react';
+import { Tag, X, ChevronDown, Smile } from 'lucide-react';
 const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
-import ColorPicker from '../ui/ColorPicker';
-import { Note, NoteColor, Label } from '../../types';
-import { NOTE_COLORS } from '../../lib/utils';
+import EmojiPicker from '../ui/EmojiPicker';
+import { Note, Label } from '../../types';
 import { useLabels } from '../../context/LabelsContext';
 
 interface NoteEditorProps {
   note: Note | null;
   open: boolean;
   onClose: () => void;
-  onSave: (data: { title: string; content: string; color: string }) => Promise<void>;
+  onSave: (data: { title: string; content: string; emoji: string | null }) => Promise<void>;
 }
 
 export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorProps) {
   const { labels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [color, setColor] = useState<NoteColor>('default');
+  const [emoji, setEmoji] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [assignedLabels, setAssignedLabels] = useState<Label[]>([]);
   const tagPickerRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (note) {
       setTitle(note.title);
       setContent(note.content);
-      setColor(note.color as NoteColor);
+      setEmoji(note.emoji);
       setAssignedLabels(getLabelsForNote(note.id));
     } else {
       setTitle('');
       setContent('');
-      setColor('default');
+      setEmoji(null);
       setAssignedLabels([]);
     }
   }, [note, open, getLabelsForNote]);
@@ -48,6 +49,17 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [tagPickerOpen]);
+
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    const handleClick = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showEmojiPicker]);
 
   const handleToggleLabel = async (label: Label) => {
     if (!note) return;
@@ -64,16 +76,14 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
   const handleSave = async () => {
     if (!title.trim() && !content.trim()) return;
     setSaving(true);
-    await onSave({ title, content, color });
+    await onSave({ title, content, emoji });
     setSaving(false);
     onClose();
   };
 
-  const colorConfig = NOTE_COLORS[color] ?? NOTE_COLORS.default;
-
   return (
     <Modal open={open} onClose={handleSave}>
-      <div style={{ backgroundColor: colorConfig.bg }} data-color-mode="dark">
+      <div className="bg-[#13111c]" data-color-mode="dark">
         <input
           type="text"
           placeholder="Title"
@@ -96,7 +106,24 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
         </div>
         <div className="px-5 py-3.5 flex items-center justify-between border-t border-white/[0.04]">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <ColorPicker current={color} onChange={setColor} />
+            <div className="relative" ref={emojiPickerRef}>
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors flex items-center gap-1.5"
+                title="Pick emoji"
+              >
+                {emoji ? (
+                  <span className="text-[16px]">{emoji}</span>
+                ) : (
+                  <Smile size={16} />
+                )}
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute bottom-full left-0 mb-1 z-50 bg-[#1e1b2e] border border-[#2d2a40] rounded-xl shadow-xl shadow-black/40">
+                  <EmojiPicker current={emoji} onChange={(e) => { setEmoji(e); setShowEmojiPicker(false); }} />
+                </div>
+              )}
+            </div>
             {note && (
               <div className="flex items-center gap-1.5 flex-wrap" ref={tagPickerRef}>
                 {assignedLabels.map(label => (
