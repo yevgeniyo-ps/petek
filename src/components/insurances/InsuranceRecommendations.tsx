@@ -64,6 +64,7 @@ export { type Severity };
 export default function InsuranceRecommendations({ policies, lang, activeRecIndex, onSelect }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(loadDismissed);
+  const [dismissedOpen, setDismissedOpen] = useState(false);
 
   const dismiss = useCallback((key: string) => {
     setDismissed(prev => {
@@ -75,6 +76,15 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
     onSelect(null, [], 'blue'); // clear any active highlight
   }, [onSelect]);
 
+  const restore = useCallback((key: string) => {
+    setDismissed(prev => {
+      const next = new Set(prev);
+      next.delete(key);
+      saveDismissed(next);
+      return next;
+    });
+  }, []);
+
   const restoreAll = useCallback(() => {
     setDismissed(new Set());
     saveDismissed(new Set());
@@ -84,14 +94,14 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
     const recs: Recommendation[] = [];
     const isHe = lang === 'he';
     const now = new Date();
-    const sixtyDaysMs = 60 * 24 * 60 * 60 * 1000;
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
 
-    // 1. Expiring soon (no direct savings)
+    // 1. Expiring within 30 days
     for (const p of policies) {
       const end = parseEndDate(p.coverage_period);
       if (!end) continue;
       const diff = end.getTime() - now.getTime();
-      if (diff > 0 && diff <= sixtyDaysMs) {
+      if (diff > 0 && diff <= thirtyDaysMs) {
         const daysLeft = Math.ceil(diff / (24 * 60 * 60 * 1000));
         const name = isHe ? p.sub_branch : translateValue(p.sub_branch, 'en');
         recs.push({
@@ -270,16 +280,54 @@ export default function InsuranceRecommendations({ policies, lang, activeRecInde
             );
           })}
           {dismissedRecs.length > 0 && (
-            <button
-              onClick={restoreAll}
-              className="flex items-center gap-1.5 text-[11px] text-[#4a4660] hover:text-[#7a7890] transition-colors mt-1"
-            >
-              <RotateCcw size={12} />
-              {isHe
-                ? `הצג ${dismissedRecs.length} המלצות מושתקות`
-                : `Show ${dismissedRecs.length} dismissed`
-              }
-            </button>
+            <div className="mt-3">
+              <button
+                onClick={() => setDismissedOpen(!dismissedOpen)}
+                className="flex items-center gap-1.5 text-[11px] text-[#4a4660] hover:text-[#7a7890] transition-colors"
+              >
+                {dismissedOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {isHe
+                  ? `${dismissedRecs.length} המלצות מושתקות`
+                  : `${dismissedRecs.length} dismissed`
+                }
+                {dismissedOpen && (
+                  <span
+                    onClick={(e) => { e.stopPropagation(); restoreAll(); }}
+                    className="text-[#4a4660] hover:text-[#7a7890] ml-1"
+                  >
+                    ({isHe ? 'שחזר הכל' : 'restore all'})
+                  </span>
+                )}
+              </button>
+              {dismissedOpen && (
+                <div className="space-y-1.5 mt-2">
+                  {dismissedRecs.map(rec => (
+                    <div
+                      key={rec.key}
+                      className="flex items-center gap-3 bg-white/[0.02] border border-[#1c1928] rounded-lg px-4 py-2 opacity-50"
+                    >
+                      <div className={`shrink-0 ${
+                        rec.severity === 'orange' ? 'text-orange-500' :
+                        rec.severity === 'yellow' ? 'text-yellow-500' :
+                        'text-blue-500'
+                      }`}>
+                        {rec.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12px] text-[#7a7890] truncate">{rec.title}</div>
+                      </div>
+                      <button
+                        onClick={() => restore(rec.key)}
+                        className="shrink-0 p-1 rounded text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-all"
+                        title={isHe ? 'שחזר' : 'Restore'}
+                      >
+                        <RotateCcw size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
