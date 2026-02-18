@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, ExternalLink, GripHorizontal } from 'lucide-
 import type { InsuranceLang } from '../../lib/insurance-i18n';
 
 const BOOKMARKLET_CODE = `javascript:void(${encodeURIComponent(
-  `(async function(){try{var r=await fetch('/sso/Exports/ExportToExcel',{credentials:'include'});if(!r.ok)throw new Error('Download failed ('+r.status+')');var buf=await r.arrayBuffer();var bytes=new Uint8Array(buf);var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);var b64=btoa(bin);var w=window.open('https://yevgeniyo-ps.github.io/petek/#/insurances');var tries=0;var iv=setInterval(function(){tries++;w.postMessage({type:'harb-import',data:b64},'https://yevgeniyo-ps.github.io');if(tries>15)clearInterval(iv)},1000)}catch(e){alert('Petek: '+e.message)}})()`
+  `(async function(){var w=window.open('https://yevgeniyo-ps.github.io/petek/#/insurances');if(!w){alert('Petek: Popup blocked. Please allow popups for this site.');return}try{var r=await fetch('/sso/Exports/ExportToExcel',{credentials:'include'});if(!r.ok)throw new Error('Download failed ('+r.status+')');var buf=await r.arrayBuffer();var bytes=new Uint8Array(buf);var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);var b64=btoa(bin);var tries=0;var iv=setInterval(function(){tries++;try{w.postMessage({type:'harb-import',data:b64},'https://yevgeniyo-ps.github.io')}catch(x){}if(tries>15)clearInterval(iv)},1000)}catch(e){alert('Petek: '+e.message)}})()`
 )})`;
 
 const text = {
