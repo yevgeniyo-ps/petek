@@ -3,6 +3,8 @@ import { Umbrella, Search, Upload } from 'lucide-react';
 import { useInsurances } from '../context/InsurancesContext';
 import InsuranceTable from '../components/insurances/InsuranceTable';
 import InsuranceUpload from '../components/insurances/InsuranceUpload';
+import InsuranceDashboard from '../components/insurances/InsuranceDashboard';
+import InsuranceRecommendations from '../components/insurances/InsuranceRecommendations';
 import Modal from '../components/ui/Modal';
 import { translateCategory, type InsuranceLang } from '../lib/insurance-i18n';
 import { formatDate } from '../lib/utils';
@@ -47,21 +49,6 @@ export default function InsurancesPage() {
 
     return result;
   }, [policies, search, selectedCategory]);
-
-  const totalMonthly = useMemo(() => {
-    let sum = 0;
-    for (const p of policies) {
-      if (p.premium_nis == null) continue;
-      if (p.premium_type === 'חודשית') {
-        sum += p.premium_nis;
-      } else if (p.premium_type === 'שנתית') {
-        sum += p.premium_nis / 12;
-      } else if (p.premium_type === 'רבעונית') {
-        sum += p.premium_nis / 3;
-      }
-    }
-    return sum;
-  }, [policies]);
 
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
@@ -132,8 +119,14 @@ export default function InsurancesPage() {
         </div>
       </div>
 
+      {/* Dashboard */}
+      <InsuranceDashboard policies={policies} lang={lang} />
+
+      {/* Recommendations */}
+      <InsuranceRecommendations policies={policies} lang={lang} />
+
       {/* Toolbar */}
-      <div className="flex items-center gap-4 mt-8 mb-6">
+      <div className="flex items-center gap-4 mb-6">
         <div className="relative">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
           <input
@@ -177,18 +170,6 @@ export default function InsurancesPage() {
 
       {/* Table */}
       <InsuranceTable policies={filteredPolicies} lang={lang} />
-
-      {/* Summary */}
-      {totalMonthly > 0 && (
-        <div className="mt-4 text-right">
-          <span className="text-[13px] text-[#7a7890]">
-            Est. monthly total:{' '}
-          </span>
-          <span className="text-[14px] text-white font-medium tabular-nums">
-            ₪ {totalMonthly.toLocaleString('en-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-      )}
 
       {/* Upload modal */}
       <Modal open={uploadOpen} onClose={() => setUploadOpen(false)}>
