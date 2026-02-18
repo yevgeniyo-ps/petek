@@ -11,9 +11,13 @@ import {
   type ColumnKey,
 } from '../../lib/insurance-i18n';
 
+type Severity = 'orange' | 'yellow' | 'blue';
+
 interface InsuranceTableProps {
   policies: InsurancePolicy[];
   lang: InsuranceLang;
+  highlightedPolicies?: Set<string>;
+  highlightSeverity?: Severity | null;
 }
 
 const PREMIUM_SUFFIX: Record<string, string> = {
@@ -39,7 +43,19 @@ function getCellValue(policy: InsurancePolicy, col: ColumnKey, lang: InsuranceLa
   return translateValue(String(raw), lang);
 }
 
-export default function InsuranceTable({ policies, lang }: InsuranceTableProps) {
+const HIGHLIGHT_BG: Record<Severity, string> = {
+  orange: 'bg-orange-500/[0.08]',
+  yellow: 'bg-yellow-500/[0.08]',
+  blue: 'bg-blue-500/[0.08]',
+};
+
+const HIGHLIGHT_BORDER: Record<Severity, string> = {
+  orange: 'border-l-2 border-l-orange-500',
+  yellow: 'border-l-2 border-l-yellow-500',
+  blue: 'border-l-2 border-l-blue-500',
+};
+
+export default function InsuranceTable({ policies, lang, highlightedPolicies, highlightSeverity }: InsuranceTableProps) {
   const [expanded, setExpanded] = useState(false);
   const columns = expanded ? EXPANDED_COLUMNS : VISIBLE_COLUMNS;
   const labels = COLUMN_LABELS[lang];
@@ -76,10 +92,18 @@ export default function InsuranceTable({ policies, lang }: InsuranceTableProps) 
             </tr>
           </thead>
           <tbody>
-            {policies.map(policy => (
+            {policies.map(policy => {
+              const isHighlighted = highlightedPolicies?.has(policy.policy_number) && highlightSeverity;
+              return (
               <tr
                 key={policy.id}
-                className="border-b border-[#1c1928] last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                className={`border-b border-[#1c1928] last:border-b-0 transition-colors ${
+                  isHighlighted
+                    ? `${HIGHLIGHT_BG[highlightSeverity]} ${HIGHLIGHT_BORDER[highlightSeverity]}`
+                    : highlightedPolicies?.size
+                    ? 'opacity-40'
+                    : 'hover:bg-white/[0.02]'
+                }`}
               >
                 {columns.map(col => (
                   <td
@@ -96,7 +120,8 @@ export default function InsuranceTable({ policies, lang }: InsuranceTableProps) 
                   </td>
                 ))}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

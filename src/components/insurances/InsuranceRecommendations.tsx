@@ -6,6 +6,8 @@ import { type InsuranceLang, translateValue } from '../../lib/insurance-i18n';
 interface Props {
   policies: InsurancePolicy[];
   lang: InsuranceLang;
+  activeRecIndex: number | null;
+  onSelect: (index: number | null, policyNumbers: string[], severity: Severity) => void;
 }
 
 type Severity = 'orange' | 'yellow' | 'blue';
@@ -42,7 +44,9 @@ const BORDER_COLORS: Record<Severity, string> = {
   blue: 'border-l-blue-500',
 };
 
-export default function InsuranceRecommendations({ policies, lang }: Props) {
+export { type Severity };
+
+export default function InsuranceRecommendations({ policies, lang, activeRecIndex, onSelect }: Props) {
   const [collapsed, setCollapsed] = useState(false);
 
   const recommendations = useMemo(() => {
@@ -141,34 +145,48 @@ export default function InsuranceRecommendations({ policies, lang }: Props) {
 
       {!collapsed && (
         <div className="space-y-2">
-          {recommendations.map((rec, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-3 bg-[#13111c] border border-[#1c1928] border-l-[3px] ${BORDER_COLORS[rec.severity]} rounded-lg px-4 py-3`}
-            >
-              <div className={`mt-0.5 shrink-0 ${
-                rec.severity === 'orange' ? 'text-orange-500' :
-                rec.severity === 'yellow' ? 'text-yellow-500' :
-                'text-blue-500'
-              }`}>
-                {rec.icon}
-              </div>
-              <div className="min-w-0">
-                <div className="text-[13px] text-white font-medium">{rec.title}</div>
-                <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
-                {rec.policies.length > 0 && (
-                  <div className="text-[11px] text-[#4a4660] mt-1">
+          {recommendations.map((rec, i) => {
+            const isActive = activeRecIndex === i;
+            return (
+              <button
+                key={i}
+                onClick={() => {
+                  const numbers = rec.policies.map(p => p.number);
+                  onSelect(isActive ? null : i, numbers, rec.severity);
+                }}
+                className={`flex items-start gap-3 w-full text-left border border-l-[3px] ${BORDER_COLORS[rec.severity]} rounded-lg px-4 py-3 transition-colors cursor-pointer ${
+                  isActive
+                    ? 'bg-[#1a1730] border-[#2d2a40]'
+                    : 'bg-[#13111c] border-[#1c1928] hover:bg-[#16141f]'
+                }`}
+              >
+                <div className={`mt-0.5 shrink-0 ${
+                  rec.severity === 'orange' ? 'text-orange-500' :
+                  rec.severity === 'yellow' ? 'text-yellow-500' :
+                  'text-blue-500'
+                }`}>
+                  {rec.icon}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] text-white font-medium">{rec.title}</div>
+                  <div className="text-[12px] text-[#7a7890] mt-0.5">{rec.description}</div>
+                  <div className="text-[11px] mt-1 flex items-center gap-2 flex-wrap">
                     {rec.policies.map((p, j) => (
-                      <span key={j}>
-                        {j > 0 && ', '}
+                      <span key={j} className={isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}>
                         {isHe ? 'פוליסה' : 'Policy'} {p.number} · {p.company}
                       </span>
                     ))}
+                    <span className={`text-[11px] ${isActive ? 'text-[#7a7890]' : 'text-[#4a4660]'}`}>
+                      {isActive
+                        ? (isHe ? '— לחץ לביטול' : '— click to clear')
+                        : (isHe ? '— לחץ להדגשה בטבלה' : '— click to highlight')
+                      }
+                    </span>
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

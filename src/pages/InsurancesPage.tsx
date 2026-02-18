@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Umbrella, Search, Upload, Trash2 } from 'lucide-react';
 import { useInsurances } from '../context/InsurancesContext';
 import InsuranceTable from '../components/insurances/InsuranceTable';
 import InsuranceUpload from '../components/insurances/InsuranceUpload';
 import InsuranceDashboard from '../components/insurances/InsuranceDashboard';
-import InsuranceRecommendations from '../components/insurances/InsuranceRecommendations';
+import InsuranceRecommendations, { type Severity } from '../components/insurances/InsuranceRecommendations';
 import HarbImportGuide from '../components/insurances/HarbImportGuide';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -18,6 +18,21 @@ export default function InsurancesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
+  const [activeRecIndex, setActiveRecIndex] = useState<number | null>(null);
+  const [highlightedPolicies, setHighlightedPolicies] = useState<Set<string>>(new Set());
+  const [highlightSeverity, setHighlightSeverity] = useState<Severity | null>(null);
+
+  const handleRecSelect = useCallback((index: number | null, policyNumbers: string[], severity: Severity) => {
+    if (index === null) {
+      setActiveRecIndex(null);
+      setHighlightedPolicies(new Set());
+      setHighlightSeverity(null);
+    } else {
+      setActiveRecIndex(index);
+      setHighlightedPolicies(new Set(policyNumbers));
+      setHighlightSeverity(severity);
+    }
+  }, []);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -134,7 +149,7 @@ export default function InsurancesPage() {
       <InsuranceDashboard policies={policies} lang={lang} />
 
       {/* Recommendations */}
-      <InsuranceRecommendations policies={policies} lang={lang} />
+      <InsuranceRecommendations policies={policies} lang={lang} activeRecIndex={activeRecIndex} onSelect={handleRecSelect} />
 
       {/* Toolbar */}
       <div className="flex items-center gap-4 mb-6">
@@ -180,7 +195,7 @@ export default function InsurancesPage() {
       )}
 
       {/* Table */}
-      <InsuranceTable policies={filteredPolicies} lang={lang} />
+      <InsuranceTable policies={filteredPolicies} lang={lang} highlightedPolicies={highlightedPolicies} highlightSeverity={highlightSeverity} />
 
       {/* Clear all confirmation */}
       <ConfirmDialog
