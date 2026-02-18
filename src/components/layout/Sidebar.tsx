@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella } from 'lucide-react';
+import { StickyNote, Trash2, Archive, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, Settings } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLabels } from '../../context/LabelsContext';
@@ -8,6 +8,7 @@ import { getCollectionIcon } from '../../lib/icons';
 import { useGravatar } from '../../hooks/useGravatar';
 import { useAdmin } from '../../context/AdminContext';
 import CreateCollectionModal from '../collections/CreateCollectionModal';
+import SettingsModal, { loadMenuSettings, type MenuSettings } from './SettingsModal';
 
 interface SidebarProps {
   open: boolean;
@@ -27,6 +28,8 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
   const [addingTag, setAddingTag] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [menuSettings, setMenuSettings] = useState<MenuSettings>(loadMenuSettings);
   const selectedTagId = searchParams.get('tag');
 
   const handleTagClick = (labelId: string) => {
@@ -69,125 +72,137 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
-          <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/'} onClick={() => navigate('/')} collapsed={!open} />
-          <NavItem icon={Archive} label="Archive" active={location.pathname === '/archive'} onClick={() => navigate('/archive')} collapsed={!open} />
-          <NavItem icon={Trash2} label="Trash" active={location.pathname === '/trash'} onClick={() => navigate('/trash')} collapsed={!open} />
-          <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
+          <NavItem icon={StickyNote} label="Notes" active={['/', '/archive', '/trash'].includes(location.pathname)} onClick={() => navigate('/')} collapsed={!open} />
+          {open && (
+            <div className="space-y-0.5">
+              <SubNavItem label="Archive" icon={Archive} active={location.pathname === '/archive'} onClick={() => navigate('/archive')} />
+              <SubNavItem label="Trash" icon={Trash2} active={location.pathname === '/trash'} onClick={() => navigate('/trash')} />
+            </div>
+          )}
+          {menuSettings.insurances && (
+            <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
+          )}
 
           {/* Collections */}
-          {collections.length > 0 && (
-            <div className={`mt-4 pt-4 border-t border-white/[0.06] space-y-1 ${open ? '' : ''}`}>
-              {open && (
-                <div className="flex items-center justify-between px-3 mb-1">
-                  <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Collections</span>
+          {menuSettings.collections && (
+            <>
+              {collections.length > 0 && (
+                <div className={`mt-4 pt-4 border-t border-white/[0.06] space-y-1`}>
+                  {open && (
+                    <div className="flex items-center justify-between px-3 mb-1">
+                      <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Collections</span>
+                      <button
+                        onClick={() => setCreateCollectionOpen(true)}
+                        className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
+                        title="New collection"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                  )}
+                  {collections.map(col => {
+                    const ColIcon = getCollectionIcon(col.icon);
+                    return (
+                      <NavItem
+                        key={col.id}
+                        icon={ColIcon}
+                        label={col.name}
+                        active={location.pathname === `/c/${col.slug}`}
+                        onClick={() => navigate(`/c/${col.slug}`)}
+                        collapsed={!open}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+              {collections.length === 0 && open && (
+                <div className="mt-4 pt-4 border-t border-white/[0.06]">
                   <button
                     onClick={() => setCreateCollectionOpen(true)}
-                    className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
-                    title="New collection"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
                   >
-                    <Plus size={12} />
+                    <Plus size={16} className="shrink-0" />
+                    <span>New Collection</span>
                   </button>
                 </div>
               )}
-              {collections.map(col => {
-                const ColIcon = getCollectionIcon(col.icon);
-                return (
-                  <NavItem
-                    key={col.id}
-                    icon={ColIcon}
-                    label={col.name}
-                    active={location.pathname === `/c/${col.slug}`}
-                    onClick={() => navigate(`/c/${col.slug}`)}
-                    collapsed={!open}
-                  />
-                );
-              })}
-            </div>
-          )}
-          {collections.length === 0 && open && (
-            <div className="mt-4 pt-4 border-t border-white/[0.06]">
-              <button
-                onClick={() => setCreateCollectionOpen(true)}
-                className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
-              >
-                <Plus size={16} className="shrink-0" />
-                <span>New Collection</span>
-              </button>
-            </div>
-          )}
-          {collections.length === 0 && !open && (
-            <div className="mt-4 pt-4 border-t border-white/[0.06]">
-              <button
-                onClick={() => setCreateCollectionOpen(true)}
-                className="w-full flex justify-center py-2 text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
-                title="New collection"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
+              {collections.length === 0 && !open && (
+                <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                  <button
+                    onClick={() => setCreateCollectionOpen(true)}
+                    className="w-full flex justify-center py-2 text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
+                    title="New collection"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </nav>
 
         {/* Tags */}
-        <div className={`rounded-lg bg-white/[0.03] border border-white/[0.04] py-2 ${open ? 'mx-3 px-1' : 'mx-1.5 px-0.5'}`}>
-          {open && (
-            <div className="flex items-center justify-between px-3 mb-1">
-              <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Tags</span>
-              <button
-                onClick={() => setAddingTag(true)}
-                className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
-                title="Add tag"
-              >
-                <Plus size={12} />
-              </button>
+        {menuSettings.tags && (
+          <div className={`rounded-lg bg-white/[0.03] border border-white/[0.04] py-2 ${open ? 'mx-3 px-1' : 'mx-1.5 px-0.5'}`}>
+            {open && (
+              <div className="flex items-center justify-between px-3 mb-1">
+                <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Tags</span>
+                <button
+                  onClick={() => setAddingTag(true)}
+                  className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
+                  title="Add tag"
+                >
+                  <Plus size={12} />
+                </button>
+              </div>
+            )}
+            {addingTag && open && (
+              <div className="px-3 mb-1">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newTagName}
+                  onChange={e => setNewTagName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleCreateTag();
+                    if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
+                  }}
+                  onBlur={handleCreateTag}
+                  placeholder="Tag name..."
+                  className="w-full bg-transparent border border-[#2d2a40] rounded-md px-2 py-1 text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50"
+                />
+              </div>
+            )}
+            <div className="space-y-0.5">
+              {labels.map(label => (
+                <button
+                  key={label.id}
+                  onClick={() => handleTagClick(label.id)}
+                  title={label.name}
+                  className={`group/tag w-full flex items-center rounded-lg text-[14px] transition-all ${
+                    open ? 'gap-3 px-3 py-2' : 'justify-center py-2'
+                  } ${
+                    selectedTagId === label.id
+                      ? 'bg-[#1a1730] text-white'
+                      : 'text-[#7a7890] hover:bg-white/[0.04] hover:text-[#b0adc0]'
+                  }`}
+                >
+                  <Tag size={16} className={`shrink-0 ${selectedTagId === label.id ? 'text-[#ec4899]' : ''}`} />
+                  {open && (
+                    <>
+                      <span className="truncate flex-1 text-left">{label.name}</span>
+                      <X
+                        size={12}
+                        className="shrink-0 opacity-0 group-hover/tag:opacity-100 text-[#7a7890] hover:text-red-400 transition-all"
+                        onClick={e => { e.stopPropagation(); deleteLabel(label.id); }}
+                      />
+                    </>
+                  )}
+                </button>
+              ))}
             </div>
-          )}
-          {addingTag && open && (
-            <div className="px-3 mb-1">
-              <input
-                autoFocus
-                type="text"
-                value={newTagName}
-                onChange={e => setNewTagName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleCreateTag();
-                  if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
-                }}
-                onBlur={handleCreateTag}
-                placeholder="Tag name..."
-                className="w-full bg-transparent border border-[#2d2a40] rounded-md px-2 py-1 text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50"
-              />
-            </div>
-          )}
-          <div className="space-y-0.5">
-            {labels.map(label => (
-              <button
-                key={label.id}
-                onClick={() => handleTagClick(label.id)}
-                title={label.name}
-                className={`group/tag w-full flex items-center rounded-lg text-[14px] transition-all ${
-                  open ? 'gap-3 px-3 py-2' : 'justify-center py-2'
-                } ${
-                  selectedTagId === label.id
-                    ? 'bg-[#1a1730] text-white'
-                    : 'text-[#7a7890] hover:bg-white/[0.04] hover:text-[#b0adc0]'
-                }`}
-              >
-                <Tag size={16} className={`shrink-0 ${selectedTagId === label.id ? 'text-[#ec4899]' : ''}`} />
-                {open && (
-                  <>
-                    <span className="truncate flex-1 text-left">{label.name}</span>
-                    <X
-                      size={12}
-                      className="shrink-0 opacity-0 group-hover/tag:opacity-100 text-[#7a7890] hover:text-red-400 transition-all"
-                      onClick={e => { e.stopPropagation(); deleteLabel(label.id); }}
-                    />
-                  </>
-                )}
-              </button>
-            ))}
           </div>
-        </div>
+        )}
 
         {/* Admin */}
         {isAdmin && (
@@ -230,6 +245,13 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
             open ? 'bottom-4 left-[208px]' : 'bottom-4 left-14'
           }`}>
             <button
+              onClick={() => { setSettingsOpen(true); setUserMenuOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
+            >
+              <Settings size={14} />
+              <span>Settings</span>
+            </button>
+            <button
               onClick={() => { signOut(); setUserMenuOpen(false); }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
             >
@@ -249,6 +271,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
       </button>
 
       <CreateCollectionModal open={createCollectionOpen} onClose={() => setCreateCollectionOpen(false)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={menuSettings} onChange={setMenuSettings} />
     </div>
   );
 }
@@ -274,6 +297,27 @@ function NavItem({ label, icon: Icon, active, onClick, collapsed }: {
     >
       <Icon size={18} className={`shrink-0 ${active ? 'text-[#ec4899]' : ''}`} />
       {!collapsed && <span>{label}</span>}
+    </button>
+  );
+}
+
+function SubNavItem({ label, icon: Icon, active, onClick }: {
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2.5 pl-10 pr-3 py-1.5 rounded-lg text-[13px] transition-all ${
+        active
+          ? 'text-white font-medium'
+          : 'text-[#7a7890] hover:bg-white/[0.04] hover:text-[#b0adc0]'
+      }`}
+    >
+      <Icon size={14} className={`shrink-0 ${active ? 'text-[#ec4899]' : ''}`} />
+      <span>{label}</span>
     </button>
   );
 }
