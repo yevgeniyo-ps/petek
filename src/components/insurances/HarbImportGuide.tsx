@@ -1,29 +1,30 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, ExternalLink, GripHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, Copy, Check } from 'lucide-react';
 import type { InsuranceLang } from '../../lib/insurance-i18n';
 
-// No encodeURIComponent — raw JS is more reliable across browsers for bookmarklets
-const BOOKMARKLET_CODE = "javascript:void((async function(){var w=window.open('https://yevgeniyo-ps.github.io/petek/#/insurances');if(!w){alert('Petek: Popup blocked. Allow popups for this site.');return}try{var r=await fetch('/sso/Exports/ExportToExcel',{credentials:'include'});if(!r.ok)throw new Error('Download failed ('+r.status+')');var buf=await r.arrayBuffer();var bytes=new Uint8Array(buf);var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);var b64=btoa(bin);var tries=0;var iv=setInterval(function(){tries++;try{w.postMessage({type:'harb-import',data:b64},'https://yevgeniyo-ps.github.io')}catch(x){}if(tries>15)clearInterval(iv)},1000)}catch(e){alert('Petek: '+e.message)}}());";
+const CONSOLE_SCRIPT = `(async()=>{var r=await fetch('/sso/Exports/ExportToExcel',{credentials:'include'});if(!r.ok)throw new Error('Failed ('+r.status+')');var buf=await r.arrayBuffer();var bytes=new Uint8Array(buf);var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);var b64=btoa(bin);var w=window.open('https://yevgeniyo-ps.github.io/petek/#/insurances');var t=0;var iv=setInterval(()=>{t++;try{w.postMessage({type:'harb-import',data:b64},'https://yevgeniyo-ps.github.io')}catch(e){}if(t>15)clearInterval(iv)},1000)})()`;
 
 const text = {
   he: {
     title: 'ייבוא ישיר מהר הביטוח',
-    step1: 'גררו את הכפתור למטה לסרגל הסימניות שלכם',
-    step2: 'היכנסו לאתר הר הביטוח והתחברו',
-    step3: 'לחצו על "כל הביטוחים" כדי לראות את כל הפוליסות',
-    step4: 'לחצו על הסימנייה בסרגל הסימניות',
-    step5: 'הנתונים יופיעו בפתק אוטומטית',
-    bookmarklet: 'ייבוא לפתק',
+    step1: 'היכנסו לאתר הר הביטוח והתחברו',
+    step2: 'לחצו על "כל הביטוחים" כדי לראות את כל הפוליסות',
+    step3: 'פתחו את כלי המפתחים (F12) ועברו ללשונית Console',
+    step4: 'לחצו על הכפתור למטה כדי להעתיק את הסקריפט',
+    step5: 'הדביקו בקונסולה ולחצו Enter — הנתונים יופיעו בפתק',
+    copyScript: 'העתק סקריפט',
+    copied: 'הועתק!',
     openHarb: 'פתח את הר הביטוח',
   },
   en: {
     title: 'Import directly from Har HaBituach',
-    step1: 'Drag the button below to your bookmarks bar',
-    step2: 'Go to Har HaBituach and log in',
-    step3: 'Click "כל הביטוחים" to see all policies',
-    step4: 'Click the bookmarklet in your bookmarks bar',
-    step5: 'Your data will appear in Petek automatically',
-    bookmarklet: 'Import to Petek',
+    step1: 'Go to Har HaBituach and log in',
+    step2: 'Click "כל הביטוחים" to see all policies',
+    step3: 'Open Developer Tools (F12) and go to the Console tab',
+    step4: 'Click the button below to copy the import script',
+    step5: 'Paste in the console and press Enter — data will appear in Petek',
+    copyScript: 'Copy script',
+    copied: 'Copied!',
     openHarb: 'Open Har HaBituach',
   },
 } as const;
@@ -34,8 +35,15 @@ interface HarbImportGuideProps {
 
 export default function HarbImportGuide({ lang }: HarbImportGuideProps) {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const t = text[lang];
   const isHe = lang === 'he';
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(CONSOLE_SCRIPT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="mt-6 rounded-xl border border-[#1c1928] bg-[#13111c]">
@@ -59,16 +67,18 @@ export default function HarbImportGuide({ lang }: HarbImportGuideProps) {
           </ol>
 
           <div className="mt-5 flex items-center gap-3 flex-wrap">
-            {/* Bookmarklet — draggable link */}
-            <a
-              href={BOOKMARKLET_CODE}
-              onClick={e => e.preventDefault()}
-              draggable
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ec4899]/10 border border-[#ec4899]/30 text-[#ec4899] text-[13px] font-medium hover:bg-[#ec4899]/20 transition-colors cursor-grab active:cursor-grabbing"
+            {/* Copy script button */}
+            <button
+              onClick={handleCopy}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
+                copied
+                  ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                  : 'bg-[#ec4899]/10 border border-[#ec4899]/30 text-[#ec4899] hover:bg-[#ec4899]/20'
+              }`}
             >
-              <GripHorizontal size={14} />
-              {t.bookmarklet}
-            </a>
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? t.copied : t.copyScript}
+            </button>
 
             {/* Link to Har HaBituach */}
             <a
