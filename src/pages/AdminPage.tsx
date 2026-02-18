@@ -3,9 +3,11 @@ import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderO
 import { AdminUser } from '../types';
 import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser } from '../lib/admin';
 import { formatDate } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 export default function AdminPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,6 +35,7 @@ export default function AdminPage() {
     setDeleteTarget(null);
   };
 
+  const isSelf = (u: AdminUser) => u.id === currentUser?.id;
   const isPending = (u: AdminUser) => !u.approved_at;
   const isSuspended = (u: AdminUser) => u.banned_until && new Date(u.banned_until) > new Date();
 
@@ -156,36 +159,42 @@ export default function AdminPage() {
                 <td className="px-4 py-3 text-[#7a7890] text-right">{user.labels_count}</td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
                 <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                  {isPending(user) && (
-                    <button
-                      onClick={() => setApproveTarget(user)}
-                      className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
-                      title="Approve user"
-                    >
-                      <CheckCircle size={14} />
-                    </button>
+                  {isSelf(user) ? (
+                    <span className="text-[11px] text-[#4a4660]">You</span>
+                  ) : (
+                    <>
+                      {isPending(user) && (
+                        <button
+                          onClick={() => setApproveTarget(user)}
+                          className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
+                          title="Approve user"
+                        >
+                          <CheckCircle size={14} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSuspendTarget(user)}
+                        className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
+                        title={isSuspended(user) ? 'Unsuspend user' : 'Suspend user'}
+                      >
+                        {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(user)}
+                        className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
+                        title="Delete user data"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => setRemoveTarget(user)}
+                        className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
+                        title="Remove user"
+                      >
+                        <UserMinus size={14} />
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={() => setSuspendTarget(user)}
-                    className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
-                    title={isSuspended(user) ? 'Unsuspend user' : 'Suspend user'}
-                  >
-                    {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(user)}
-                    className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                    title="Delete user data"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                  <button
-                    onClick={() => setRemoveTarget(user)}
-                    className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                    title="Remove user"
-                  >
-                    <UserMinus size={14} />
-                  </button>
                 </td>
               </tr>
             ))}
