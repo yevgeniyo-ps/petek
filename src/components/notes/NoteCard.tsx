@@ -7,6 +7,7 @@ import { useNotes } from '../../context/NotesContext';
 import { useLabels } from '../../context/LabelsContext';
 import NoteToolbar from './NoteToolbar';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { ICON_MAP } from '../ui/IconPicker';
 
 interface NoteCardProps {
   note: Note;
@@ -25,11 +26,14 @@ export default function NoteCard({ note, onClick }: NoteCardProps) {
         onClick={onClick}
         className="group rounded-xl border border-[#1c1928] bg-[#13111c] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative"
       >
-        {note.emoji && (
-          <span className="absolute top-3 right-3 text-[20px] opacity-70 pointer-events-none">
-            {note.emoji}
-          </span>
-        )}
+        {note.emoji && ICON_MAP[note.emoji] && (() => {
+          const Icon = ICON_MAP[note.emoji!]!;
+          return (
+            <span className="absolute top-3 right-3 text-[#4a4660] pointer-events-none">
+              <Icon size={20} />
+            </span>
+          );
+        })()}
         <div className="p-4 flex-1 min-h-0">
           {note.title && (
             <h3 className="text-[14px] font-semibold text-white mb-2 line-clamp-2 pr-8">

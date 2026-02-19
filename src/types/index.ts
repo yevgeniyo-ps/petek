@@ -92,6 +92,10 @@ export interface InsurancePolicy {
 
 export type BillingCycle = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
+export type Currency = 'ILS' | 'USD' | 'EUR' | 'GBP' | 'RUB' | 'UAH';
+
+export type SubscriptionStatus = 'active' | 'blocked';
+
 export type SubscriptionCategory =
   | 'streaming' | 'software' | 'fitness' | 'music'
   | 'cloud' | 'news' | 'gaming' | 'other';
@@ -101,13 +105,13 @@ export interface Subscription {
   user_id: string;
   name: string;
   amount: number;
+  currency: Currency;
   billing_cycle: BillingCycle;
   category: SubscriptionCategory;
-  next_payment_date: string | null;
   url: string;
   notes: string;
   start_date: string | null;
-  auto_renew: boolean;
+  status: SubscriptionStatus;
   created_at: string;
   updated_at: string;
 }

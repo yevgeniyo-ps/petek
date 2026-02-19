@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { checkIsApproved } from '../lib/admin';
 import { useAuth } from './AuthContext';
 
+const DEV_BYPASS_AUTH = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
 interface ApprovalContextType {
   isApproved: boolean;
   loading: boolean;
@@ -11,10 +13,12 @@ const ApprovalContext = createContext<ApprovalContextType | undefined>(undefined
 
 export function ApprovalProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [isApproved, setIsApproved] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isApproved, setIsApproved] = useState(DEV_BYPASS_AUTH);
+  const [loading, setLoading] = useState(!DEV_BYPASS_AUTH);
 
   useEffect(() => {
+    if (DEV_BYPASS_AUTH) return;
+
     if (!user) {
       setIsApproved(false);
       setLoading(false);

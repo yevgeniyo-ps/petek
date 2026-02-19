@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Tag, X, ChevronDown, Smile } from 'lucide-react';
 const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
-import EmojiPicker from '../ui/EmojiPicker';
+import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 import { Note, Label } from '../../types';
 import { useLabels } from '../../context/LabelsContext';
 
@@ -18,12 +18,12 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [emoji, setEmoji] = useState<string | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [assignedLabels, setAssignedLabels] = useState<Label[]>([]);
   const tagPickerRef = useRef<HTMLDivElement>(null);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const iconPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (note) {
@@ -51,15 +51,15 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
   }, [tagPickerOpen]);
 
   useEffect(() => {
-    if (!showEmojiPicker) return;
+    if (!showIconPicker) return;
     const handleClick = (e: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
-        setShowEmojiPicker(false);
+      if (iconPickerRef.current && !iconPickerRef.current.contains(e.target as Node)) {
+        setShowIconPicker(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [showEmojiPicker]);
+  }, [showIconPicker]);
 
   const handleToggleLabel = async (label: Label) => {
     if (!note) return;
@@ -106,21 +106,17 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
         </div>
         <div className="px-5 py-3.5 flex items-center justify-between border-t border-white/[0.04]">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="relative" ref={emojiPickerRef}>
+            <div className="relative" ref={iconPickerRef}>
               <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                onClick={() => setShowIconPicker(!showIconPicker)}
                 className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors flex items-center gap-1.5"
-                title="Pick emoji"
+                title="Pick icon"
               >
-                {emoji ? (
-                  <span className="text-[16px]">{emoji}</span>
-                ) : (
-                  <Smile size={16} />
-                )}
+                {emoji && ICON_MAP[emoji] ? (() => { const I = ICON_MAP[emoji]; return <I size={16} />; })() : <Smile size={16} />}
               </button>
-              {showEmojiPicker && (
+              {showIconPicker && (
                 <div className="absolute bottom-full left-0 mb-1 z-50 bg-[#1e1b2e] border border-[#2d2a40] rounded-xl shadow-xl shadow-black/40">
-                  <EmojiPicker current={emoji} onChange={(e) => { setEmoji(e); setShowEmojiPicker(false); }} />
+                  <IconPicker current={emoji} onChange={(e) => { setEmoji(e); setShowIconPicker(false); }} />
                 </div>
               )}
             </div>

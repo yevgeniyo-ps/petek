@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Subscription } from '../../types';
-import { toMonthly, formatNIS } from '../../lib/subscription-constants';
+import { Subscription, Currency } from '../../types';
+import { toMonthly, formatAmount } from '../../lib/subscription-constants';
 
 interface Props {
   subscriptions: Subscription[];
@@ -12,34 +12,51 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
   const [period, setPeriod] = useState<Period>('monthly');
 
   const stats = useMemo(() => {
-    let monthlyTotal = 0;
-    let autoRenewCount = 0;
+    const monthlyByCurrency: Partial<Record<Currency, number>> = {};
+    let activeCount = 0;
+    let blockedCount = 0;
     const categories = new Set<string>();
 
     for (const s of subscriptions) {
-      monthlyTotal += toMonthly(s.amount, s.billing_cycle);
+      const cur = s.currency ?? 'USD';
+      monthlyByCurrency[cur] = (monthlyByCurrency[cur] ?? 0) + toMonthly(s.amount, s.billing_cycle);
       categories.add(s.category);
-      if (s.auto_renew) autoRenewCount++;
+      if (s.status === 'blocked') blockedCount++;
+      else activeCount++;
     }
+
+    const activeCurrencies = Object.entries(monthlyByCurrency)
+      .filter(([, v]) => v && v > 0) as [Currency, number][];
 
     return {
       count: subscriptions.length,
-      monthlyTotal,
-      yearlyTotal: monthlyTotal * 12,
-      autoRenewCount,
+      activeCurrencies,
+      activeCount,
+      blockedCount,
       categoriesCount: categories.size,
     };
   }, [subscriptions]);
-
-  const cost = period === 'monthly' ? stats.monthlyTotal : stats.yearlyTotal;
 
   return (
     <div className="mt-8 mb-6">
       <div className="grid grid-cols-3 gap-4">
         {/* Total cost */}
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
-          <div className="text-[22px] font-bold text-white tabular-nums">
-            {formatNIS(cost)}
+          <div className="space-y-1">
+            {stats.activeCurrencies.length === 0 ? (
+              <div className="text-[22px] font-bold text-white tabular-nums">
+                {formatAmount(0)}
+              </div>
+            ) : (
+              stats.activeCurrencies.map(([cur, monthly]) => {
+                const cost = period === 'monthly' ? monthly : monthly * 12;
+                return (
+                  <div key={cur} className="text-[22px] font-bold text-white tabular-nums">
+                    {formatAmount(cost, cur)}
+                  </div>
+                );
+              })
+            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <div className="flex rounded border border-[#1c1928] overflow-hidden">
@@ -71,7 +88,7 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
           <div className="text-[22px] font-bold text-white tabular-nums">{stats.count}</div>
           <div className="text-[12px] text-[#7a7890] mt-0.5">
-            Subscriptions{stats.autoRenewCount > 0 && ` · ${stats.autoRenewCount} auto-renewing`}
+            {stats.activeCount} active{stats.blockedCount > 0 && ` · ${stats.blockedCount} blocked`}
           </div>
         </div>
 

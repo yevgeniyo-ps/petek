@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pin, PinOff, Smile, Trash2, ArchiveRestore, Archive } from 'lucide-react';
-import EmojiPicker from '../ui/EmojiPicker';
+import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 
 interface NoteToolbarProps {
   isPinned: boolean;
@@ -16,9 +16,11 @@ interface NoteToolbarProps {
 export default function NoteToolbar({
   isPinned, isArchived, onTogglePin, onEmojiChange, onArchive, onRestore, onDelete, currentEmoji,
 }: NoteToolbarProps) {
-  const [showEmojis, setShowEmojis] = useState(false);
+  const [showIcons, setShowIcons] = useState(false);
 
   const btnClass = "p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors";
+
+  const CurrentIcon = currentEmoji && ICON_MAP[currentEmoji] ? ICON_MAP[currentEmoji] : null;
 
   return (
     <div className="flex items-center gap-1 relative">
@@ -28,14 +30,14 @@ export default function NoteToolbar({
             {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
           </button>
           <div className="relative">
-            <button onClick={() => setShowEmojis(!showEmojis)} className={btnClass} title="Emoji">
-              <Smile size={16} />
+            <button onClick={() => setShowIcons(!showIcons)} className={btnClass} title="Icon">
+              {CurrentIcon ? <CurrentIcon size={16} /> : <Smile size={16} />}
             </button>
-            {showEmojis && (
+            {showIcons && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowEmojis(false)} />
+                <div className="fixed inset-0 z-10" onClick={() => setShowIcons(false)} />
                 <div className="absolute bottom-full left-0 mb-2 z-20 bg-[#1e1b2e] border border-[#2d2a40] rounded-xl shadow-xl shadow-black/40">
-                  <EmojiPicker current={currentEmoji} onChange={(e) => { onEmojiChange(e); setShowEmojis(false); }} />
+                  <IconPicker current={currentEmoji} onChange={(e) => { onEmojiChange(e); setShowIcons(false); }} />
                 </div>
               </>
             )}

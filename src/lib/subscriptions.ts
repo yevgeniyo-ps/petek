@@ -5,7 +5,7 @@ export async function fetchSubscriptions(): Promise<Subscription[]> {
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
-    .order('next_payment_date', { ascending: true, nullsFirst: false });
+    .order('name', { ascending: true });
 
   if (error) throw error;
   return data ?? [];

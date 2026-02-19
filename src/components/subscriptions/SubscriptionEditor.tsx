@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
-import { Subscription, BillingCycle, SubscriptionCategory } from '../../types';
-import { BILLING_CYCLES, SUBSCRIPTION_CATEGORIES } from '../../lib/subscription-constants';
+import { Subscription, BillingCycle, Currency, SubscriptionCategory, SubscriptionStatus } from '../../types';
+import { BILLING_CYCLES, CURRENCIES, SUBSCRIPTION_CATEGORIES } from '../../lib/subscription-constants';
 
 interface SubscriptionEditorProps {
   subscription: Subscription | null;
@@ -17,13 +17,13 @@ const selectClass = 'w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] round
 export default function SubscriptionEditor({ subscription, open, onClose, onSave }: SubscriptionEditorProps) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState<Currency>('USD');
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [category, setCategory] = useState<SubscriptionCategory>('other');
-  const [nextPaymentDate, setNextPaymentDate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [url, setUrl] = useState('');
   const [notes, setNotes] = useState('');
-  const [autoRenew, setAutoRenew] = useState(true);
+  const [status, setStatus] = useState<SubscriptionStatus>('active');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -31,23 +31,23 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
       if (subscription) {
         setName(subscription.name);
         setAmount(String(subscription.amount));
+        setCurrency(subscription.currency ?? 'USD');
         setBillingCycle(subscription.billing_cycle);
         setCategory(subscription.category);
-        setNextPaymentDate(subscription.next_payment_date ?? '');
         setStartDate(subscription.start_date ?? '');
         setUrl(subscription.url);
         setNotes(subscription.notes);
-        setAutoRenew(subscription.auto_renew);
+        setStatus(subscription.status ?? 'active');
       } else {
         setName('');
         setAmount('');
+        setCurrency('USD');
         setBillingCycle('monthly');
         setCategory('other');
-        setNextPaymentDate('');
         setStartDate('');
         setUrl('');
         setNotes('');
-        setAutoRenew(true);
+        setStatus('active');
       }
     }
   }, [open, subscription]);
@@ -61,13 +61,13 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
       await onSave({
         name: name.trim(),
         amount: parsedAmount,
+        currency,
         billing_cycle: billingCycle,
         category,
-        next_payment_date: nextPaymentDate || null,
         start_date: startDate || null,
         url: url.trim(),
         notes: notes.trim(),
-        auto_renew: autoRenew,
+        status,
       });
       onClose();
     } finally {
@@ -99,10 +99,10 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
             />
           </div>
 
-          {/* Amount + Billing Cycle */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Amount + Currency + Billing Cycle */}
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-3">
             <div>
-              <label className={labelClass}>Amount (₪)</label>
+              <label className={labelClass}>Amount</label>
               <input
                 type="number"
                 value={amount}
@@ -112,6 +112,18 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
                 step="0.01"
                 className={inputClass}
               />
+            </div>
+            <div>
+              <label className={labelClass}>Currency</label>
+              <select
+                value={currency}
+                onChange={e => setCurrency(e.target.value as Currency)}
+                className={selectClass}
+              >
+                {CURRENCIES.map(c => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className={labelClass}>Billing Cycle</label>
@@ -136,31 +148,20 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
               className={selectClass}
             >
               {SUBSCRIPTION_CATEGORIES.map(c => (
-                <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>
+                <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
           </div>
 
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Next Payment</label>
-              <input
-                type="date"
-                value={nextPaymentDate}
-                onChange={e => setNextPaymentDate(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className={inputClass}
-              />
-            </div>
+          {/* Start Date */}
+          <div>
+            <label className={labelClass}>Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className={inputClass}
+            />
           </div>
 
           {/* URL */}
@@ -187,22 +188,33 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
             />
           </div>
 
-          {/* Auto-renew toggle */}
-          <div className="flex items-center justify-between px-1 py-1">
-            <span className="text-[13px] text-[#c0bfd0]">Auto-renew</span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoRenew}
-              onClick={() => setAutoRenew(!autoRenew)}
-              className={`relative w-9 h-5 rounded-full transition-colors ${
-                autoRenew ? 'bg-[#ec4899]' : 'bg-[#2a2740]'
-              }`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                autoRenew ? 'translate-x-4' : 'translate-x-0'
-              }`} />
-            </button>
+          {/* Status toggle */}
+          <div>
+            <label className={labelClass}>Status</label>
+            <div className="flex rounded-lg border border-[#1c1928] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setStatus('active')}
+                className={`flex-1 px-3 py-2 text-[13px] font-medium transition-colors ${
+                  status === 'active'
+                    ? 'bg-[#1a1730] text-white'
+                    : 'text-[#4a4660] hover:text-[#7a7890]'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus('blocked')}
+                className={`flex-1 px-3 py-2 text-[13px] font-medium transition-colors ${
+                  status === 'blocked'
+                    ? 'bg-[#1a1730] text-white'
+                    : 'text-[#4a4660] hover:text-[#7a7890]'
+                }`}
+              >
+                Blocked
+              </button>
+            </div>
           </div>
         </div>
 

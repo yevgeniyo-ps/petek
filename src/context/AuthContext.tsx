@@ -2,6 +2,17 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../config/supabase';
 
+const DEV_BYPASS_AUTH = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
+const FAKE_USER = {
+  id: 'dev-user-000',
+  email: 'dev@localhost',
+  app_metadata: {},
+  user_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as unknown as User;
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -16,9 +27,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!DEV_BYPASS_AUTH);
 
   useEffect(() => {
+    if (DEV_BYPASS_AUTH) return;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -57,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       session,
-      user: session?.user ?? null,
+      user: DEV_BYPASS_AUTH ? FAKE_USER : session?.user ?? null,
       loading,
       signUp,
       signIn,
