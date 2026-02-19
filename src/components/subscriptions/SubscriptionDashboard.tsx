@@ -15,12 +15,9 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
     const monthlyByCurrency: Partial<Record<Currency, number>> = {};
     let activeCount = 0;
     let blockedCount = 0;
-    const categories = new Set<string>();
-
     for (const s of subscriptions) {
       const cur = s.currency ?? 'USD';
       monthlyByCurrency[cur] = (monthlyByCurrency[cur] ?? 0) + toMonthly(s.amount, s.billing_cycle);
-      categories.add(s.category);
       if (s.status === 'blocked') blockedCount++;
       else activeCount++;
     }
@@ -33,13 +30,12 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
       activeCurrencies,
       activeCount,
       blockedCount,
-      categoriesCount: categories.size,
     };
   }, [subscriptions]);
 
   return (
     <div className="mt-8 mb-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {/* Total cost */}
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
           <div className="space-y-1">
@@ -92,11 +88,6 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
-          <div className="text-[22px] font-bold text-white tabular-nums">{stats.categoriesCount}</div>
-          <div className="text-[12px] text-[#7a7890] mt-0.5">Categories</div>
-        </div>
       </div>
     </div>
   );
