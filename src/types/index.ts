@@ -98,7 +98,7 @@ export type SubscriptionStatus = 'active' | 'blocked';
 
 export type SubscriptionCategory =
   | 'streaming' | 'software' | 'fitness' | 'music'
-  | 'cloud' | 'news' | 'gaming' | 'other';
+  | 'cloud' | 'news' | 'gaming' | 'mobile' | 'other';
 
 export interface Subscription {
   id: string;

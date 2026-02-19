@@ -1,5 +1,5 @@
 import {
-  Tv, Laptop, Dumbbell, Music, Cloud, Newspaper, Gamepad2, Package,
+  Tv, Laptop, Dumbbell, Music, Cloud, Newspaper, Gamepad2, Smartphone, Package,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { BillingCycle, Currency, SubscriptionCategory } from '../types';
@@ -19,6 +19,7 @@ export const SUBSCRIPTION_CATEGORIES: { value: SubscriptionCategory; label: stri
   { value: 'cloud', label: 'Cloud', icon: Cloud },
   { value: 'news', label: 'News', icon: Newspaper },
   { value: 'gaming', label: 'Gaming', icon: Gamepad2 },
+  { value: 'mobile', label: 'Mobile', icon: Smartphone },
   { value: 'other', label: 'Other', icon: Package },
 ];
 
