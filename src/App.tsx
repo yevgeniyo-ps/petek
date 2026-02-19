@@ -6,6 +6,7 @@ import { NotesProvider } from './context/NotesContext';
 import { LabelsProvider } from './context/LabelsContext';
 import { CollectionsProvider } from './context/CollectionsContext';
 import { InsurancesProvider } from './context/InsurancesContext';
+import { SubscriptionsProvider } from './context/SubscriptionsContext';
 import AuthGuard from './components/auth/AuthGuard';
 import { ApprovalProvider } from './context/ApprovalContext';
 import ApprovalGuard from './components/auth/ApprovalGuard';
@@ -35,6 +36,7 @@ export default function App() {
               <LabelsProvider>
                 <CollectionsProvider>
                   <InsurancesProvider>
+                  <SubscriptionsProvider>
                     <Layout>
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
@@ -47,6 +49,7 @@ export default function App() {
                         </Routes>
                       </Suspense>
                     </Layout>
+                  </SubscriptionsProvider>
                   </InsurancesProvider>
                 </CollectionsProvider>
               </LabelsProvider>

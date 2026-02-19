@@ -88,6 +88,30 @@ export interface InsurancePolicy {
   created_at: string;
 }
 
+// Subscriptions
+
+export type BillingCycle = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+
+export type SubscriptionCategory =
+  | 'streaming' | 'software' | 'fitness' | 'music'
+  | 'cloud' | 'news' | 'gaming' | 'other';
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  billing_cycle: BillingCycle;
+  category: SubscriptionCategory;
+  next_payment_date: string | null;
+  url: string;
+  notes: string;
+  start_date: string | null;
+  auto_renew: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Admin
 
 export interface AdminUser {
