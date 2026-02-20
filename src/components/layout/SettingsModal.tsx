@@ -6,7 +6,6 @@ export interface MenuSettings {
   insurances: boolean;
   subscriptions: boolean;
   collections: boolean;
-  tags: boolean;
 }
 
 export const defaultMenuSettings: MenuSettings = {
@@ -14,7 +13,6 @@ export const defaultMenuSettings: MenuSettings = {
   insurances: true,
   subscriptions: true,
   collections: true,
-  tags: true,
 };
 
 const STORAGE_KEY = 'petek:menu-settings';
@@ -50,7 +48,6 @@ export default function SettingsModal({ open, onClose, settings, onChange }: Set
     { key: 'insurances', label: 'Insurances' },
     { key: 'subscriptions', label: 'Subscriptions' },
     { key: 'collections', label: 'Collections' },
-    { key: 'tags', label: 'Tags' },
   ];
 
   return (

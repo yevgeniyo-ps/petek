@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Tag, Plus, X, Shield, Umbrella, RepeatIcon, Settings } from 'lucide-react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Settings } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useLabels } from '../../context/LabelsContext';
 import { useCollections } from '../../context/CollectionsContext';
 import { getCollectionIcon } from '../../lib/icons';
 import { useGravatar } from '../../hooks/useGravatar';
@@ -20,44 +19,18 @@ interface SidebarProps {
 export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { user, signOut } = useAuth();
-  const { labels, createLabel, deleteLabel } = useLabels();
   const { collections } = useCollections();
   const { isAdmin } = useAdmin();
   const avatarUrl = useGravatar(user?.email ?? undefined, 64);
-  const [newTagName, setNewTagName] = useState('');
-  const [addingTag, setAddingTag] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [menuSettings, setMenuSettings] = useState<MenuSettings>(loadMenuSettings);
-  const selectedTagId = searchParams.get('tag');
-
-  const handleTagClick = (labelId: string) => {
-    if (selectedTagId === labelId) {
-      searchParams.delete('tag');
-    } else {
-      searchParams.set('tag', labelId);
-    }
-    setSearchParams(searchParams);
-    if (location.pathname !== '/' && location.pathname !== '/archive') {
-      navigate('/');
-    }
-    onClose?.();
-  };
 
   const handleNav = (path: string) => {
     navigate(path);
     onClose?.();
-  };
-
-  const handleCreateTag = async () => {
-    const name = newTagName.trim();
-    if (!name) return;
-    await createLabel(name);
-    setNewTagName('');
-    setAddingTag(false);
   };
 
   return (
@@ -147,69 +120,6 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
             </>
           )}
         </nav>
-
-        {/* Tags */}
-        {menuSettings.tags && (
-          <div className={`rounded-lg bg-white/[0.03] border border-white/[0.04] py-2 ${open ? 'mx-3 px-1' : 'mx-1.5 px-0.5'}`}>
-            {open && (
-              <div className="flex items-center justify-between px-3 mb-1">
-                <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Tags</span>
-                <button
-                  onClick={() => setAddingTag(true)}
-                  className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
-                  title="Add tag"
-                >
-                  <Plus size={12} />
-                </button>
-              </div>
-            )}
-            {addingTag && open && (
-              <div className="px-3 mb-1">
-                <input
-                  autoFocus
-                  type="text"
-                  value={newTagName}
-                  onChange={e => setNewTagName(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') handleCreateTag();
-                    if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
-                  }}
-                  onBlur={handleCreateTag}
-                  placeholder="Tag name..."
-                  className="w-full bg-transparent border border-[#2d2a40] rounded-md px-2 py-1 text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50"
-                />
-              </div>
-            )}
-            <div className="space-y-0.5">
-              {labels.map(label => (
-                <button
-                  key={label.id}
-                  onClick={() => handleTagClick(label.id)}
-                  title={label.name}
-                  className={`group/tag w-full flex items-center rounded-lg text-[14px] transition-all ${
-                    open ? 'gap-3 px-3 py-2' : 'justify-center py-2'
-                  } ${
-                    selectedTagId === label.id
-                      ? 'bg-[#1a1730] text-white'
-                      : 'text-[#7a7890] hover:bg-white/[0.04] hover:text-[#b0adc0]'
-                  }`}
-                >
-                  <Tag size={16} className={`shrink-0 ${selectedTagId === label.id ? 'text-[#ec4899]' : ''}`} />
-                  {open && (
-                    <>
-                      <span className="truncate flex-1 text-left">{label.name}</span>
-                      <X
-                        size={12}
-                        className="shrink-0 opacity-0 group-hover/tag:opacity-100 text-[#7a7890] hover:text-red-400 transition-all"
-                        onClick={e => { e.stopPropagation(); deleteLabel(label.id); }}
-                      />
-                    </>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Admin */}
         {isAdmin && (
