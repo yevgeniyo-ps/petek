@@ -172,11 +172,19 @@ export default function HomePage() {
 
   const draggedNote = activeId ? activeNotes.find(n => n.id === activeId) : null;
 
-  const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
+  const handleSave = async (data: { title: string; content: string; emoji: string | null; labelId: string | null }) => {
+    const { labelId, ...noteData } = data;
     if (editingNote) {
-      await updateNote(editingNote.id, data);
+      await updateNote(editingNote.id, noteData);
+      // Update category if changed
+      const currentLabel = getLabelsForNote(editingNote.id)[0];
+      if (currentLabel?.id !== labelId) {
+        if (currentLabel) await removeLabelFromNote(editingNote.id, currentLabel.id);
+        if (labelId) await addLabelToNote(editingNote.id, labelId);
+      }
     } else {
-      await createNote(data);
+      const created = await createNote(noteData);
+      if (labelId) await addLabelToNote(created.id, labelId);
     }
     setEditingNote(null);
   };

@@ -7,7 +7,7 @@ interface NotesContextType {
   notes: Note[];
   loading: boolean;
   error: string | null;
-  createNote: (note: Partial<Note>) => Promise<void>;
+  createNote: (note: Partial<Note>) => Promise<Note>;
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   reorderNotes: (updates: { id: string; position: number }[]) => Promise<void>;
@@ -47,6 +47,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const createNote = async (note: Partial<Note>) => {
     const created = await notesApi.createNote(note);
     setNotes(prev => [created, ...prev]);
+    return created;
   };
 
   const updateNote = async (id: string, updates: Partial<Note>) => {

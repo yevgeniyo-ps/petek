@@ -22,7 +22,7 @@ export default function TrashPage() {
     return filtered;
   }, [notes, search]);
 
-  const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
+  const handleSave = async (data: { title: string; content: string; emoji: string | null; labelId: string | null }) => {
     if (editingNote) {
       await updateNote(editingNote.id, data);
     }
