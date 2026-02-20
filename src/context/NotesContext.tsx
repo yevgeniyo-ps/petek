@@ -10,6 +10,7 @@ interface NotesContextType {
   createNote: (note: Partial<Note>) => Promise<void>;
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  reorderNotes: (updates: { id: string; position: number }[]) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -58,8 +59,16 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     setNotes(prev => prev.filter(n => n.id !== id));
   };
 
+  const reorderNotes = async (updates: { id: string; position: number }[]) => {
+    setNotes(prev => {
+      const posMap = new Map(updates.map(u => [u.id, u.position]));
+      return prev.map(n => posMap.has(n.id) ? { ...n, position: posMap.get(n.id)! } : n);
+    });
+    await notesApi.reorderNotes(updates);
+  };
+
   return (
-    <NotesContext.Provider value={{ notes, loading, error, createNote, updateNote, deleteNote, refresh }}>
+    <NotesContext.Provider value={{ notes, loading, error, createNote, updateNote, deleteNote, reorderNotes, refresh }}>
       {children}
     </NotesContext.Provider>
   );

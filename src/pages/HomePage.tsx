@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Search, Plus, Archive } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
 import NoteBoard from '../components/notes/NoteBoard';
@@ -8,7 +9,7 @@ import NoteEditor from '../components/notes/NoteEditor';
 import { Note } from '../types';
 
 export default function HomePage() {
-  const { notes, loading, createNote, updateNote } = useNotes();
+  const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
   const { getNoteIdsForLabel } = useLabels();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -54,6 +55,15 @@ export default function HomePage() {
     setEditorOpen(true);
   };
 
+  const handleReorder = useCallback((sectionNotes: Note[]) => (activeId: string, overId: string) => {
+    const oldIndex = sectionNotes.findIndex(n => n.id === activeId);
+    const newIndex = sectionNotes.findIndex(n => n.id === overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(sectionNotes, oldIndex, newIndex);
+    const updates = reordered.map((n, i) => ({ id: n.id, position: i + 1 }));
+    reorderNotes(updates);
+  }, [reorderNotes]);
+
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading notes...</div>;
   }
@@ -90,8 +100,8 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <NoteBoard notes={pinned} onNoteClick={handleNoteClick} sectionTitle={pinned.length > 0 ? 'Pinned' : undefined} />
-          <NoteBoard notes={others} onNoteClick={handleNoteClick} sectionTitle={pinned.length > 0 ? 'Others' : undefined} />
+          <NoteBoard notes={pinned} onNoteClick={handleNoteClick} onReorder={handleReorder(pinned)} sectionTitle={pinned.length > 0 ? 'Pinned' : undefined} />
+          <NoteBoard notes={others} onNoteClick={handleNoteClick} onReorder={handleReorder(others)} sectionTitle={pinned.length > 0 ? 'Others' : undefined} />
         </>
       )}
 

@@ -6,7 +6,8 @@ export async function fetchNotes(): Promise<Note[]> {
     .from('notes')
     .select('*')
     .order('is_pinned', { ascending: false })
-    .order('updated_at', { ascending: false });
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data ?? [];
@@ -37,6 +38,15 @@ export async function updateNote(id: string, updates: Partial<Note>): Promise<No
 
   if (error) throw error;
   return data;
+}
+
+export async function reorderNotes(updates: { id: string; position: number }[]): Promise<void> {
+  const promises = updates.map(({ id, position }) =>
+    supabase.from('notes').update({ position }).eq('id', id)
+  );
+  const results = await Promise.all(promises);
+  const error = results.find(r => r.error)?.error;
+  if (error) throw error;
 }
 
 export async function deleteNotePermanently(id: string): Promise<void> {
