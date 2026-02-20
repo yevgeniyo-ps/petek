@@ -17,6 +17,7 @@ import {
   rectSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Note } from '../../types';
 import NoteCard from './NoteCard';
 
@@ -30,6 +31,7 @@ interface NoteBoardProps {
 
 export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle, groupId }: NoteBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: groupId || '_standalone',
     disabled: !groupId,
@@ -85,14 +87,23 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle,
       isOver && groupId ? 'border-[#ec4899]/40 bg-[#ec4899]/[0.03]' : 'border-[#2a2740] bg-[#1a1726]/40'
     }`}>
       {sectionTitle && (
-        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-white/[0.04]">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#ec4899]" />
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={`w-full flex items-center gap-2.5 px-5 py-3 text-left transition-colors hover:bg-white/[0.02] ${collapsed ? '' : 'border-b border-white/[0.04]'}`}
+        >
+          {collapsed ? (
+            <ChevronRight size={14} className="text-[#7a7890] shrink-0" />
+          ) : (
+            <ChevronDown size={14} className="text-[#7a7890] shrink-0" />
+          )}
+          <div className="w-1.5 h-1.5 rounded-full bg-[#ec4899] shrink-0" />
           <h2 className="text-[12px] font-semibold text-[#b0adc0] uppercase tracking-wider">
             {sectionTitle}
           </h2>
-        </div>
+          <span className="text-[11px] text-[#4a4660] ml-auto">{notes.length}</span>
+        </button>
       )}
-      <div className="p-4">
+      {!collapsed && <div className="p-4">
         {groupId ? content : (
           <DndContext
             sensors={sensors}
@@ -107,7 +118,7 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle,
             </DragOverlay>
           </DndContext>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
