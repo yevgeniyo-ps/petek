@@ -2,37 +2,52 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Search, Plus, Archive, Tag, X } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { arrayMove } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
 import NoteBoard from '../components/notes/NoteBoard';
 import NoteEditor from '../components/notes/NoteEditor';
+import NoteCard from '../components/notes/NoteCard';
 import { Note } from '../types';
 
 export default function HomePage() {
   const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
-  const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel } = useLabels();
+  const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel, addLabelToNote, removeLabelFromNote } = useLabels();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [search, setSearch] = useState('');
-  const [addingTag, setAddingTag] = useState(false);
-  const [newTagName, setNewTagName] = useState('');
-  const tagInputRef = useRef<HTMLInputElement>(null);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const categoryInputRef = useRef<HTMLInputElement>(null);
   const selectedTagId = searchParams.get('tag');
 
   useEffect(() => {
-    if (addingTag) tagInputRef.current?.focus();
-  }, [addingTag]);
+    if (addingCategory) categoryInputRef.current?.focus();
+  }, [addingCategory]);
 
-  const handleCreateTag = async () => {
-    const name = newTagName.trim();
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
     if (name) await createLabel(name);
-    setNewTagName('');
-    setAddingTag(false);
+    setNewCategoryName('');
+    setAddingCategory(false);
   };
 
-  const handleTagClick = (labelId: string) => {
+  const handleCategoryClick = (labelId: string) => {
     if (selectedTagId === labelId) {
       searchParams.delete('tag');
     } else {
@@ -60,16 +75,16 @@ export default function HomePage() {
     const groups = new Map<string, { name: string; notes: Note[] }>();
     const uncategorized: Note[] = [];
 
+    // Initialize ALL labels as groups (even empty ones)
+    for (const label of labels) {
+      groups.set(label.id, { name: label.name, notes: [] });
+    }
+
     for (const note of activeNotes) {
       const noteLabels = getLabelsForNote(note.id);
       const label = noteLabels[0];
-      if (label) {
-        const group = groups.get(label.id);
-        if (group) {
-          group.notes.push(note);
-        } else {
-          groups.set(label.id, { name: label.name, notes: [note] });
-        }
+      if (label && groups.has(label.id)) {
+        groups.get(label.id)!.notes.push(note);
       } else {
         uncategorized.push(note);
       }
@@ -80,7 +95,78 @@ export default function HomePage() {
       .map(([id, { name, notes }]) => ({ id, name, notes }));
 
     return { labeled: sorted, uncategorized };
-  }, [activeNotes, getLabelsForNote]);
+  }, [activeNotes, getLabelsForNote, labels]);
+
+  // Lookup: noteId → labelId (or 'uncategorized')
+  const noteGroupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const group of groupedNotes.labeled) {
+      for (const note of group.notes) {
+        map.set(note.id, group.id);
+      }
+    }
+    for (const note of groupedNotes.uncategorized) {
+      map.set(note.id, 'uncategorized');
+    }
+    return map;
+  }, [groupedNotes]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+
+    const draggedId = active.id as string;
+    const overId = over.id as string;
+
+    const sourceGroupId = noteGroupMap.get(draggedId);
+
+    // Determine target group: could be a group container ID or a note ID
+    let targetGroupId: string;
+    if (noteGroupMap.has(overId)) {
+      targetGroupId = noteGroupMap.get(overId)!;
+    } else {
+      // overId is a droppable container ID (label ID or 'uncategorized')
+      targetGroupId = overId;
+    }
+
+    if (sourceGroupId === targetGroupId) {
+      // Same group — reorder within
+      const groupNotes = targetGroupId === 'uncategorized'
+        ? groupedNotes.uncategorized
+        : groupedNotes.labeled.find(g => g.id === targetGroupId)?.notes ?? [];
+
+      const oldIndex = groupNotes.findIndex(n => n.id === draggedId);
+      const newIndex = groupNotes.findIndex(n => n.id === overId);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        const reordered = arrayMove(groupNotes, oldIndex, newIndex);
+        const updates = reordered.map((n, i) => ({ id: n.id, position: i + 1 }));
+        reorderNotes(updates);
+      }
+    } else {
+      // Cross-group — move note to new category
+      if (sourceGroupId && sourceGroupId !== 'uncategorized') {
+        removeLabelFromNote(draggedId, sourceGroupId);
+      }
+      if (targetGroupId !== 'uncategorized') {
+        addLabelToNote(draggedId, targetGroupId);
+      }
+    }
+  }, [noteGroupMap, groupedNotes, reorderNotes, addLabelToNote, removeLabelFromNote]);
+
+  const handleDragCancel = () => setActiveId(null);
+
+  const draggedNote = activeId ? activeNotes.find(n => n.id === activeId) : null;
 
   const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
     if (editingNote) {
@@ -100,15 +186,6 @@ export default function HomePage() {
     setEditingNote(null);
     setEditorOpen(true);
   };
-
-  const handleReorder = useCallback((sectionNotes: Note[]) => (activeId: string, overId: string) => {
-    const oldIndex = sectionNotes.findIndex(n => n.id === activeId);
-    const newIndex = sectionNotes.findIndex(n => n.id === overId);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(sectionNotes, oldIndex, newIndex);
-    const updates = reordered.map((n, i) => ({ id: n.id, position: i + 1 }));
-    reorderNotes(updates);
-  }, [reorderNotes]);
 
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading notes...</div>;
@@ -136,12 +213,12 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Tags */}
+      {/* Categories */}
       <div className="flex items-center gap-2 flex-wrap mb-8">
         {labels.map(label => (
           <button
             key={label.id}
-            onClick={() => handleTagClick(label.id)}
+            onClick={() => handleCategoryClick(label.id)}
             className={`group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
               selectedTagId === label.id
                 ? 'bg-[#ec4899]/20 text-[#f472b6]'
@@ -157,46 +234,55 @@ export default function HomePage() {
             />
           </button>
         ))}
-        {addingTag ? (
+        {addingCategory ? (
           <input
-            ref={tagInputRef}
+            ref={categoryInputRef}
             type="text"
-            value={newTagName}
-            onChange={e => setNewTagName(e.target.value)}
+            value={newCategoryName}
+            onChange={e => setNewCategoryName(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') handleCreateTag();
-              if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
+              if (e.key === 'Enter') handleCreateCategory();
+              if (e.key === 'Escape') { setAddingCategory(false); setNewCategoryName(''); }
             }}
-            onBlur={handleCreateTag}
-            placeholder="Tag name..."
-            className="px-3 py-1 rounded-full bg-transparent border border-[#2d2a40] text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50 w-28"
+            onBlur={handleCreateCategory}
+            placeholder="Category name..."
+            className="px-3 py-1 rounded-full bg-transparent border border-[#2d2a40] text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50 w-32"
           />
         ) : (
           <button
-            onClick={() => setAddingTag(true)}
+            onClick={() => setAddingCategory(true)}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] text-[#7a7890] hover:text-[#ec4899] hover:bg-white/[0.04] transition-colors"
-            title="Add tag"
+            title="Add category"
           >
             <Plus size={12} />
-            <span>Tag</span>
+            <span>Category</span>
           </button>
         )}
       </div>
 
       {/* Content */}
-      {activeNotes.length === 0 ? (
+      {activeNotes.length === 0 && groupedNotes.labeled.length === 0 ? (
         <div className="rounded-xl border border-[#1c1928] bg-[#0f0d18] py-24 text-center">
           <p className="text-[14px] text-[#7a7890]">
             {search ? 'No notes found matching your criteria.' : 'No notes yet. Create one to get started.'}
           </p>
         </div>
       ) : (
-        <>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
           {groupedNotes.labeled.map(group => (
-            <NoteBoard key={group.id} notes={group.notes} onNoteClick={handleNoteClick} onReorder={handleReorder(group.notes)} sectionTitle={group.name} />
+            <NoteBoard key={group.id} groupId={group.id} notes={group.notes} onNoteClick={handleNoteClick} sectionTitle={group.name} />
           ))}
-          <NoteBoard notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} onReorder={handleReorder(groupedNotes.uncategorized)} sectionTitle="Uncategorized" />
-        </>
+          <NoteBoard groupId="uncategorized" notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} sectionTitle="Uncategorized" />
+          <DragOverlay dropAnimation={null}>
+            {draggedNote ? <NoteCard note={draggedNote} onClick={() => {}} overlay /> : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* Archive link */}
