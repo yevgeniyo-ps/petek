@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Search, Plus, Archive, Tag, X } from 'lucide-react';
+import { Search, Plus, Archive, Tag, X, AlertTriangle } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { arrayMove } from '@dnd-kit/sortable';
 import {
@@ -33,6 +33,7 @@ export default function HomePage() {
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [filterImportant, setFilterImportant] = useState(false);
   const categoryInputRef = useRef<HTMLInputElement>(null);
   const selectedTagId = searchParams.get('tag');
 
@@ -58,6 +59,9 @@ export default function HomePage() {
 
   const activeNotes = useMemo(() => {
     let filtered = notes.filter(n => !n.is_archived);
+    if (filterImportant) {
+      filtered = filtered.filter(n => n.is_important);
+    }
     if (selectedTagId) {
       const noteIds = getNoteIdsForLabel(selectedTagId);
       filtered = filtered.filter(n => noteIds.includes(n.id));
@@ -69,7 +73,7 @@ export default function HomePage() {
       );
     }
     return filtered;
-  }, [notes, search, selectedTagId, getNoteIdsForLabel]);
+  }, [notes, search, selectedTagId, filterImportant, getNoteIdsForLabel]);
 
   const groupedNotes = useMemo(() => {
     const groups = new Map<string, { name: string; notes: Note[] }>();
@@ -212,7 +216,7 @@ export default function HomePage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between mt-8 mb-4">
+      <div className="flex items-center gap-3 mt-8 mb-4">
         <div className="relative">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
           <input
@@ -223,6 +227,18 @@ export default function HomePage() {
             className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
           />
         </div>
+        <button
+          onClick={() => setFilterImportant(!filterImportant)}
+          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-medium transition-all ${
+            filterImportant
+              ? 'bg-[#f59e0b]/20 text-[#f59e0b]'
+              : 'text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.04]'
+          }`}
+          title="Filter important"
+        >
+          <AlertTriangle size={13} />
+          <span>Important</span>
+        </button>
       </div>
 
       {/* Categories */}
