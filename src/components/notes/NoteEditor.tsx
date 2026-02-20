@@ -66,10 +66,15 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
     const isAssigned = assignedLabels.some(l => l.id === label.id);
     if (isAssigned) {
       await removeLabelFromNote(note.id, label.id);
-      setAssignedLabels(prev => prev.filter(l => l.id !== label.id));
+      setAssignedLabels([]);
     } else {
+      // Single-select: remove existing label first, then assign new one
+      const current = assignedLabels[0];
+      if (current) {
+        await removeLabelFromNote(note.id, current.id);
+      }
       await addLabelToNote(note.id, label.id);
-      setAssignedLabels(prev => [...prev, label]);
+      setAssignedLabels([label]);
     }
   };
 

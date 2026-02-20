@@ -10,7 +10,7 @@ import { Note } from '../types';
 
 export default function HomePage() {
   const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
-  const { getNoteIdsForLabel } = useLabels();
+  const { getLabelsForNote, getNoteIdsForLabel } = useLabels();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
@@ -33,8 +33,31 @@ export default function HomePage() {
     return filtered;
   }, [notes, search, selectedTagId, getNoteIdsForLabel]);
 
-  const pinned = activeNotes.filter(n => n.is_pinned);
-  const others = activeNotes.filter(n => !n.is_pinned);
+  const groupedNotes = useMemo(() => {
+    const groups = new Map<string, { name: string; notes: Note[] }>();
+    const uncategorized: Note[] = [];
+
+    for (const note of activeNotes) {
+      const noteLabels = getLabelsForNote(note.id);
+      const label = noteLabels[0];
+      if (label) {
+        const group = groups.get(label.id);
+        if (group) {
+          group.notes.push(note);
+        } else {
+          groups.set(label.id, { name: label.name, notes: [note] });
+        }
+      } else {
+        uncategorized.push(note);
+      }
+    }
+
+    const sorted = [...groups.entries()]
+      .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+      .map(([id, { name, notes }]) => ({ id, name, notes }));
+
+    return { labeled: sorted, uncategorized };
+  }, [activeNotes, getLabelsForNote]);
 
   const handleSave = async (data: { title: string; content: string; emoji: string | null }) => {
     if (editingNote) {
@@ -100,8 +123,10 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <NoteBoard notes={pinned} onNoteClick={handleNoteClick} onReorder={handleReorder(pinned)} sectionTitle={pinned.length > 0 ? 'Pinned' : undefined} />
-          <NoteBoard notes={others} onNoteClick={handleNoteClick} onReorder={handleReorder(others)} sectionTitle={pinned.length > 0 ? 'Others' : undefined} />
+          {groupedNotes.labeled.map(group => (
+            <NoteBoard key={group.id} notes={group.notes} onNoteClick={handleNoteClick} onReorder={handleReorder(group.notes)} sectionTitle={group.name} />
+          ))}
+          <NoteBoard notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} onReorder={handleReorder(groupedNotes.uncategorized)} sectionTitle="Uncategorized" />
         </>
       )}
 

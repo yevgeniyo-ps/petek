@@ -56,9 +56,9 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle 
   const activeNote = activeId ? notes.find(n => n.id === activeId) : null;
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 border border-[#1c1928] rounded-xl p-4 pt-0">
       {sectionTitle && (
-        <h2 className="text-[11px] font-semibold text-[#7a7890] uppercase tracking-wider mb-4">
+        <h2 className="text-[11px] font-semibold text-[#7a7890] uppercase tracking-wider mb-4 mt-4">
           {sectionTitle}
         </h2>
       )}
