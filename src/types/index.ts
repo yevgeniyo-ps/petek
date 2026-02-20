@@ -6,6 +6,7 @@ export interface Note {
   color: string;
   emoji: string | null;
   is_pinned: boolean;
+  is_important: boolean;
   is_archived: boolean;
   is_trashed: boolean;
   position: number;

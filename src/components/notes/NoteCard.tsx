@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { AlertTriangle } from 'lucide-react';
 import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
@@ -42,11 +43,16 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         style={style}
         {...(overlay ? {} : { ...attributes, ...listeners })}
         onClick={overlay ? undefined : onClick}
-        className={`group rounded-xl border border-[#1c1928] bg-[#0c0a12] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative ${
-          overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''
-        }`}
+        className={`group rounded-xl border bg-[#0c0a12] cursor-pointer transition-all flex flex-col min-h-[140px] relative ${
+          note.is_important ? 'border-[#f59e0b]/40 hover:border-[#f59e0b]/60' : 'border-[#1c1928] hover:border-[#2d2a40]'
+        } ${overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''}`}
       >
 
+        {note.is_important && (
+          <span className="absolute top-3 left-3 text-[#f59e0b] pointer-events-none">
+            <AlertTriangle size={14} />
+          </span>
+        )}
         {note.emoji && ICON_MAP[note.emoji] && (() => {
           const Icon = ICON_MAP[note.emoji!]!;
           return (
@@ -73,8 +79,10 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         <div className="px-3 py-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
           <NoteToolbar
             isPinned={note.is_pinned}
+            isImportant={note.is_important}
             isArchived={note.is_archived}
             onTogglePin={() => updateNote(note.id, { is_pinned: !note.is_pinned })}
+            onToggleImportant={() => updateNote(note.id, { is_important: !note.is_important })}
             onEmojiChange={(emoji) => updateNote(note.id, { emoji })}
             onArchive={() => updateNote(note.id, { is_archived: true })}
             onRestore={() => updateNote(note.id, { is_archived: false })}
