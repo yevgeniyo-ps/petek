@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical } from 'lucide-react';
 import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
@@ -28,7 +27,6 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
     attributes,
     listeners,
     setNodeRef,
-    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
@@ -45,24 +43,12 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
       <div
         ref={overlay ? undefined : setNodeRef}
         style={style}
-        {...(overlay ? {} : attributes)}
+        {...(overlay ? {} : { ...attributes, ...listeners })}
         onClick={overlay ? undefined : onClick}
         className={`group rounded-xl border border-[#1c1928] bg-[#13111c] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative ${
           overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''
         }`}
       >
-        {/* Drag handle — visible on hover */}
-        {!overlay && (
-          <button
-            ref={setActivatorNodeRef}
-            {...listeners}
-            className="absolute top-2 left-2 z-10 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[#4a4660] hover:text-[#7a7890] hover:bg-[#1c1928] cursor-grab active:cursor-grabbing"
-            onClick={e => e.stopPropagation()}
-            aria-label="Drag to reorder"
-          >
-            <GripVertical size={14} />
-          </button>
-        )}
 
         {note.emoji && ICON_MAP[note.emoji] && (() => {
           const Icon = ICON_MAP[note.emoji!]!;
