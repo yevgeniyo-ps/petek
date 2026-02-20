@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
@@ -14,9 +15,10 @@ import { ICON_MAP } from '../ui/IconPicker';
 interface NoteCardProps {
   note: Note;
   onClick: () => void;
+  overlay?: boolean;
 }
 
-export default function NoteCard({ note, onClick }: NoteCardProps) {
+export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { updateNote, deleteNote } = useNotes();
   const { getLabelsForNote } = useLabels();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -26,28 +28,42 @@ export default function NoteCard({ note, onClick }: NoteCardProps) {
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
   } = useSortable({ id: note.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const style = overlay ? undefined : {
+    transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : undefined,
-    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0 : undefined,
   };
 
   return (
     <>
       <div
-        ref={setNodeRef}
+        ref={overlay ? undefined : setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
-        onClick={onClick}
-        className="group rounded-xl border border-[#1c1928] bg-[#13111c] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative"
+        {...(overlay ? {} : attributes)}
+        onClick={overlay ? undefined : onClick}
+        className={`group rounded-xl border border-[#1c1928] bg-[#13111c] cursor-pointer transition-all hover:border-[#2d2a40] flex flex-col min-h-[140px] relative ${
+          overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''
+        }`}
       >
+        {/* Drag handle — visible on hover */}
+        {!overlay && (
+          <button
+            ref={setActivatorNodeRef}
+            {...listeners}
+            className="absolute top-2 left-2 z-10 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[#4a4660] hover:text-[#7a7890] hover:bg-[#1c1928] cursor-grab active:cursor-grabbing"
+            onClick={e => e.stopPropagation()}
+            aria-label="Drag to reorder"
+          >
+            <GripVertical size={14} />
+          </button>
+        )}
+
         {note.emoji && ICON_MAP[note.emoji] && (() => {
           const Icon = ICON_MAP[note.emoji!]!;
           return (

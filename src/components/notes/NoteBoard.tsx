@@ -1,13 +1,21 @@
+import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
+  DragStartEvent,
   DragEndEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable';
 import { Note } from '../../types';
 import NoteCard from './NoteCard';
 
@@ -19,19 +27,33 @@ interface NoteBoardProps {
 }
 
 export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle }: NoteBoardProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   if (notes.length === 0) return null;
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id && onReorder) {
       onReorder(active.id as string, over.id as string);
     }
+    setActiveId(null);
   };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
+  const activeNote = activeId ? notes.find(n => n.id === activeId) : null;
 
   return (
     <div className="mb-8">
@@ -40,7 +62,13 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle 
           {sectionTitle}
         </h2>
       )}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
         <SortableContext items={notes.map(n => n.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {notes.map(note => (
@@ -48,6 +76,11 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle 
             ))}
           </div>
         </SortableContext>
+        <DragOverlay dropAnimation={null}>
+          {activeNote ? (
+            <NoteCard note={activeNote} onClick={() => {}} overlay />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
