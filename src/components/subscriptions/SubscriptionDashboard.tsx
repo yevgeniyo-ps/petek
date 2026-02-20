@@ -35,7 +35,7 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
 
   return (
     <div className="mt-8 mb-6">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total cost */}
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
           <div className="space-y-1">

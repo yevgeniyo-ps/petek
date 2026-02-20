@@ -93,7 +93,7 @@ export default function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard icon={Users} label="Total users" value={users.length} />
         <StatCard icon={Clock} label="Pending users" value={pendingCount} />
         <StatCard icon={Users} label="Active today" value={activeToday} />
@@ -117,6 +117,7 @@ export default function AdminPage() {
 
       {/* Table */}
       <div className="rounded-xl border border-[#1c1928] overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-[13px]">
           <thead>
             <tr className="bg-[#13111c] text-[#7a7890] text-left">
@@ -207,6 +208,7 @@ export default function AdminPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <ConfirmDialog

@@ -50,6 +50,7 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
 
   return (
     <div className="rounded-xl border border-[#1c1928] overflow-hidden">
+      <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
           <tr className="bg-[#0f0d18] border-b border-[#1c1928]">
@@ -119,6 +120,7 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

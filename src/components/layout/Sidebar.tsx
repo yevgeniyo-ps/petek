@@ -13,9 +13,11 @@ import SettingsModal, { loadMenuSettings, type MenuSettings } from './SettingsMo
 interface SidebarProps {
   open: boolean;
   onToggle: () => void;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
-export default function Sidebar({ open, onToggle }: SidebarProps) {
+export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,6 +44,12 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
     if (location.pathname !== '/' && location.pathname !== '/archive') {
       navigate('/');
     }
+    onClose?.();
+  };
+
+  const handleNav = (path: string) => {
+    navigate(path);
+    onClose?.();
   };
 
   const handleCreateTag = async () => {
@@ -55,8 +63,8 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
   return (
     <div className="relative shrink-0 flex">
       <aside
-        className={`flex flex-col transition-all duration-200 overflow-hidden rounded-xl bg-[#1a1726] border border-[#2a2740] ${
-          open ? 'w-[200px]' : 'w-[52px]'
+        className={`flex flex-col transition-all duration-200 overflow-hidden bg-[#1a1726] border border-[#2a2740] ${
+          isMobile ? 'w-[240px] h-screen rounded-none' : `rounded-xl ${open ? 'w-[200px]' : 'w-[52px]'}`
         }`}
       >
         {/* Logo */}
@@ -73,13 +81,13 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
           {menuSettings.notes && (
-            <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => navigate('/')} collapsed={!open} />
+            <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => handleNav('/')} collapsed={!open} />
           )}
           {menuSettings.insurances && (
-            <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => navigate('/insurances')} collapsed={!open} />
+            <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => handleNav('/insurances')} collapsed={!open} />
           )}
           {menuSettings.subscriptions && (
-            <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => navigate('/subscriptions')} collapsed={!open} />
+            <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
           )}
 
           {/* Collections */}
@@ -107,7 +115,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
                         icon={ColIcon}
                         label={col.name}
                         active={location.pathname === `/c/${col.slug}`}
-                        onClick={() => navigate(`/c/${col.slug}`)}
+                        onClick={() => handleNav(`/c/${col.slug}`)}
                         collapsed={!open}
                       />
                     );
@@ -206,7 +214,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         {/* Admin */}
         {isAdmin && (
           <div className={`${open ? 'px-4' : 'px-2'} mb-1`}>
-            <NavItem icon={Shield} label="Admin" active={location.pathname === '/admin'} onClick={() => navigate('/admin')} collapsed={!open} />
+            <NavItem icon={Shield} label="Admin" active={location.pathname === '/admin'} onClick={() => handleNav('/admin')} collapsed={!open} />
           </div>
         )}
 
@@ -261,13 +269,15 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         </>
       )}
 
-      {/* Collapse button — outside aside so it's never clipped */}
-      <button
-        onClick={onToggle}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1726] border border-[#2a2740] flex items-center justify-center text-[#6b6882] hover:text-white hover:border-[#ec4899]/60 transition-colors"
-      >
-        {open ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
-      </button>
+      {/* Collapse button — outside aside so it's never clipped (hidden on mobile) */}
+      {!isMobile && (
+        <button
+          onClick={onToggle}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1726] border border-[#2a2740] flex items-center justify-center text-[#6b6882] hover:text-white hover:border-[#ec4899]/60 transition-colors"
+        >
+          {open ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+        </button>
+      )}
 
       <CreateCollectionModal open={createCollectionOpen} onClose={() => setCreateCollectionOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={menuSettings} onChange={setMenuSettings} />

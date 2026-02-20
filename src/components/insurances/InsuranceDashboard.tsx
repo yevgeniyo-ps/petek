@@ -42,7 +42,7 @@ export default function InsuranceDashboard({ policies, lang }: Props) {
 
   return (
     <div className="mt-8 mb-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
           <div className="text-[22px] font-bold text-white tabular-nums">{stats.totalPolicies}</div>
           <div className="text-[12px] text-[#7a7890] mt-0.5">{isHe ? 'פוליסות' : 'Policies'}</div>

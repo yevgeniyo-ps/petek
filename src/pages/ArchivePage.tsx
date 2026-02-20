@@ -43,7 +43,7 @@ export default function ArchivePage() {
   }
 
   return (
-    <div className="max-w-[1200px] px-12 py-10">
+    <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
       <div className="mb-1">
         <h1 className="text-[26px] font-bold text-white leading-tight">Archive</h1>
         <p className="text-[14px] text-[#7a7890] mt-1">Your archived notes</p>
@@ -57,7 +57,7 @@ export default function ArchivePage() {
             placeholder="Search archived..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-72"
+            className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
           />
         </div>
       </div>

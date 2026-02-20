@@ -105,7 +105,7 @@ export default function CollectionPage() {
   const Icon = getCollectionIcon(collection.icon);
 
   return (
-    <div className="max-w-[1200px] px-12 py-10">
+    <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
       {/* Page header */}
       <div className="mb-1 flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -135,7 +135,7 @@ export default function CollectionPage() {
             placeholder={`Search ${collection.name.toLowerCase()}...`}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-72"
+            className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
           />
         </div>
       </div>
