@@ -81,28 +81,33 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle,
   );
 
   return (
-    <div className={`mb-8 border rounded-xl p-4 pt-0 transition-colors ${
-      isOver && groupId ? 'border-[#ec4899]/30 bg-[#ec4899]/[0.02]' : 'border-[#1c1928]'
+    <div className={`mb-6 rounded-xl border transition-colors ${
+      isOver && groupId ? 'border-[#ec4899]/40 bg-[#ec4899]/[0.03]' : 'border-[#2a2740] bg-[#1a1726]/40'
     }`}>
       {sectionTitle && (
-        <h2 className="text-[11px] font-semibold text-[#7a7890] uppercase tracking-wider mb-4 mt-4">
-          {sectionTitle}
-        </h2>
+        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-white/[0.04]">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#ec4899]" />
+          <h2 className="text-[12px] font-semibold text-[#b0adc0] uppercase tracking-wider">
+            {sectionTitle}
+          </h2>
+        </div>
       )}
-      {groupId ? content : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-        >
-          {content}
-          <DragOverlay dropAnimation={null}>
-            {activeNote ? <NoteCard note={activeNote} onClick={() => {}} overlay /> : null}
-          </DragOverlay>
-        </DndContext>
-      )}
+      <div className="p-4">
+        {groupId ? content : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            {content}
+            <DragOverlay dropAnimation={null}>
+              {activeNote ? <NoteCard note={activeNote} onClick={() => {}} overlay /> : null}
+            </DragOverlay>
+          </DndContext>
+        )}
+      </div>
     </div>
   );
 }

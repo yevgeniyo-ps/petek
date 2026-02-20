@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Tag, X, ChevronDown, Smile } from 'lucide-react';
+import { Smile } from 'lucide-react';
 const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
-import { Note, Label } from '../../types';
-import { useLabels } from '../../context/LabelsContext';
+import { Note } from '../../types';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -14,15 +13,11 @@ interface NoteEditorProps {
 }
 
 export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorProps) {
-  const { labels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [emoji, setEmoji] = useState<string | null>(null);
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [tagPickerOpen, setTagPickerOpen] = useState(false);
-  const [assignedLabels, setAssignedLabels] = useState<Label[]>([]);
-  const tagPickerRef = useRef<HTMLDivElement>(null);
   const iconPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,25 +25,12 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
       setTitle(note.title);
       setContent(note.content);
       setEmoji(note.emoji);
-      setAssignedLabels(getLabelsForNote(note.id));
     } else {
       setTitle('');
       setContent('');
       setEmoji(null);
-      setAssignedLabels([]);
     }
-  }, [note, open, getLabelsForNote]);
-
-  useEffect(() => {
-    if (!tagPickerOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (tagPickerRef.current && !tagPickerRef.current.contains(e.target as Node)) {
-        setTagPickerOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [tagPickerOpen]);
+  }, [note, open]);
 
   useEffect(() => {
     if (!showIconPicker) return;
@@ -60,23 +42,6 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showIconPicker]);
-
-  const handleToggleLabel = async (label: Label) => {
-    if (!note) return;
-    const isAssigned = assignedLabels.some(l => l.id === label.id);
-    if (isAssigned) {
-      await removeLabelFromNote(note.id, label.id);
-      setAssignedLabels([]);
-    } else {
-      // Single-select: remove existing label first, then assign new one
-      const current = assignedLabels[0];
-      if (current) {
-        await removeLabelFromNote(note.id, current.id);
-      }
-      await addLabelToNote(note.id, label.id);
-      setAssignedLabels([label]);
-    }
-  };
 
   const handleSave = async () => {
     if (!title.trim() && !content.trim()) return;
@@ -125,52 +90,6 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
                 </div>
               )}
             </div>
-            {note && (
-              <div className="flex items-center gap-1.5 flex-wrap" ref={tagPickerRef}>
-                {assignedLabels.map(label => (
-                  <span
-                    key={label.id}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#ec4899]/25 text-[#f472b6] text-[11px] font-medium"
-                  >
-                    {label.name}
-                    <X
-                      size={10}
-                      className="cursor-pointer hover:text-white transition-colors"
-                      onClick={() => handleToggleLabel(label)}
-                    />
-                  </span>
-                ))}
-                <div className="relative">
-                  <button
-                    onClick={() => setTagPickerOpen(!tagPickerOpen)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06] transition-colors"
-                  >
-                    <Tag size={10} />
-                    <ChevronDown size={10} />
-                  </button>
-                  {tagPickerOpen && labels.length > 0 && (
-                    <div className="absolute bottom-full left-0 mb-1 w-40 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 z-50">
-                      {labels.map(label => {
-                        const isAssigned = assignedLabels.some(l => l.id === label.id);
-                        return (
-                          <button
-                            key={label.id}
-                            onClick={() => handleToggleLabel(label)}
-                            className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-white/[0.08] transition-colors flex items-center gap-2 ${
-                              isAssigned ? 'text-[#f472b6]' : 'text-[#c0bfd0]'
-                            }`}
-                          >
-                            <Tag size={11} />
-                            <span className="truncate">{label.name}</span>
-                            {isAssigned && <span className="ml-auto text-[10px]">&#10003;</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
           <div className="flex gap-2.5">
             <button
