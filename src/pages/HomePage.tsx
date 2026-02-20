@@ -75,8 +75,12 @@ export default function HomePage() {
     const groups = new Map<string, { name: string; notes: Note[] }>();
     const uncategorized: Note[] = [];
 
-    // Initialize ALL labels as groups (even empty ones)
-    for (const label of labels) {
+    // When filtering by category, only show that category
+    const visibleLabels = selectedTagId
+      ? labels.filter(l => l.id === selectedTagId)
+      : labels;
+
+    for (const label of visibleLabels) {
       groups.set(label.id, { name: label.name, notes: [] });
     }
 
@@ -85,7 +89,7 @@ export default function HomePage() {
       const label = noteLabels[0];
       if (label && groups.has(label.id)) {
         groups.get(label.id)!.notes.push(note);
-      } else {
+      } else if (!selectedTagId) {
         uncategorized.push(note);
       }
     }
@@ -95,7 +99,7 @@ export default function HomePage() {
       .map(([id, { name, notes }]) => ({ id, name, notes }));
 
     return { labeled: sorted, uncategorized };
-  }, [activeNotes, getLabelsForNote, labels]);
+  }, [activeNotes, getLabelsForNote, labels, selectedTagId]);
 
   // Lookup: noteId → labelId (or 'uncategorized')
   const noteGroupMap = useMemo(() => {
@@ -278,7 +282,9 @@ export default function HomePage() {
           {groupedNotes.labeled.map(group => (
             <NoteBoard key={group.id} groupId={group.id} notes={group.notes} onNoteClick={handleNoteClick} sectionTitle={group.name} />
           ))}
-          <NoteBoard groupId="uncategorized" notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} sectionTitle="Uncategorized" />
+          {!selectedTagId && (
+            <NoteBoard groupId="uncategorized" notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} sectionTitle="Uncategorized" />
+          )}
           <DragOverlay dropAnimation={null}>
             {draggedNote ? <NoteCard note={draggedNote} onClick={() => {}} overlay /> : null}
           </DragOverlay>
