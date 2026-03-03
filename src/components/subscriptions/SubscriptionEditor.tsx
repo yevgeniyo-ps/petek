@@ -12,7 +12,7 @@ interface SubscriptionEditorProps {
 
 const inputClass = 'w-full px-3 py-2 bg-transparent border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors';
 const labelClass = 'text-[12px] text-[#7a7890] mb-1.5 block';
-const selectClass = 'w-full px-3 py-2 bg-[#2a2740] border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] transition-colors appearance-none cursor-pointer';
+const selectClass = 'w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] transition-colors appearance-none cursor-pointer';
 
 export default function SubscriptionEditor({ subscription, open, onClose, onSave }: SubscriptionEditorProps) {
   const [name, setName] = useState('');

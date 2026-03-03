@@ -84,7 +84,7 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle,
 
   return (
     <div className={`mb-6 rounded-xl border transition-colors ${
-      isOver && groupId ? 'border-[#ec4899]/40 bg-[#ec4899]/[0.03]' : 'border-[#2a2740] bg-[#1a1726]/40'
+      isOver && groupId ? 'border-[#ec4899]/40 bg-[#ec4899]/[0.03]' : 'border-[#0c0a12] bg-[#1a1726]/40'
     }`}>
       {sectionTitle && (
         <button

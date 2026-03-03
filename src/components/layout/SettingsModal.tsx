@@ -70,7 +70,7 @@ export default function SettingsModal({ open, onClose, settings, onChange }: Set
                   aria-checked={settings[key]}
                   onClick={() => toggle(key)}
                   className={`relative w-9 h-5 rounded-full transition-colors ${
-                    settings[key] ? 'bg-[#ec4899]' : 'bg-[#2a2740]'
+                    settings[key] ? 'bg-[#ec4899]' : 'bg-[#0c0a12]'
                   }`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${

@@ -36,7 +36,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   return (
     <div className="relative shrink-0 flex">
       <aside
-        className={`flex flex-col transition-all duration-200 overflow-hidden bg-[#1a1726] border border-[#2a2740] ${
+        className={`flex flex-col transition-all duration-200 overflow-hidden bg-[#1a1726] border border-[#0c0a12] ${
           isMobile ? 'w-[240px] h-screen rounded-none' : `rounded-xl ${open ? 'w-[200px]' : 'w-[52px]'}`
         }`}
       >
@@ -183,7 +183,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
       {!isMobile && (
         <button
           onClick={onToggle}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1726] border border-[#2a2740] flex items-center justify-center text-[#6b6882] hover:text-white hover:border-[#ec4899]/60 transition-colors"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-[#1a1726] border border-[#0c0a12] flex items-center justify-center text-[#6b6882] hover:text-white hover:border-[#ec4899]/60 transition-colors"
         >
           {open ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
         </button>

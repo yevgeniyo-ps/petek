@@ -35,11 +35,11 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="h-screen flex bg-[#2a2740] md:p-3 md:gap-3">
+    <div className="h-screen flex bg-[#0c0a12] md:p-3 md:gap-3">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden w-10 h-10 rounded-lg bg-[#1a1726] border border-[#2a2740] flex items-center justify-center text-[#7a7890] hover:text-white transition-colors"
+        className="fixed top-4 left-4 z-40 md:hidden w-10 h-10 rounded-lg bg-[#1a1726] border border-[#0c0a12] flex items-center justify-center text-[#7a7890] hover:text-white transition-colors"
       >
         <Menu size={20} />
       </button>
