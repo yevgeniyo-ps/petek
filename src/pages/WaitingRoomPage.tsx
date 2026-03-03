@@ -6,7 +6,7 @@ export default function WaitingRoomPage() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[#0c0a12] flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#2a2740] flex items-center justify-center relative overflow-hidden">
       <AbstractAnimation />
 
       <div className="relative z-10 w-full max-w-sm px-6 text-center">

@@ -43,7 +43,7 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         style={style}
         {...(overlay ? {} : { ...attributes, ...listeners })}
         onClick={overlay ? undefined : onClick}
-        className={`group rounded-xl border bg-[#0c0a12] cursor-pointer transition-all flex flex-col min-h-[140px] relative ${
+        className={`group rounded-xl border bg-[#2a2740] cursor-pointer transition-all flex flex-col min-h-[140px] relative ${
           note.is_important ? 'border-[#f59e0b]/40 hover:border-[#f59e0b]/60' : 'border-[#1c1928] hover:border-[#2d2a40]'
         } ${overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''}`}
       >

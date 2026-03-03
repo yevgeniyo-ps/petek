@@ -5,7 +5,7 @@ export default function AbstractAnimation() {
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, #1a0a1e 0%, #0c0a12 100%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, #1a0a1e 0%, #2a2740 100%)',
         }}
       />
 
@@ -128,7 +128,7 @@ export default function AbstractAnimation() {
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, #0c0a12 100%)',
+          background: 'radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, #2a2740 100%)',
         }}
       />
     </div>

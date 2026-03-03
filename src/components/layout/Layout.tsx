@@ -35,7 +35,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="h-screen flex bg-[#0c0a12] md:p-3 md:gap-3">
+    <div className="h-screen flex bg-[#2a2740] md:p-3 md:gap-3">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileSidebarOpen(true)}

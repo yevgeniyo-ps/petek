@@ -3,7 +3,7 @@
 @layer base {
   html, body, #root {
     height: 100%;
-    background-color: #0c0a12;
+    background-color: #2a2740;
     color: #e0dfe4;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
