@@ -131,8 +131,8 @@ export default function InsuranceTable({ policies, lang, highlightedPolicies, hi
                       col === 'premium_nis'
                         ? 'text-right text-white font-medium tabular-nums whitespace-nowrap'
                         : col === 'additional_details'
-                        ? 'text-[#e0dfe4] max-w-[200px] truncate'
-                        : 'text-[#e0dfe4] whitespace-nowrap'
+                        ? 'text-[#f0eff4] max-w-[200px] truncate'
+                        : 'text-[#f0eff4] whitespace-nowrap'
                     }`}
                   >
                     {getCellValue(policy, col, lang)}

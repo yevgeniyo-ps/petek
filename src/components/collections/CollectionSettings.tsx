@@ -102,7 +102,7 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
             <label className="block text-[13px] text-[#b0adc0] mb-1.5">Icon</label>
             <button
               onClick={() => setShowIconPicker(!showIconPicker)}
-              className="flex items-center gap-2 px-3 py-2 border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] hover:border-[#2d2a40] transition-colors"
+              className="flex items-center gap-2 px-3 py-2 border border-[#1c1928] rounded-lg text-[13px] text-[#f0eff4] hover:border-[#2d2a40] transition-colors"
             >
               {(() => {
                 const Icon = getCollectionIcon(icon);

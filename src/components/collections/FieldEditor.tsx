@@ -52,7 +52,7 @@ export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete
         <select
           value={field.field_type}
           onChange={e => onUpdate({ field_type: e.target.value as FieldType })}
-          className="bg-[#13111c] border border-[#1c1928] rounded-lg px-2 py-1.5 text-[13px] text-[#e0dfe4] outline-none focus:border-[#2d2a40]"
+          className="bg-[#13111c] border border-[#1c1928] rounded-lg px-2 py-1.5 text-[13px] text-[#f0eff4] outline-none focus:border-[#2d2a40]"
         >
           {FIELD_TYPES.map(t => (
             <option key={t.value} value={t.value}>{t.label}</option>

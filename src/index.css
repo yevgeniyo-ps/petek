@@ -4,7 +4,7 @@
   html, body, #root {
     height: 100%;
     background-color: #2a2740;
-    color: #e0dfe4;
+    color: #f0eff4;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     font-size: 14px;
@@ -15,7 +15,7 @@
 /* Override md-editor dark theme */
 .w-md-editor {
   --color-canvas-default: transparent !important;
-  --color-fg-default: #e0dfe4 !important;
+  --color-fg-default: #f0eff4 !important;
   --color-border-default: rgba(255,255,255,0.06) !important;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -43,14 +43,14 @@
 .w-md-editor-text-pre > code,
 .w-md-editor-text-input,
 .w-md-editor-text {
-  color: #e0dfe4 !important;
+  color: #f0eff4 !important;
   font-size: 14px !important;
   line-height: 1.6 !important;
 }
 
 .wmde-markdown {
   background-color: transparent !important;
-  color: #e0dfe4 !important;
+  color: #f0eff4 !important;
   font-size: 14px !important;
 }
 

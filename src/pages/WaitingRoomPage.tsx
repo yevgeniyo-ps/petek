@@ -25,7 +25,7 @@ export default function WaitingRoomPage() {
         </h2>
         <p className="text-[14px] text-[#7a7890] mb-8 leading-relaxed">
           We'll send you an email at{' '}
-          <span className="text-[#e0dfe4]">{user?.email}</span>{' '}
+          <span className="text-[#f0eff4]">{user?.email}</span>{' '}
           once your access is approved.
         </p>
 
