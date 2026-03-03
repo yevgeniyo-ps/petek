@@ -13,18 +13,18 @@ export default function FieldRenderer({ field, value }: FieldRendererProps) {
 
   switch (field.field_type) {
     case 'text':
-      return <span className="text-[#f0eff4] truncate block max-w-[200px]">{String(value)}</span>;
+      return <span className="text-[#e0dfe4] truncate block max-w-[200px]">{String(value)}</span>;
 
     case 'number': {
       const prefix = field.options?.prefix ?? '';
       const suffix = field.options?.suffix ?? '';
-      return <span className="text-[#f0eff4]">{prefix}{String(value)}{suffix}</span>;
+      return <span className="text-[#e0dfe4]">{prefix}{String(value)}{suffix}</span>;
     }
 
     case 'date': {
       const d = new Date(String(value));
       const formatted = isNaN(d.getTime()) ? String(value) : d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-      return <span className="text-[#f0eff4]">{formatted}</span>;
+      return <span className="text-[#e0dfe4]">{formatted}</span>;
     }
 
     case 'select':
@@ -60,6 +60,6 @@ export default function FieldRenderer({ field, value }: FieldRendererProps) {
     }
 
     default:
-      return <span className="text-[#f0eff4]">{String(value)}</span>;
+      return <span className="text-[#e0dfe4]">{String(value)}</span>;
   }
 }

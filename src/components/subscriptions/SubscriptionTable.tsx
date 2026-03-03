@@ -67,7 +67,7 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                   <SubIcon sub={sub} />
-                  <span className="text-[13px] text-[#f0eff4] font-medium">{sub.name}</span>
+                  <span className="text-[13px] text-[#e0dfe4] font-medium">{sub.name}</span>
                   {sub.url && (
                     <a
                       href={sub.url}
@@ -92,7 +92,7 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
                   {getBillingCycleShort(sub.billing_cycle)}
                 </span>
               </td>
-              <td className="px-4 py-3 text-[13px] text-[#f0eff4]">
+              <td className="px-4 py-3 text-[13px] text-[#e0dfe4]">
                 {getCategoryLabel(sub.category)}
               </td>
               <td className="px-4 py-3 text-center">
