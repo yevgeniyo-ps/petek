@@ -38,3 +38,7 @@ ALTER TABLE insurance_policies
   ADD COLUMN profile_id uuid REFERENCES insurance_profiles(id) ON DELETE CASCADE;
 
 CREATE INDEX idx_insurance_policies_profile ON insurance_policies(profile_id);
+
+-- Allow users to update their own policies (needed to assign profile_id)
+CREATE POLICY "Users can update own insurance policies"
+  ON insurance_policies FOR UPDATE USING (auth.uid() = user_id);
