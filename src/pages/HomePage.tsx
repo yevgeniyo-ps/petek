@@ -30,10 +30,11 @@ function SortableLabelChip({ label, isSelected, onClick, onDelete }: {
   onDelete: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: label.id });
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    touchAction: 'none',
   };
 
   return (
@@ -301,6 +302,7 @@ export default function HomePage() {
       {/* Categories */}
       <div className="flex items-center gap-2 flex-wrap mb-8">
         <DndContext
+          id="label-sort"
           sensors={labelSensors}
           collisionDetection={closestCenter}
           onDragEnd={handleLabelDragEnd}
@@ -352,6 +354,7 @@ export default function HomePage() {
         </div>
       ) : (
         <DndContext
+          id="note-sort"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
