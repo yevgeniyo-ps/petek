@@ -8,6 +8,7 @@ interface LabelsContextType {
   noteLabels: NoteLabel[];
   createLabel: (name: string) => Promise<Label>;
   deleteLabel: (id: string) => Promise<void>;
+  reorderLabels: (reordered: Label[]) => void;
   addLabelToNote: (noteId: string, labelId: string) => Promise<void>;
   removeLabelFromNote: (noteId: string, labelId: string) => Promise<void>;
   getLabelsForNote: (noteId: string) => Label[];
@@ -41,8 +42,10 @@ export function LabelsProvider({ children }: { children: ReactNode }) {
   }, [user, refresh]);
 
   const createLabel = async (name: string) => {
+    const maxPos = labels.reduce((max, l) => Math.max(max, l.position), -1);
     const created = await labelsApi.createLabel(name);
-    setLabels(prev => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+    created.position = maxPos + 1;
+    setLabels(prev => [...prev, created]);
     return created;
   };
 
@@ -50,6 +53,12 @@ export function LabelsProvider({ children }: { children: ReactNode }) {
     await labelsApi.deleteLabel(id);
     setLabels(prev => prev.filter(l => l.id !== id));
     setNoteLabels(prev => prev.filter(nl => nl.label_id !== id));
+  };
+
+  const reorderLabels = (reordered: Label[]) => {
+    const updates = reordered.map((l, i) => ({ id: l.id, position: i }));
+    setLabels(reordered.map((l, i) => ({ ...l, position: i })));
+    labelsApi.reorderLabels(updates);
   };
 
   const addLabelToNote = async (noteId: string, labelId: string) => {
@@ -73,7 +82,7 @@ export function LabelsProvider({ children }: { children: ReactNode }) {
 
   return (
     <LabelsContext.Provider value={{
-      labels, noteLabels, createLabel, deleteLabel,
+      labels, noteLabels, createLabel, deleteLabel, reorderLabels,
       addLabelToNote, removeLabelFromNote,
       getLabelsForNote, getNoteIdsForLabel,
     }}>

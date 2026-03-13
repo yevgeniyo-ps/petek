@@ -5,6 +5,7 @@ export async function fetchLabels(): Promise<Label[]> {
   const { data, error } = await supabase
     .from('labels')
     .select('*')
+    .order('position')
     .order('name');
 
   if (error) throw error;
@@ -49,6 +50,15 @@ export async function addLabelToNote(noteId: string, labelId: string): Promise<N
 
   if (error) throw error;
   return data;
+}
+
+export async function reorderLabels(updates: { id: string; position: number }[]): Promise<void> {
+  const promises = updates.map(({ id, position }) =>
+    supabase.from('labels').update({ position }).eq('id', id)
+  );
+  const results = await Promise.all(promises);
+  const error = results.find(r => r.error)?.error;
+  if (error) throw error;
 }
 
 export async function removeLabelFromNote(noteId: string, labelId: string): Promise<void> {

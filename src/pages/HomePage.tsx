@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Search, Plus, Archive, Tag, X, AlertTriangle } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   DndContext,
   closestCenter,
@@ -22,9 +23,46 @@ import NoteEditor from '../components/notes/NoteEditor';
 import NoteCard from '../components/notes/NoteCard';
 import { Note } from '../types';
 
+function SortableLabelChip({ label, isSelected, onClick, onDelete }: {
+  label: import('../types').Label;
+  isSelected: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: label.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <button
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={onClick}
+      className={`group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all cursor-grab active:cursor-grabbing ${
+        isSelected
+          ? 'bg-[#ec4899]/20 text-[#f472b6]'
+          : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
+      }`}
+    >
+      <Tag size={11} />
+      <span>{label.name}</span>
+      <X
+        size={10}
+        className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"
+        onClick={e => { e.stopPropagation(); onDelete(); }}
+      />
+    </button>
+  );
+}
+
 export default function HomePage() {
   const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
-  const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel, addLabelToNote, removeLabelFromNote } = useLabels();
+  const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel, reorderLabels, addLabelToNote, removeLabelFromNote } = useLabels();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
@@ -47,6 +85,21 @@ export default function HomePage() {
     setNewCategoryName('');
     setAddingCategory(false);
   };
+
+  const labelSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
+
+  const handleLabelDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = labels.findIndex(l => l.id === active.id);
+    const newIndex = labels.findIndex(l => l.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      reorderLabels(arrayMove(labels, oldIndex, newIndex));
+    }
+  }, [labels, reorderLabels]);
 
   const handleCategoryClick = (labelId: string) => {
     if (selectedTagId === labelId) {
@@ -99,7 +152,11 @@ export default function HomePage() {
     }
 
     const sorted = [...groups.entries()]
-      .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+      .sort(([idA], [idB]) => {
+        const posA = labels.find(l => l.id === idA)?.position ?? 0;
+        const posB = labels.find(l => l.id === idB)?.position ?? 0;
+        return posA - posB;
+      })
       .map(([id, { name, notes }]) => ({ id, name, notes }));
 
     return { labeled: sorted, uncategorized };
@@ -243,25 +300,23 @@ export default function HomePage() {
 
       {/* Categories */}
       <div className="flex items-center gap-2 flex-wrap mb-8">
-        {labels.map(label => (
-          <button
-            key={label.id}
-            onClick={() => handleCategoryClick(label.id)}
-            className={`group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
-              selectedTagId === label.id
-                ? 'bg-[#ec4899]/20 text-[#f472b6]'
-                : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
-            }`}
-          >
-            <Tag size={11} />
-            <span>{label.name}</span>
-            <X
-              size={10}
-              className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"
-              onClick={e => { e.stopPropagation(); deleteLabel(label.id); }}
-            />
-          </button>
-        ))}
+        <DndContext
+          sensors={labelSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleLabelDragEnd}
+        >
+          <SortableContext items={labels.map(l => l.id)} strategy={horizontalListSortingStrategy}>
+            {labels.map(label => (
+              <SortableLabelChip
+                key={label.id}
+                label={label}
+                isSelected={selectedTagId === label.id}
+                onClick={() => handleCategoryClick(label.id)}
+                onDelete={() => deleteLabel(label.id)}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
         {addingCategory ? (
           <input
             ref={categoryInputRef}
