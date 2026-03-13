@@ -4,7 +4,7 @@ import { parseInsuranceFile } from '../../lib/insurance-parser';
 import { useInsurances } from '../../context/InsurancesContext';
 import type { InsurancePolicy } from '../../types';
 
-type ParsedPolicy = Omit<InsurancePolicy, 'id' | 'user_id' | 'created_at'>;
+type ParsedPolicy = Omit<InsurancePolicy, 'id' | 'user_id' | 'created_at' | 'profile_id'>;
 
 interface InsuranceUploadProps {
   onDone?: () => void;

@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { InsurancePolicy } from '../types';
 
-type ParsedPolicy = Omit<InsurancePolicy, 'id' | 'user_id' | 'created_at'>;
+type ParsedPolicy = Omit<InsurancePolicy, 'id' | 'user_id' | 'created_at' | 'profile_id'>;
 
 export interface ParseResult {
   policies: ParsedPolicy[];

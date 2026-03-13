@@ -70,10 +70,19 @@ export interface CollectionItem {
 
 // Insurances
 
+export interface InsuranceProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  display_order: number;
+  created_at: string;
+}
+
 export interface InsurancePolicy {
   id: string;
   user_id: string;
   upload_batch_id: string;
+  profile_id: string | null;
   category: string;
   identity_number: string;
   main_branch: string;
