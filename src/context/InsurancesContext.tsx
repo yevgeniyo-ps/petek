@@ -49,19 +49,19 @@ export function InsurancesProvider({ children }: { children: ReactNode }) {
       if (finalProfiles.length === 0) {
         const defaultProfile = await profilesApi.createProfile('Me', 0);
         finalProfiles = [defaultProfile];
+      }
 
-        // Migrate any existing policies (without profile_id) to the default profile
-        const orphanPolicies = policiesData.filter(p => !p.profile_id);
-        if (orphanPolicies.length > 0) {
-          const { error } = await supabase
-            .from('insurance_policies')
-            .update({ profile_id: defaultProfile.id })
-            .is('profile_id', null);
-          if (!error) {
-            // Update local data
-            for (const p of policiesData) {
-              if (!p.profile_id) p.profile_id = defaultProfile.id;
-            }
+      // Migrate any orphan policies (without profile_id) to the first profile
+      const orphanPolicies = policiesData.filter(p => !p.profile_id);
+      if (orphanPolicies.length > 0 && finalProfiles.length > 0) {
+        const targetProfileId = finalProfiles[0]!.id;
+        const { error } = await supabase
+          .from('insurance_policies')
+          .update({ profile_id: targetProfileId })
+          .is('profile_id', null);
+        if (!error) {
+          for (const p of policiesData) {
+            if (!p.profile_id) p.profile_id = targetProfileId;
           }
         }
       }
