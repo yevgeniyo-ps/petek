@@ -19,7 +19,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3 bg-[#13111c] hover:bg-[#1a1726] border border-[#2d2a40] rounded-lg transition-colors group"
+      className="w-full text-left p-3 bg-[#13111c] hover:bg-[#1a1726] border border-[#3a3650] rounded-lg transition-colors group"
     >
       <div className="flex items-start gap-2">
         {/* Emoji */}
