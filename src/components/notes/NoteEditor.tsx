@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Smile, ChevronDown, Star } from 'lucide-react';
-const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 import { Note } from '../../types';
@@ -27,6 +26,15 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
   const [saving, setSaving] = useState(false);
   const iconPickerRef = useRef<HTMLDivElement>(null);
   const categoryPickerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = Math.max(ta.scrollHeight, 200) + 'px';
+    }
+  }, []);
 
   useEffect(() => {
     if (note) {
@@ -44,6 +52,12 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
       setSelectedLabelId(null);
     }
   }, [note, open, getLabelsForNote]);
+
+  useEffect(() => {
+    if (open) {
+      requestAnimationFrame(autoResize);
+    }
+  }, [open, autoResize]);
 
   useEffect(() => {
     if (!showIconPicker) return;
@@ -79,7 +93,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
 
   return (
     <Modal open={open} onClose={handleSave}>
-      <div className="bg-[#13111c]" data-color-mode="dark">
+      <div className="bg-[#13111c]">
         <input
           type="text"
           placeholder="Title"
@@ -112,18 +126,26 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
             </div>
           );
         })()}
-        <div className="px-6">
-          <Suspense fallback={<div className="h-[300px] flex items-center justify-center text-[#7a7890] text-[13px]">Loading editor...</div>}>
-            <MDEditor
-              value={content}
-              onChange={(val) => setContent(val ?? '')}
-              preview="edit"
-              hideToolbar={false}
-              height={300}
-              visibleDragbar={false}
-              style={{ backgroundColor: 'transparent', border: 'none' }}
-            />
-          </Suspense>
+        <div className="px-6 pb-4">
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => { setContent(e.target.value); autoResize(); }}
+            placeholder="Write your note... (supports markdown)"
+            className="w-full bg-transparent text-[14px] text-[#e0dfe4] placeholder-[#4a4660] outline-none resize-none leading-relaxed font-mono"
+            style={{ minHeight: 200 }}
+            onKeyDown={(e) => {
+              if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = e.currentTarget.selectionStart;
+                const end = e.currentTarget.selectionEnd;
+                setContent(content.slice(0, start) + '  ' + content.slice(end));
+                requestAnimationFrame(() => {
+                  e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 2;
+                });
+              }
+            }}
+          />
         </div>
         <div className="px-5 py-3.5 flex items-center justify-between border-t border-white/[0.04]">
           <div className="flex items-center gap-3 flex-1 min-w-0">

@@ -35,7 +35,6 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'supabase': ['@supabase/supabase-js'],
-          'md-editor': ['@uiw/react-md-editor'],
         },
       },
     },

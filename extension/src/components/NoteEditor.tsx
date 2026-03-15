@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Note } from '@shared/types';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
 import { useTags } from '@shared/context/TagsContext';
 import { NoteToolbar } from './NoteToolbar';
 import { X, Tag, SmilePlus } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
 
 interface NoteEditorProps {
   note: Note | null; // null = creating new
@@ -28,16 +27,22 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLabelPicker, setShowLabelPicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const noteLabels = note ? getLabelsForNote(note.id) : [];
   const noteLabelIds = new Set(noteLabels.map(l => l.id));
 
-  // Auto-save on close for existing notes
-  useEffect(() => {
-    return () => {
-      // Cleanup
-    };
+  const autoResize = useCallback(() => {
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
   }, []);
+
+  useEffect(() => {
+    requestAnimationFrame(autoResize);
+  }, [autoResize]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -191,16 +196,26 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
           );
         })()}
 
-        {/* Markdown editor */}
-        <div data-color-mode="dark" className="flex-1 min-h-0">
-          <MDEditor
-            value={content}
-            onChange={val => setContent(val ?? '')}
-            preview="edit"
-            height="100%"
-            visibleDragbar={false}
-          />
-        </div>
+        {/* Plain textarea for markdown */}
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={(e) => { setContent(e.target.value); autoResize(); }}
+          placeholder="Write your note... (supports markdown)"
+          className="flex-1 bg-transparent text-sm text-[#e0dfe4] placeholder-[#4a4660] outline-none resize-none leading-relaxed font-mono"
+          style={{ minHeight: 200 }}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              const start = e.currentTarget.selectionStart;
+              const end = e.currentTarget.selectionEnd;
+              setContent(content.slice(0, start) + '  ' + content.slice(end));
+              requestAnimationFrame(() => {
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 2;
+              });
+            }
+          }}
+        />
       </div>
 
       <style>{`

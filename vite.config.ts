@@ -11,7 +11,6 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'supabase': ['@supabase/supabase-js'],
-          'md-editor': ['@uiw/react-md-editor'],
           'xlsx': ['xlsx'],
         },
       },
