@@ -7,6 +7,7 @@ import { Star } from 'lucide-react';
 import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
+import { useLabels } from '../../context/LabelsContext';
 import NoteToolbar from './NoteToolbar';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { ICON_MAP } from '../ui/IconPicker';
@@ -19,7 +20,9 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { updateNote, deleteNote } = useNotes();
+  const { getLabelsForNote } = useLabels();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const labels = getLabelsForNote(note.id);
 
   const {
     attributes,
@@ -75,6 +78,16 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             </div>
           )}
         </div>
+
+        {labels.length > 0 && (
+          <div className="px-4 pb-1 flex items-center gap-1.5 flex-wrap">
+            {labels.map(label => (
+              <span key={label.id} className="px-2 py-0.5 bg-white/[0.04] rounded text-[11px] text-[#7a7890]">
+                {label.name}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="px-3 py-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}>
           <NoteToolbar
