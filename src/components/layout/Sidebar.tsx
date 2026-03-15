@@ -210,6 +210,8 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   );
 }
 
+const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/petek-notes/ciahcljbpomjlilcenkgbokplgediceb';
+
 function ExtensionModal({ onClose }: { onClose: () => void }) {
   return (
     <>
@@ -229,22 +231,41 @@ function ExtensionModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-3 text-[13px] text-[#b0adc0]">
             <p>Access your notes directly from Chrome's side panel without leaving your current tab.</p>
 
-            <ol className="space-y-2 list-decimal list-inside text-[#7a7890]">
-              <li>Download and unzip the <a href="https://github.com/yevgeniy-ovsyannikov/petek/releases" target="_blank" rel="noopener" className="text-[#ec4899] hover:underline">latest release</a></li>
-              <li>Open <code className="px-1.5 py-0.5 bg-white/5 rounded text-[#b0adc0] text-xs">chrome://extensions</code></li>
-              <li>Enable <span className="text-[#b0adc0]">Developer mode</span> (top right)</li>
-              <li>Click <span className="text-[#b0adc0]">Load unpacked</span> → select the unzipped folder</li>
-              <li>Click the extension icon to open the side panel</li>
-            </ol>
-
-            <p className="text-xs text-[#4a4660]">Your session syncs automatically — no need to sign in again.</p>
+            <ul className="space-y-2 text-[#7a7890]">
+              <li className="flex items-start gap-2">
+                <span className="text-[#ec4899] mt-0.5">1.</span>
+                <span>Click <span className="text-[#b0adc0]">Add to Chrome</span> below to install from the Chrome Web Store</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#ec4899] mt-0.5">2.</span>
+                <span>Click the extension icon in your toolbar to open the side panel</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#ec4899] mt-0.5">3.</span>
+                <span>Your session syncs automatically — no sign-in needed</span>
+              </li>
+            </ul>
           </div>
+
+          <a
+            href={CHROME_STORE_URL}
+            target="_blank"
+            rel="noopener"
+            className="mt-5 w-full py-2.5 bg-[#ec4899] hover:bg-[#db2777] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 4C12.954 4 4 12.954 4 24s8.954 20 20 20 20-8.954 20-20S35.046 4 24 4z" fill="#fff" fillOpacity=".2"/>
+              <path d="M24 14c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10z" fill="#fff"/>
+              <circle cx="24" cy="24" r="4" fill="#ec4899"/>
+            </svg>
+            Add to Chrome
+          </a>
 
           <button
             onClick={onClose}
-            className="mt-5 w-full py-2 bg-[#1a1726] hover:bg-[#1e1b2e] text-white text-sm font-medium rounded-lg transition-colors"
+            className="mt-2 w-full py-2 text-[#7a7890] hover:text-white text-sm transition-colors"
           >
-            Got it
+            Close
           </button>
         </div>
       </div>
