@@ -76,7 +76,7 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
           )}
         </div>
 
-        <div className="px-3 py-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <div className="px-3 py-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}>
           <NoteToolbar
             isPinned={note.is_pinned}
             isImportant={note.is_important}
