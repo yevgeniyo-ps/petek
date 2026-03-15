@@ -272,16 +272,6 @@ export default function HomePage() {
 
       {/* Categories */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
-        <button
-          onClick={() => handleCategoryClick('__uncategorized')}
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
-            selectedTagId === '__uncategorized'
-              ? 'bg-[#ec4899]/20 text-[#f472b6]'
-              : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
-          }`}
-        >
-          Uncategorized
-        </button>
         <DndContext
           id="label-sort"
           sensors={labelSensors}
@@ -300,6 +290,16 @@ export default function HomePage() {
             ))}
           </SortableContext>
         </DndContext>
+        <button
+          onClick={() => handleCategoryClick('__uncategorized')}
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
+            selectedTagId === '__uncategorized'
+              ? 'bg-[#ec4899]/20 text-[#f472b6]'
+              : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
+          }`}
+        >
+          Uncategorized
+        </button>
         {addingCategory ? (
           <input
             ref={categoryInputRef}

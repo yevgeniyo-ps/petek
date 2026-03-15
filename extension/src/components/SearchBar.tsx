@@ -93,17 +93,6 @@ export function SearchBar({
           Starred
         </button>
 
-        <button
-          onClick={() => onFilterLabelChange(filterLabel === '__uncategorized' ? null : '__uncategorized')}
-          className={`px-2 py-1 rounded-md text-xs whitespace-nowrap transition-colors ${
-            filterLabel === '__uncategorized'
-              ? 'bg-pink-500/20 text-pink-400'
-              : 'text-[#7a7890] hover:bg-white/5'
-          }`}
-        >
-          Uncategorized
-        </button>
-
         {labels.map(label => (
           <button
             key={label.id}
@@ -117,6 +106,17 @@ export function SearchBar({
             {label.name}
           </button>
         ))}
+
+        <button
+          onClick={() => onFilterLabelChange(filterLabel === '__uncategorized' ? null : '__uncategorized')}
+          className={`px-2 py-1 rounded-md text-xs whitespace-nowrap transition-colors ${
+            filterLabel === '__uncategorized'
+              ? 'bg-pink-500/20 text-pink-400'
+              : 'text-[#7a7890] hover:bg-white/5'
+          }`}
+        >
+          Uncategorized
+        </button>
 
         {adding ? (
           <input
