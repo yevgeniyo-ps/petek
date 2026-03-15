@@ -36,7 +36,7 @@ interface NoteListProps {
 
 export function NoteList({ view, search, filterLabel, filterImportant, filterTagIds, onEdit, onNew }: NoteListProps) {
   const { notes, loading, reorderNotes } = useNotes();
-  const { getNoteIdsForLabel } = useLabels();
+  const { labels, getNoteIdsForLabel } = useLabels();
   const { getNoteIdsForTag } = useTags();
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -64,7 +64,13 @@ export function NoteList({ view, search, filterLabel, filterImportant, filterTag
       result = result.filter(n => n.is_important);
     }
 
-    if (filterLabel) {
+    if (filterLabel === '__uncategorized') {
+      const allLabeledIds = new Set<string>();
+      for (const nl of labels) {
+        for (const id of getNoteIdsForLabel(nl.id)) allLabeledIds.add(id);
+      }
+      result = result.filter(n => !allLabeledIds.has(n.id));
+    } else if (filterLabel) {
       const noteIds = new Set(getNoteIdsForLabel(filterLabel));
       result = result.filter(n => noteIds.has(n.id));
     }

@@ -1,9 +1,12 @@
 import { Note } from '@shared/types';
 import { useLabels } from '@shared/context/LabelsContext';
 import { useTags } from '@shared/context/TagsContext';
+import { truncateMarkdown } from '@shared/lib/utils';
 import { Pin, Star } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface NoteCardProps {
   note: Note;
@@ -65,9 +68,11 @@ export function NoteCard({ note, onClick, overlay }: NoteCardProps) {
 
           {/* Content preview */}
           {note.content && (
-            <p className="text-xs text-[#7a7890] mt-1 line-clamp-2">
-              {note.content.replace(/[#*`>\-\[\]]/g, '').slice(0, 120)}
-            </p>
+            <div className="text-xs text-[#7a7890] mt-1 line-clamp-2 markdown-prose">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {truncateMarkdown(note.content, 120)}
+              </ReactMarkdown>
+            </div>
           )}
 
           {/* Bottom: labels + tags + date */}

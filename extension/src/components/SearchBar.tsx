@@ -93,6 +93,17 @@ export function SearchBar({
           Starred
         </button>
 
+        <button
+          onClick={() => onFilterLabelChange(filterLabel === '__uncategorized' ? null : '__uncategorized')}
+          className={`px-2 py-1 rounded-md text-xs whitespace-nowrap transition-colors ${
+            filterLabel === '__uncategorized'
+              ? 'bg-pink-500/20 text-pink-400'
+              : 'text-[#7a7890] hover:bg-white/5'
+          }`}
+        >
+          Uncategorized
+        </button>
+
         {labels.map(label => (
           <button
             key={label.id}
@@ -133,7 +144,7 @@ export function SearchBar({
       </div>
 
       {/* Tag sub-filters */}
-      {filterLabel && tagsForLabel.length > 0 && (
+      {filterLabel && filterLabel !== '__uncategorized' && tagsForLabel.length > 0 && (
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {tagsForLabel.map(tag => (
             <button
