@@ -143,12 +143,24 @@ export default function HomePage() {
     setSearchParams(searchParams);
   };
 
+  const allLabeledNoteIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const label of labels) {
+      for (const id of getNoteIdsForLabel(label.id)) {
+        ids.add(id);
+      }
+    }
+    return ids;
+  }, [labels, getNoteIdsForLabel]);
+
   const filtered = useMemo(() => {
     let result = notes.filter(n => !n.is_archived && !n.is_trashed);
     if (filterImportant) {
       result = result.filter(n => n.is_important);
     }
-    if (selectedTagId) {
+    if (selectedTagId === '__uncategorized') {
+      result = result.filter(n => !allLabeledNoteIds.has(n.id));
+    } else if (selectedTagId) {
       const noteIds = getNoteIdsForLabel(selectedTagId);
       result = result.filter(n => noteIds.includes(n.id));
     }
@@ -260,6 +272,16 @@ export default function HomePage() {
 
       {/* Categories */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
+        <button
+          onClick={() => handleCategoryClick('__uncategorized')}
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
+            selectedTagId === '__uncategorized'
+              ? 'bg-[#ec4899]/20 text-[#f472b6]'
+              : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
+          }`}
+        >
+          Uncategorized
+        </button>
         <DndContext
           id="label-sort"
           sensors={labelSensors}
@@ -305,7 +327,7 @@ export default function HomePage() {
       </div>
 
       {/* Tags (sub-filters under selected category) */}
-      {selectedTagId && (
+      {selectedTagId && selectedTagId !== '__uncategorized' && (
         <div className="flex items-center gap-1.5 flex-wrap mb-8">
           {tagsForSelectedLabel.map(tag => (
             <button
