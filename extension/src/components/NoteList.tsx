@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
+import { useTags } from '@shared/context/TagsContext';
 import { Note } from '@shared/types';
 import { NoteCard } from './NoteCard';
 import { Plus, FileText } from 'lucide-react';
@@ -28,13 +29,15 @@ interface NoteListProps {
   search: string;
   filterLabel: string | null;
   filterImportant: boolean;
+  filterTagIds: string[];
   onEdit: (note: Note) => void;
   onNew: () => void;
 }
 
-export function NoteList({ view, search, filterLabel, filterImportant, onEdit, onNew }: NoteListProps) {
+export function NoteList({ view, search, filterLabel, filterImportant, filterTagIds, onEdit, onNew }: NoteListProps) {
   const { notes, loading, reorderNotes } = useNotes();
   const { getNoteIdsForLabel } = useLabels();
+  const { getNoteIdsForTag } = useTags();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -66,12 +69,17 @@ export function NoteList({ view, search, filterLabel, filterImportant, onEdit, o
       result = result.filter(n => noteIds.has(n.id));
     }
 
+    if (filterTagIds.length > 0) {
+      const noteIdSets = filterTagIds.map(tagId => new Set(getNoteIdsForTag(tagId)));
+      result = result.filter(n => noteIdSets.every(s => s.has(n.id)));
+    }
+
     // Pinned first, then by position
     return result.sort((a, b) => {
       if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
       return a.position - b.position;
     });
-  }, [notes, view, search, filterImportant, filterLabel, getNoteIdsForLabel]);
+  }, [notes, view, search, filterImportant, filterLabel, filterTagIds, getNoteIdsForLabel, getNoteIdsForTag]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);

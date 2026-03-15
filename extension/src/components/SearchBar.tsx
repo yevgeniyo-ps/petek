@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Star, Plus } from 'lucide-react';
 import { useLabels } from '@shared/context/LabelsContext';
+import { useTags } from '@shared/context/TagsContext';
 
 interface SearchBarProps {
   search: string;
@@ -9,6 +10,8 @@ interface SearchBarProps {
   onFilterLabelChange: (labelId: string | null) => void;
   filterImportant: boolean;
   onFilterImportantChange: (value: boolean) => void;
+  filterTagIds: string[];
+  onFilterTagIdsChange: (tagIds: string[]) => void;
 }
 
 export function SearchBar({
@@ -18,15 +21,25 @@ export function SearchBar({
   onFilterLabelChange,
   filterImportant,
   onFilterImportantChange,
+  filterTagIds,
+  onFilterTagIdsChange,
 }: SearchBarProps) {
   const { labels, createLabel } = useLabels();
+  const { getTagsForLabel, createTag } = useTags();
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
+  const [addingTag, setAddingTag] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (adding) inputRef.current?.focus();
   }, [adding]);
+
+  useEffect(() => {
+    if (addingTag) tagInputRef.current?.focus();
+  }, [addingTag]);
 
   const handleCreate = async () => {
     const name = newName.trim();
@@ -34,6 +47,23 @@ export function SearchBar({
     setNewName('');
     setAdding(false);
   };
+
+  const handleCreateTag = async () => {
+    const name = newTagName.trim();
+    if (name && filterLabel) await createTag(filterLabel, name);
+    setNewTagName('');
+    setAddingTag(false);
+  };
+
+  const toggleTag = (tagId: string) => {
+    onFilterTagIdsChange(
+      filterTagIds.includes(tagId)
+        ? filterTagIds.filter(id => id !== tagId)
+        : [...filterTagIds, tagId]
+    );
+  };
+
+  const tagsForLabel = filterLabel ? getTagsForLabel(filterLabel) : [];
 
   return (
     <div className="flex-shrink-0 px-4 py-3 space-y-2 border-b border-[#1c1928]">
@@ -101,6 +131,48 @@ export function SearchBar({
           </button>
         )}
       </div>
+
+      {/* Tag sub-filters */}
+      {filterLabel && tagsForLabel.length > 0 && (
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {tagsForLabel.map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => toggleTag(tag.id)}
+              className={`px-2 py-0.5 rounded text-[10px] whitespace-nowrap transition-colors ${
+                filterTagIds.includes(tag.id)
+                  ? 'bg-pink-500/15 text-pink-400'
+                  : 'text-[#6b6882] bg-white/[0.03] hover:bg-white/[0.06]'
+              }`}
+            >
+              {tag.name}
+            </button>
+          ))}
+          {addingTag ? (
+            <input
+              ref={tagInputRef}
+              type="text"
+              value={newTagName}
+              onChange={e => setNewTagName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleCreateTag();
+                if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
+              }}
+              onBlur={handleCreateTag}
+              placeholder="Tag..."
+              className="px-2 py-0.5 bg-transparent border border-[#2d2a40] rounded text-[10px] text-white placeholder-[#4a4660] outline-none focus:border-pink-500/50 w-16"
+            />
+          ) : (
+            <button
+              onClick={() => setAddingTag(true)}
+              className="flex items-center px-1 py-0.5 rounded text-[10px] text-[#4a4660] hover:text-pink-400 hover:bg-white/5 transition-colors"
+              title="Add tag"
+            >
+              <Plus size={10} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

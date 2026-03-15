@@ -8,6 +8,7 @@ import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
 import { useLabels } from '../../context/LabelsContext';
+import { useTags } from '../../context/TagsContext';
 import NoteToolbar from './NoteToolbar';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { ICON_MAP } from '../ui/IconPicker';
@@ -21,8 +22,10 @@ interface NoteCardProps {
 export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { updateNote, deleteNote } = useNotes();
   const { getLabelsForNote } = useLabels();
+  const { getTagsForNote } = useTags();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const labels = getLabelsForNote(note.id);
+  const tags = getTagsForNote(note.id);
 
   const {
     attributes,
@@ -79,11 +82,16 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
           )}
         </div>
 
-        {labels.length > 0 && (
+        {(labels.length > 0 || tags.length > 0) && (
           <div className="px-4 pb-1 flex items-center gap-1.5 flex-wrap">
             {labels.map(label => (
               <span key={label.id} className="px-2 py-0.5 bg-white/[0.04] rounded text-[11px] text-[#7a7890]">
                 {label.name}
+              </span>
+            ))}
+            {tags.map(tag => (
+              <span key={tag.id} className="px-1.5 py-0.5 bg-[#ec4899]/10 rounded text-[10px] text-[#c084a8]">
+                {tag.name}
               </span>
             ))}
           </div>

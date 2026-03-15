@@ -5,6 +5,7 @@ import Modal from '../ui/Modal';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 import { Note } from '../../types';
 import { useLabels } from '../../context/LabelsContext';
+import { useTags } from '../../context/TagsContext';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -15,6 +16,7 @@ interface NoteEditorProps {
 
 export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorProps) {
   const { labels, getLabelsForNote } = useLabels();
+  const { getTagsForLabel, getTagsForNote, addTagToNote, removeTagFromNote } = useTags();
   const [isStarred, setIsStarred] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -85,6 +87,31 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-6 pt-6 pb-2 bg-transparent text-white text-[16px] font-semibold placeholder-[#4a4660] outline-none"
         />
+        {selectedLabelId && note && (() => {
+          const availableTags = getTagsForLabel(selectedLabelId);
+          if (availableTags.length === 0) return null;
+          const noteTagSet = new Set(getTagsForNote(note.id).map(t => t.id));
+          return (
+            <div className="px-6 pb-2 flex items-center gap-1.5 flex-wrap">
+              {availableTags.map(tag => {
+                const active = noteTagSet.has(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    onClick={() => active ? removeTagFromNote(note.id, tag.id) : addTagToNote(note.id, tag.id)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+                      active
+                        ? 'bg-[#ec4899]/15 text-[#f472b6]'
+                        : 'bg-white/[0.03] text-[#6b6882] hover:text-[#9896a8] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
         <div className="px-6">
           <Suspense fallback={<div className="h-[300px] flex items-center justify-center text-[#7a7890] text-[13px]">Loading editor...</div>}>
             <MDEditor

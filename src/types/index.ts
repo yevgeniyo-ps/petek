@@ -27,6 +27,19 @@ export interface NoteLabel {
   label_id: string;
 }
 
+export interface Tag {
+  id: string;
+  label_id: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface NoteTag {
+  note_id: string;
+  tag_id: string;
+}
+
 // Collections
 
 export type FieldType = 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'url';

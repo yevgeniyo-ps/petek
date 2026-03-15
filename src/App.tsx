@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
 import { NotesProvider } from './context/NotesContext';
 import { LabelsProvider } from './context/LabelsContext';
+import { TagsProvider } from './context/TagsContext';
 import { CollectionsProvider } from './context/CollectionsContext';
 import { InsurancesProvider } from './context/InsurancesContext';
 import { SubscriptionsProvider } from './context/SubscriptionsContext';
@@ -34,6 +35,7 @@ export default function App() {
           <AdminProvider>
             <NotesProvider>
               <LabelsProvider>
+              <TagsProvider>
                 <CollectionsProvider>
                   <InsurancesProvider>
                   <SubscriptionsProvider>
@@ -52,6 +54,7 @@ export default function App() {
                   </SubscriptionsProvider>
                   </InsurancesProvider>
                 </CollectionsProvider>
+              </TagsProvider>
               </LabelsProvider>
             </NotesProvider>
           </AdminProvider>

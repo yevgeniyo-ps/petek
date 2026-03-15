@@ -1,5 +1,6 @@
 import { Note } from '@shared/types';
 import { useLabels } from '@shared/context/LabelsContext';
+import { useTags } from '@shared/context/TagsContext';
 import { Pin, Star } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -12,7 +13,9 @@ interface NoteCardProps {
 
 export function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { getLabelsForNote } = useLabels();
+  const { getTagsForNote } = useTags();
   const labels = getLabelsForNote(note.id);
+  const tags = getTagsForNote(note.id);
 
   const {
     attributes,
@@ -67,7 +70,7 @@ export function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             </p>
           )}
 
-          {/* Bottom: labels + date */}
+          {/* Bottom: labels + tags + date */}
           <div className="flex items-center gap-1.5 mt-2">
             {labels.slice(0, 3).map(label => (
               <span
@@ -75,6 +78,14 @@ export function NoteCard({ note, onClick, overlay }: NoteCardProps) {
                 className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-[#7a7890]"
               >
                 {label.name}
+              </span>
+            ))}
+            {tags.slice(0, 2).map(tag => (
+              <span
+                key={tag.id}
+                className="px-1.5 py-0.5 bg-pink-500/10 rounded text-[10px] text-[#c084a8]"
+              >
+                {tag.name}
               </span>
             ))}
             <span className="ml-auto text-[10px] text-[#4a4660]">{date}</span>

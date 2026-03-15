@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Note } from '@shared/types';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
+import { useTags } from '@shared/context/TagsContext';
 import { NoteToolbar } from './NoteToolbar';
 import { X, Tag, SmilePlus } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
@@ -16,6 +17,7 @@ const EMOJI_OPTIONS = ['📝', '💡', '🔥', '⭐', '🎯', '📌', '🚀', '�
 export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
   const { notes, createNote, updateNote } = useNotes();
   const { labels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
+  const { getTagsForLabel, getTagsForNote, addTagToNote, removeTagFromNote } = useTags();
 
   // Get live note from context so toolbar actions (star, pin) reflect immediately
   const note = initialNote ? notes.find(n => n.id === initialNote.id) ?? initialNote : null;
@@ -160,6 +162,34 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
             )}
           </div>
         </div>
+
+        {/* Tag chips for the note's category */}
+        {note && noteLabels.length > 0 && (() => {
+          const labelId = noteLabels[0].id;
+          const availableTags = getTagsForLabel(labelId);
+          if (availableTags.length === 0) return null;
+          const noteTagSet = new Set(getTagsForNote(note.id).map(t => t.id));
+          return (
+            <div className="flex items-center gap-1 flex-wrap">
+              {availableTags.map(tag => {
+                const active = noteTagSet.has(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    onClick={() => active ? removeTagFromNote(note.id, tag.id) : addTagToNote(note.id, tag.id)}
+                    className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
+                      active
+                        ? 'bg-pink-500/15 text-pink-400'
+                        : 'bg-white/[0.03] text-[#6b6882] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Markdown editor */}
         <div data-color-mode="dark" className="flex-1 min-h-0">

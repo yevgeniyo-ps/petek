@@ -18,6 +18,7 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
+import { useTags } from '../context/TagsContext';
 import NoteEditor from '../components/notes/NoteEditor';
 import NoteCard from '../components/notes/NoteCard';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -64,6 +65,7 @@ function SortableLabelChip({ label, isSelected, onClick, onDelete }: {
 export default function HomePage() {
   const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
   const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel, reorderLabels, addLabelToNote, removeLabelFromNote } = useLabels();
+  const { getTagsForLabel, getNoteIdsForTag, createTag } = useTags();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
@@ -74,12 +76,40 @@ export default function HomePage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filterImportant, setFilterImportant] = useState(false);
   const [deletingLabelId, setDeletingLabelId] = useState<string | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [addingTag, setAddingTag] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
   const categoryInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
   const selectedTagId = searchParams.get('tag');
 
   useEffect(() => {
     if (addingCategory) categoryInputRef.current?.focus();
   }, [addingCategory]);
+
+  useEffect(() => {
+    if (addingTag) tagInputRef.current?.focus();
+  }, [addingTag]);
+
+  // Clear selected tags when category changes
+  useEffect(() => {
+    setSelectedTagIds([]);
+  }, [selectedTagId]);
+
+  const tagsForSelectedLabel = selectedTagId ? getTagsForLabel(selectedTagId) : [];
+
+  const toggleTagFilter = (tagId: string) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const handleCreateTag = async () => {
+    const name = newTagName.trim();
+    if (name && selectedTagId) await createTag(selectedTagId, name);
+    setNewTagName('');
+    setAddingTag(false);
+  };
 
   const handleCreateCategory = async () => {
     const name = newCategoryName.trim();
@@ -121,6 +151,10 @@ export default function HomePage() {
       const noteIds = getNoteIdsForLabel(selectedTagId);
       result = result.filter(n => noteIds.includes(n.id));
     }
+    if (selectedTagIds.length > 0) {
+      const noteIdSets = selectedTagIds.map(tagId => new Set(getNoteIdsForTag(tagId)));
+      result = result.filter(n => noteIdSets.every(s => s.has(n.id)));
+    }
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -131,7 +165,7 @@ export default function HomePage() {
       if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
       return a.position - b.position;
     });
-  }, [notes, search, selectedTagId, filterImportant, getNoteIdsForLabel]);
+  }, [notes, search, selectedTagId, selectedTagIds, filterImportant, getNoteIdsForLabel, getNoteIdsForTag]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -224,7 +258,7 @@ export default function HomePage() {
       </div>
 
       {/* Categories */}
-      <div className="flex items-center gap-2 flex-wrap mb-8">
+      <div className="flex items-center gap-2 flex-wrap mb-3">
         <DndContext
           id="label-sort"
           sensors={labelSensors}
@@ -268,6 +302,50 @@ export default function HomePage() {
           </button>
         )}
       </div>
+
+      {/* Tags (sub-filters under selected category) */}
+      {selectedTagId && (
+        <div className="flex items-center gap-1.5 flex-wrap mb-8">
+          {tagsForSelectedLabel.map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => toggleTagFilter(tag.id)}
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+                selectedTagIds.includes(tag.id)
+                  ? 'bg-[#ec4899]/15 text-[#f472b6]'
+                  : 'bg-white/[0.03] text-[#6b6882] hover:text-[#9896a8] hover:bg-white/[0.06]'
+              }`}
+            >
+              {tag.name}
+            </button>
+          ))}
+          {addingTag ? (
+            <input
+              ref={tagInputRef}
+              type="text"
+              value={newTagName}
+              onChange={e => setNewTagName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleCreateTag();
+                if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
+              }}
+              onBlur={handleCreateTag}
+              placeholder="Tag name..."
+              className="px-2.5 py-0.5 rounded-md bg-transparent border border-[#2d2a40] text-[11px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50 w-24"
+            />
+          ) : (
+            <button
+              onClick={() => setAddingTag(true)}
+              className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[11px] text-[#4a4660] hover:text-[#ec4899] hover:bg-white/[0.04] transition-colors"
+              title="Add tag"
+            >
+              <Plus size={10} />
+              <span>Tag</span>
+            </button>
+          )}
+        </div>
+      )}
+      {!selectedTagId && <div className="mb-8" />}
 
       {/* Content */}
       {filtered.length === 0 ? (
