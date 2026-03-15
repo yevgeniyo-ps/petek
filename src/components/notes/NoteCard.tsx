@@ -21,11 +21,17 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { updateNote, deleteNote } = useNotes();
-  const { getLabelsForNote } = useLabels();
+  const { labels: allLabels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
   const { getTagsForNote } = useTags();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const labels = getLabelsForNote(note.id);
+  const currentLabelId = labels[0]?.id ?? null;
   const tags = getTagsForNote(note.id);
+
+  const handleLabelChange = async (labelId: string | null) => {
+    if (currentLabelId) await removeLabelFromNote(note.id, currentLabelId);
+    if (labelId) await addLabelToNote(note.id, labelId);
+  };
 
   const {
     attributes,
@@ -109,6 +115,9 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             onRestore={() => updateNote(note.id, { is_archived: false })}
             onDelete={() => setConfirmDelete(true)}
             currentEmoji={note.emoji}
+            labels={allLabels}
+            currentLabelId={currentLabelId}
+            onLabelChange={handleLabelChange}
           />
           <span className="text-[11px] text-[#4a4660]">{formatDate(note.updated_at)}</span>
         </div>
