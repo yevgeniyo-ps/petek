@@ -5,7 +5,8 @@ import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { NoteList } from './components/NoteList';
 import { NoteEditor } from './components/NoteEditor';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNotes } from '@shared/context/NotesContext';
 import { Note } from '@shared/types';
 
 type View = 'notes' | 'archive' | 'trash';
@@ -21,6 +22,7 @@ function AuthenticatedApp() {
   return (
     <NotesProvider>
       <LabelsProvider>
+        <SyncOnFocus />
         <div className="flex flex-col h-screen bg-[#0c0a12]">
           <Header view={view} onViewChange={setView} />
           <SearchBar
@@ -52,6 +54,23 @@ function AuthenticatedApp() {
       </LabelsProvider>
     </NotesProvider>
   );
+}
+
+function SyncOnFocus() {
+  const { refresh } = useNotes();
+
+  const handleVisibility = useCallback(() => {
+    if (document.visibilityState === 'visible') {
+      refresh();
+    }
+  }, [refresh]);
+
+  useEffect(() => {
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [handleVisibility]);
+
+  return null;
 }
 
 function AppContent() {

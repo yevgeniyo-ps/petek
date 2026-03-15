@@ -1,4 +1,5 @@
 import { useExtAuth } from './LoginForm';
+import { useGravatar } from '@shared/hooks/useGravatar';
 import { LogOut } from 'lucide-react';
 
 type View = 'notes' | 'archive' | 'trash';
@@ -17,8 +18,7 @@ const tabs: { key: View; label: string }[] = [
 export function Header({ view, onViewChange }: HeaderProps) {
   const { user, signOut } = useExtAuth();
 
-  const email = user?.email ?? '';
-  const gravatarUrl = `https://www.gravatar.com/avatar/${email}?s=48&d=mp`;
+  const avatarUrl = useGravatar(user?.email ?? undefined, 48);
 
   return (
     <div className="flex-shrink-0 border-b border-[#1c1928]">
@@ -28,11 +28,13 @@ export function Header({ view, onViewChange }: HeaderProps) {
           petek<span className="text-pink-500">.</span>
         </h1>
         <div className="flex items-center gap-2">
-          <img
-            src={gravatarUrl}
-            alt=""
-            className="w-6 h-6 rounded-full opacity-70"
-          />
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="w-6 h-6 rounded-full opacity-70"
+            />
+          )}
           <button
             onClick={signOut}
             className="p-1.5 rounded-md text-[#7a7890] hover:text-white hover:bg-white/5 transition-colors"
