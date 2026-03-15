@@ -74,7 +74,7 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             </h3>
           )}
           {note.content && (
-            <div className="text-[13px] text-[#9896a8] line-clamp-6 leading-relaxed">
+            <div className="text-[13px] text-[#9896a8] line-clamp-6 leading-relaxed markdown-prose">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {truncateMarkdown(note.content, 200)}
               </ReactMarkdown>

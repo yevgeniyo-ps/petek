@@ -12,47 +12,26 @@
   }
 }
 
-/* Override md-editor dark theme */
-.w-md-editor {
-  --color-canvas-default: transparent !important;
-  --color-fg-default: #e0dfe4 !important;
-  --color-border-default: rgba(255,255,255,0.06) !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  font-size: 14px !important;
-}
-
-.w-md-editor-toolbar {
-  background-color: transparent !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-  padding: 6px 4px !important;
-}
-
-.w-md-editor-toolbar li > button {
-  color: #6b6882 !important;
-  height: 28px !important;
-  width: 28px !important;
-}
-
-.w-md-editor-toolbar li > button:hover {
-  color: #b0adc0 !important;
-  background-color: rgba(255,255,255,0.05) !important;
-}
-
-.w-md-editor-text-pre > code,
-.w-md-editor-text-input,
-.w-md-editor-text {
-  color: #e0dfe4 !important;
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-}
-
-.wmde-markdown {
-  background-color: transparent !important;
-  color: #e0dfe4 !important;
-  font-size: 14px !important;
-}
+/* Markdown prose styles for note cards */
+.markdown-prose h1 { font-size: 1.25em; font-weight: 700; margin-bottom: 0.25em; color: #e0dfe4; }
+.markdown-prose h2 { font-size: 1.15em; font-weight: 600; margin-bottom: 0.25em; color: #e0dfe4; }
+.markdown-prose h3 { font-size: 1.05em; font-weight: 600; margin-bottom: 0.2em; color: #e0dfe4; }
+.markdown-prose p { margin-bottom: 0.4em; }
+.markdown-prose ul, .markdown-prose ol { padding-left: 1.5em; margin-bottom: 0.4em; }
+.markdown-prose ul { list-style-type: disc; }
+.markdown-prose ol { list-style-type: decimal; }
+.markdown-prose li { margin-bottom: 0.1em; }
+.markdown-prose code { background: rgba(255,255,255,0.06); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
+.markdown-prose pre { background: rgba(255,255,255,0.04); padding: 0.6em; border-radius: 6px; margin-bottom: 0.4em; overflow-x: auto; }
+.markdown-prose pre code { background: none; padding: 0; }
+.markdown-prose blockquote { border-left: 2px solid #3a3650; padding-left: 0.75em; color: #7a7890; margin-bottom: 0.4em; }
+.markdown-prose a { color: #ec4899; text-decoration: underline; }
+.markdown-prose strong { color: #e0dfe4; font-weight: 600; }
+.markdown-prose hr { border-color: #1c1928; margin: 0.5em 0; }
+.markdown-prose table { border-collapse: collapse; width: 100%; margin-bottom: 0.4em; }
+.markdown-prose th, .markdown-prose td { border: 1px solid #1c1928; padding: 0.25em 0.5em; text-align: left; }
+.markdown-prose th { font-weight: 600; color: #e0dfe4; }
+.markdown-prose input[type="checkbox"] { margin-right: 0.4em; }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
