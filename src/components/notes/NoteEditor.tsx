@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Smile, ChevronDown } from 'lucide-react';
+import { Smile, ChevronDown, Star } from 'lucide-react';
 const MDEditor = lazy(() => import('@uiw/react-md-editor'));
 import Modal from '../ui/Modal';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
@@ -10,11 +10,12 @@ interface NoteEditorProps {
   note: Note | null;
   open: boolean;
   onClose: () => void;
-  onSave: (data: { title: string; content: string; emoji: string | null; labelId: string | null }) => Promise<void>;
+  onSave: (data: { title: string; content: string; emoji: string | null; labelId: string | null; isImportant: boolean }) => Promise<void>;
 }
 
 export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorProps) {
   const { labels, getLabelsForNote } = useLabels();
+  const [isStarred, setIsStarred] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [emoji, setEmoji] = useState<string | null>(null);
@@ -30,12 +31,14 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
       setTitle(note.title);
       setContent(note.content);
       setEmoji(note.emoji);
+      setIsStarred(note.is_important);
       const noteLabels = getLabelsForNote(note.id);
       setSelectedLabelId(noteLabels[0]?.id ?? null);
     } else {
       setTitle('');
       setContent('');
       setEmoji(null);
+      setIsStarred(false);
       setSelectedLabelId(null);
     }
   }, [note, open, getLabelsForNote]);
@@ -65,7 +68,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
   const handleSave = async () => {
     if (!title.trim() && !content.trim()) return;
     setSaving(true);
-    await onSave({ title, content, emoji, labelId: selectedLabelId });
+    await onSave({ title, content, emoji, labelId: selectedLabelId, isImportant: isStarred });
     setSaving(false);
     onClose();
   };
@@ -111,6 +114,15 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
                 </div>
               )}
             </div>
+            <button
+              onClick={() => setIsStarred(!isStarred)}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isStarred ? 'text-[#ec4899] hover:bg-white/[0.06]' : 'hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0]'
+              }`}
+              title={isStarred ? 'Unstar' : 'Star'}
+            >
+              <Star size={16} className={isStarred ? 'fill-[#ec4899]' : ''} />
+            </button>
             {labels.length > 0 && (
               <div className="relative" ref={categoryPickerRef}>
                 <button

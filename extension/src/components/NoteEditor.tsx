@@ -13,9 +13,12 @@ interface NoteEditorProps {
 
 const EMOJI_OPTIONS = ['📝', '💡', '🔥', '⭐', '🎯', '📌', '🚀', '💻', '📚', '🎨', '🔧', '✅', '❤️', '🏠', '💰', '🎵'];
 
-export function NoteEditor({ note, onClose }: NoteEditorProps) {
-  const { createNote, updateNote } = useNotes();
+export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
+  const { notes, createNote, updateNote } = useNotes();
   const { labels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
+
+  // Get live note from context so toolbar actions (star, pin) reflect immediately
+  const note = initialNote ? notes.find(n => n.id === initialNote.id) ?? initialNote : null;
 
   const [title, setTitle] = useState(note?.title ?? '');
   const [content, setContent] = useState(note?.content ?? '');

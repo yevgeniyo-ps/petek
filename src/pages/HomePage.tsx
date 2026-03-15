@@ -157,10 +157,10 @@ export default function HomePage() {
 
   const draggedNote = activeId ? filtered.find(n => n.id === activeId) : null;
 
-  const handleSave = async (data: { title: string; content: string; emoji: string | null; labelId: string | null }) => {
-    const { labelId, ...noteData } = data;
+  const handleSave = async (data: { title: string; content: string; emoji: string | null; labelId: string | null; isImportant: boolean }) => {
+    const { labelId, isImportant, ...noteData } = data;
     if (editingNote) {
-      await updateNote(editingNote.id, noteData);
+      await updateNote(editingNote.id, { ...noteData, is_important: isImportant });
       const currentLabel = getLabelsForNote(editingNote.id)[0];
       if (currentLabel?.id !== labelId) {
         if (currentLabel) await removeLabelFromNote(editingNote.id, currentLabel.id);
