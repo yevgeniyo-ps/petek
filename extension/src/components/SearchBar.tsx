@@ -59,8 +59,8 @@ export function SearchBar({
               : 'text-[#7a7890] hover:bg-white/5'
           }`}
         >
-          <Star size={12} />
-          Important
+          <Star size={12} className={filterImportant ? 'fill-pink-400' : ''} />
+          Starred
         </button>
 
         {labels.map(label => (

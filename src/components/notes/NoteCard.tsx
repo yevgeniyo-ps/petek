@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlertTriangle } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Note } from '../../types';
 import { truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
@@ -44,13 +44,13 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         {...(overlay ? {} : { ...attributes, ...listeners })}
         onClick={overlay ? undefined : onClick}
         className={`group rounded-xl border bg-[#0c0a12] cursor-pointer transition-all flex flex-col min-h-[140px] relative ${
-          note.is_important ? 'border-[#f59e0b]/40 hover:border-[#f59e0b]/60' : 'border-[#3a3650] hover:border-[#4d4870]'
+          note.is_important ? 'border-[#ec4899]/40 hover:border-[#ec4899]/60' : 'border-[#3a3650] hover:border-[#4d4870]'
         } ${overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''}`}
       >
 
         {note.is_important && (
-          <span className="absolute top-3 left-3 text-[#f59e0b] pointer-events-none">
-            <AlertTriangle size={14} />
+          <span className="absolute top-3 left-3 text-[#ec4899] pointer-events-none">
+            <Star size={14} className="fill-[#ec4899]" />
           </span>
         )}
         {note.emoji && ICON_MAP[note.emoji] && (() => {

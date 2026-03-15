@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Search, Plus, Archive, Tag, X, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Archive, Tag, X, Star } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { arrayMove, SortableContext, horizontalListSortingStrategy, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -211,13 +211,13 @@ export default function HomePage() {
           onClick={() => setFilterImportant(!filterImportant)}
           className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-medium transition-all ${
             filterImportant
-              ? 'bg-[#f59e0b]/20 text-[#f59e0b]'
+              ? 'bg-[#ec4899]/20 text-[#f472b6]'
               : 'text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.04]'
           }`}
-          title="Filter important"
+          title="Filter starred"
         >
-          <AlertTriangle size={13} />
-          <span>Important</span>
+          <Star size={13} className={filterImportant ? 'fill-[#f472b6]' : ''} />
+          <span>Starred</span>
         </button>
       </div>
 

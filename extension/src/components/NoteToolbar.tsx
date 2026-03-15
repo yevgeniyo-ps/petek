@@ -62,7 +62,7 @@ export function NoteToolbar({ note, onClose }: NoteToolbarProps) {
       <button
         onClick={() => toggle('is_important', !note.is_important)}
         className={note.is_important ? activeClass : btnClass}
-        title={note.is_important ? 'Remove important' : 'Mark important'}
+        title={note.is_important ? 'Unstar' : 'Star'}
       >
         <Star size={16} className={note.is_important ? 'fill-pink-400' : ''} />
       </button>

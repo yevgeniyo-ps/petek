@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pin, PinOff, Smile, Trash2, ArchiveRestore, Archive, AlertTriangle } from 'lucide-react';
+import { Pin, PinOff, Smile, Trash2, ArchiveRestore, Archive, Star } from 'lucide-react';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 
 interface NoteToolbarProps {
@@ -31,8 +31,8 @@ export default function NoteToolbar({
           <button onClick={onTogglePin} className={btnClass} title={isPinned ? 'Unpin' : 'Pin'}>
             {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
           </button>
-          <button onClick={onToggleImportant} className={`p-2 rounded-lg transition-colors ${isImportant ? 'text-[#f59e0b] hover:bg-white/[0.06]' : btnClass}`} title={isImportant ? 'Remove important' : 'Mark important'}>
-            <AlertTriangle size={16} />
+          <button onClick={onToggleImportant} className={`p-2 rounded-lg transition-colors ${isImportant ? 'text-[#ec4899] hover:bg-white/[0.06]' : btnClass}`} title={isImportant ? 'Unstar' : 'Star'}>
+            <Star size={16} className={isImportant ? 'fill-[#ec4899]' : ''} />
           </button>
           <div className="relative">
             <button onClick={() => setShowIcons(!showIcons)} className={btnClass} title="Icon">
