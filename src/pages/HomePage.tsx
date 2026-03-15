@@ -81,7 +81,8 @@ export default function HomePage() {
   const [newTagName, setNewTagName] = useState('');
   const categoryInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
-  const selectedTagId = searchParams.get('tag');
+  const todoLabel = labels.find(l => l.name.toLowerCase() === 'todo');
+  const selectedTagId = searchParams.get('tag') ?? todoLabel?.id ?? null;
 
   useEffect(() => {
     if (addingCategory) categoryInputRef.current?.focus();
