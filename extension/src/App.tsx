@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNotes } from '@shared/context/NotesContext';
 import { Note } from '@shared/types';
 
-type View = 'notes' | 'archive' | 'trash';
+type View = 'notes' | 'archive';
 
 function AuthenticatedApp() {
   const [view, setView] = useState<View>('notes');

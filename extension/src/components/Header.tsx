@@ -2,7 +2,7 @@ import { useExtAuth } from './LoginForm';
 import { useGravatar } from '@shared/hooks/useGravatar';
 import { LogOut } from 'lucide-react';
 
-type View = 'notes' | 'archive' | 'trash';
+type View = 'notes' | 'archive';
 
 interface HeaderProps {
   view: View;
@@ -12,7 +12,6 @@ interface HeaderProps {
 const tabs: { key: View; label: string }[] = [
   { key: 'notes', label: 'Notes' },
   { key: 'archive', label: 'Archive' },
-  { key: 'trash', label: 'Trash' },
 ];
 
 export function Header({ view, onViewChange }: HeaderProps) {

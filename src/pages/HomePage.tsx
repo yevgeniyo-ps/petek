@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Search, Plus, Archive, Tag, X, AlertTriangle } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { arrayMove, SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, horizontalListSortingStrategy, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
   DndContext,
@@ -18,7 +18,6 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
-import NoteBoard from '../components/notes/NoteBoard';
 import NoteEditor from '../components/notes/NoteEditor';
 import NoteCard from '../components/notes/NoteCard';
 import { Note } from '../types';
@@ -111,71 +110,26 @@ export default function HomePage() {
     setSearchParams(searchParams);
   };
 
-  const activeNotes = useMemo(() => {
-    let filtered = notes.filter(n => !n.is_archived);
+  const filtered = useMemo(() => {
+    let result = notes.filter(n => !n.is_archived && !n.is_trashed);
     if (filterImportant) {
-      filtered = filtered.filter(n => n.is_important);
+      result = result.filter(n => n.is_important);
     }
     if (selectedTagId) {
       const noteIds = getNoteIdsForLabel(selectedTagId);
-      filtered = filtered.filter(n => noteIds.includes(n.id));
+      result = result.filter(n => noteIds.includes(n.id));
     }
     if (search) {
       const q = search.toLowerCase();
-      filtered = filtered.filter(
+      result = result.filter(
         n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
       );
     }
-    return filtered;
+    return result.sort((a, b) => {
+      if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+      return a.position - b.position;
+    });
   }, [notes, search, selectedTagId, filterImportant, getNoteIdsForLabel]);
-
-  const groupedNotes = useMemo(() => {
-    const groups = new Map<string, { name: string; notes: Note[] }>();
-    const uncategorized: Note[] = [];
-
-    // When filtering by category, only show that category
-    const visibleLabels = selectedTagId
-      ? labels.filter(l => l.id === selectedTagId)
-      : labels;
-
-    for (const label of visibleLabels) {
-      groups.set(label.id, { name: label.name, notes: [] });
-    }
-
-    for (const note of activeNotes) {
-      const noteLabels = getLabelsForNote(note.id);
-      const label = noteLabels[0];
-      if (label && groups.has(label.id)) {
-        groups.get(label.id)!.notes.push(note);
-      } else if (!selectedTagId) {
-        uncategorized.push(note);
-      }
-    }
-
-    const sorted = [...groups.entries()]
-      .sort(([idA], [idB]) => {
-        const posA = labels.find(l => l.id === idA)?.position ?? 0;
-        const posB = labels.find(l => l.id === idB)?.position ?? 0;
-        return posA - posB;
-      })
-      .map(([id, { name, notes }]) => ({ id, name, notes }));
-
-    return { labeled: sorted, uncategorized };
-  }, [activeNotes, getLabelsForNote, labels, selectedTagId]);
-
-  // Lookup: noteId → labelId (or 'uncategorized')
-  const noteGroupMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const group of groupedNotes.labeled) {
-      for (const note of group.notes) {
-        map.set(note.id, group.id);
-      }
-    }
-    for (const note of groupedNotes.uncategorized) {
-      map.set(note.id, 'uncategorized');
-    }
-    return map;
-  }, [groupedNotes]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -190,55 +144,23 @@ export default function HomePage() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
-    if (!over) return;
-
-    const draggedId = active.id as string;
-    const overId = over.id as string;
-
-    const sourceGroupId = noteGroupMap.get(draggedId);
-
-    // Determine target group: could be a group container ID or a note ID
-    let targetGroupId: string;
-    if (noteGroupMap.has(overId)) {
-      targetGroupId = noteGroupMap.get(overId)!;
-    } else {
-      // overId is a droppable container ID (label ID or 'uncategorized')
-      targetGroupId = overId;
+    if (!over || active.id === over.id) return;
+    const oldIndex = filtered.findIndex(n => n.id === active.id);
+    const newIndex = filtered.findIndex(n => n.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = arrayMove(filtered, oldIndex, newIndex);
+      reorderNotes(reordered.map((n, i) => ({ id: n.id, position: i + 1 })));
     }
-
-    if (sourceGroupId === targetGroupId) {
-      // Same group — reorder within
-      const groupNotes = targetGroupId === 'uncategorized'
-        ? groupedNotes.uncategorized
-        : groupedNotes.labeled.find(g => g.id === targetGroupId)?.notes ?? [];
-
-      const oldIndex = groupNotes.findIndex(n => n.id === draggedId);
-      const newIndex = groupNotes.findIndex(n => n.id === overId);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reordered = arrayMove(groupNotes, oldIndex, newIndex);
-        const updates = reordered.map((n, i) => ({ id: n.id, position: i + 1 }));
-        reorderNotes(updates);
-      }
-    } else {
-      // Cross-group — move note to new category
-      if (sourceGroupId && sourceGroupId !== 'uncategorized') {
-        removeLabelFromNote(draggedId, sourceGroupId);
-      }
-      if (targetGroupId !== 'uncategorized') {
-        addLabelToNote(draggedId, targetGroupId);
-      }
-    }
-  }, [noteGroupMap, groupedNotes, reorderNotes, addLabelToNote, removeLabelFromNote]);
+  }, [filtered, reorderNotes]);
 
   const handleDragCancel = () => setActiveId(null);
 
-  const draggedNote = activeId ? activeNotes.find(n => n.id === activeId) : null;
+  const draggedNote = activeId ? filtered.find(n => n.id === activeId) : null;
 
   const handleSave = async (data: { title: string; content: string; emoji: string | null; labelId: string | null }) => {
     const { labelId, ...noteData } = data;
     if (editingNote) {
       await updateNote(editingNote.id, noteData);
-      // Update category if changed
       const currentLabel = getLabelsForNote(editingNote.id)[0];
       if (currentLabel?.id !== labelId) {
         if (currentLabel) await removeLabelFromNote(editingNote.id, currentLabel.id);
@@ -346,7 +268,7 @@ export default function HomePage() {
       </div>
 
       {/* Content */}
-      {activeNotes.length === 0 && groupedNotes.labeled.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="rounded-xl border border-[#1c1928] bg-[#0f0d18] py-24 text-center">
           <p className="text-[14px] text-[#7a7890]">
             {search ? 'No notes found matching your criteria.' : 'No notes yet. Create one to get started.'}
@@ -361,12 +283,13 @@ export default function HomePage() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          {groupedNotes.labeled.map(group => (
-            <NoteBoard key={group.id} groupId={group.id} notes={group.notes} onNoteClick={handleNoteClick} sectionTitle={group.name} />
-          ))}
-          {!selectedTagId && (
-            <NoteBoard groupId="uncategorized" notes={groupedNotes.uncategorized} onNoteClick={handleNoteClick} sectionTitle="Uncategorized" />
-          )}
+          <SortableContext items={filtered.map(n => n.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filtered.map(note => (
+                <NoteCard key={note.id} note={note} onClick={() => handleNoteClick(note)} />
+              ))}
+            </div>
+          </SortableContext>
           <DragOverlay dropAnimation={null}>
             {draggedNote ? <NoteCard note={draggedNote} onClick={() => {}} overlay /> : null}
           </DragOverlay>

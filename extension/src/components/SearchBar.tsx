@@ -1,4 +1,5 @@
-import { Search, Star } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, Star, Plus } from 'lucide-react';
 import { useLabels } from '@shared/context/LabelsContext';
 
 interface SearchBarProps {
@@ -18,7 +19,21 @@ export function SearchBar({
   filterImportant,
   onFilterImportantChange,
 }: SearchBarProps) {
-  const { labels } = useLabels();
+  const { labels, createLabel } = useLabels();
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (adding) inputRef.current?.focus();
+  }, [adding]);
+
+  const handleCreate = async () => {
+    const name = newName.trim();
+    if (name) await createLabel(name);
+    setNewName('');
+    setAdding(false);
+  };
 
   return (
     <div className="flex-shrink-0 px-4 py-3 space-y-2 border-b border-[#1c1928]">
@@ -61,6 +76,30 @@ export function SearchBar({
             {label.name}
           </button>
         ))}
+
+        {adding ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleCreate();
+              if (e.key === 'Escape') { setAdding(false); setNewName(''); }
+            }}
+            onBlur={handleCreate}
+            placeholder="Label name..."
+            className="px-2 py-1 bg-transparent border border-[#2d2a40] rounded-md text-xs text-white placeholder-[#4a4660] outline-none focus:border-pink-500/50 w-24"
+          />
+        ) : (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-0.5 px-1.5 py-1 rounded-md text-xs text-[#4a4660] hover:text-pink-400 hover:bg-white/5 transition-colors whitespace-nowrap"
+            title="Add label"
+          >
+            <Plus size={12} />
+          </button>
+        )}
       </div>
     </div>
   );

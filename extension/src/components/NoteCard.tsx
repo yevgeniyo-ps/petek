@@ -1,15 +1,33 @@
 import { Note } from '@shared/types';
 import { useLabels } from '@shared/context/LabelsContext';
 import { Pin, Star } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface NoteCardProps {
   note: Note;
   onClick: () => void;
+  overlay?: boolean;
 }
 
-export function NoteCard({ note, onClick }: NoteCardProps) {
+export function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { getLabelsForNote } = useLabels();
   const labels = getLabelsForNote(note.id);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: note.id, disabled: overlay });
+
+  const style = overlay ? undefined : {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : undefined,
+  };
 
   const date = new Date(note.updated_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -18,8 +36,13 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
 
   return (
     <button
-      onClick={onClick}
-      className="w-full text-left p-3 bg-[#13111c] hover:bg-[#1a1726] border border-[#3a3650] rounded-lg transition-colors group"
+      ref={overlay ? undefined : setNodeRef}
+      style={style}
+      {...(overlay ? {} : { ...attributes, ...listeners })}
+      onClick={overlay ? undefined : onClick}
+      className={`w-full text-left p-3 bg-[#13111c] hover:bg-[#1a1726] border border-[#3a3650] rounded-lg transition-colors group ${
+        overlay ? 'shadow-xl shadow-black/40 scale-[1.02]' : ''
+      }`}
     >
       <div className="flex items-start gap-2">
         {/* Emoji */}

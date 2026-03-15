@@ -1,11 +1,27 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
 import { Note } from '@shared/types';
 import { NoteCard } from './NoteCard';
 import { Plus, FileText } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
-type View = 'notes' | 'archive' | 'trash';
+type View = 'notes' | 'archive';
 
 interface NoteListProps {
   view: View;
@@ -17,14 +33,19 @@ interface NoteListProps {
 }
 
 export function NoteList({ view, search, filterLabel, filterImportant, onEdit, onNew }: NoteListProps) {
-  const { notes, loading } = useNotes();
+  const { notes, loading, reorderNotes } = useNotes();
   const { getNoteIdsForLabel } = useLabels();
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
 
   const filtered = useMemo(() => {
     let result = notes.filter(n => {
       if (view === 'notes') return !n.is_archived && !n.is_trashed;
       if (view === 'archive') return n.is_archived && !n.is_trashed;
-      if (view === 'trash') return n.is_trashed;
       return false;
     });
 
@@ -52,6 +73,26 @@ export function NoteList({ view, search, filterLabel, filterImportant, onEdit, o
     });
   }, [notes, view, search, filterImportant, filterLabel, getNoteIdsForLabel]);
 
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+    const oldIndex = filtered.findIndex(n => n.id === active.id);
+    const newIndex = filtered.findIndex(n => n.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = arrayMove(filtered, oldIndex, newIndex);
+      reorderNotes(reordered.map((n, i) => ({ id: n.id, position: i + 1 })));
+    }
+  }, [filtered, reorderNotes]);
+
+  const handleDragCancel = useCallback(() => setActiveId(null), []);
+
+  const activeNote = activeId ? filtered.find(n => n.id === activeId) : null;
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -69,6 +110,29 @@ export function NoteList({ view, search, filterLabel, filterImportant, onEdit, o
             {search ? 'No matching notes' : view === 'notes' ? 'No notes yet' : `No ${view} notes`}
           </p>
         </div>
+      ) : view === 'notes' ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <SortableContext items={filtered.map(n => n.id)} strategy={verticalListSortingStrategy}>
+            <div className="p-3 space-y-2">
+              {filtered.map(note => (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onClick={() => onEdit(note)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeNote ? <NoteCard note={activeNote} onClick={() => {}} overlay /> : null}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <div className="p-3 space-y-2">
           {filtered.map(note => (
