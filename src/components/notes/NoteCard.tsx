@@ -48,19 +48,23 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         } ${overlay ? 'shadow-xl shadow-black/40 scale-[1.03]' : ''}`}
       >
 
+        {note.is_important && (
+          <span className="absolute top-3 right-3 text-[#ec4899] pointer-events-none">
+            <Star size={14} className="fill-[#ec4899]" />
+          </span>
+        )}
         {note.emoji && ICON_MAP[note.emoji] && (() => {
           const Icon = ICON_MAP[note.emoji!]!;
           return (
-            <span className="absolute top-3 right-3 text-[#4a4660] pointer-events-none">
+            <span className={`absolute top-3 pointer-events-none text-[#4a4660] ${note.is_important ? 'right-9' : 'right-3'}`}>
               <Icon size={20} />
             </span>
           );
         })()}
         <div className="p-4 flex-1 min-h-0">
           {note.title && (
-            <h3 className="text-[14px] font-semibold text-white mb-2 line-clamp-2 pr-8 flex items-center gap-1.5">
-              {note.is_important && <Star size={13} className="text-[#ec4899] fill-[#ec4899] flex-shrink-0" />}
-              <span className="truncate">{note.title}</span>
+            <h3 className="text-[14px] font-semibold text-white mb-2 line-clamp-2 pr-8">
+              {note.title}
             </h3>
           )}
           {note.content && (
