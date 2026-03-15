@@ -83,7 +83,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       </div>
 
       {/* Editor body */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 flex flex-col">
         {/* Emoji + Title row */}
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -159,12 +159,12 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         </div>
 
         {/* Markdown editor */}
-        <div data-color-mode="dark">
+        <div data-color-mode="dark" className="flex-1 min-h-0">
           <MDEditor
             value={content}
             onChange={val => setContent(val ?? '')}
             preview="edit"
-            height={400}
+            height="100%"
             visibleDragbar={false}
           />
         </div>
