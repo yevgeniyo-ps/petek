@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@source "../../src/**/*.{ts,tsx}";
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    background-color: #0c0a12;
+    color: #e0dfe4;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* Override md-editor dark theme */
+.w-md-editor {
+  --color-canvas-default: transparent !important;
+  --color-fg-default: #e0dfe4 !important;
+  --color-border-default: rgba(255,255,255,0.06) !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  font-size: 14px !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 6px 4px !important;
+}
+
+.w-md-editor-toolbar li > button {
+  color: #6b6882 !important;
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.w-md-editor-toolbar li > button:hover {
+  color: #b0adc0 !important;
+  background-color: rgba(255,255,255,0.05) !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input,
+.w-md-editor-text {
+  color: #e0dfe4 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  color: #e0dfe4 !important;
+  font-size: 14px !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

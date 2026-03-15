@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Settings } from 'lucide-react';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Settings, PanelRight } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../context/CollectionsContext';
@@ -27,6 +27,9 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [menuSettings, setMenuSettings] = useState<MenuSettings>(loadMenuSettings);
+  const [extensionModalOpen, setExtensionModalOpen] = useState(false);
+
+  const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -168,6 +171,15 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
               <Settings size={14} />
               <span>Settings</span>
             </button>
+            {isChrome && (
+              <button
+                onClick={() => { setExtensionModalOpen(true); setUserMenuOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
+              >
+                <PanelRight size={14} />
+                <span>Extension</span>
+              </button>
+            )}
             <button
               onClick={() => { signOut(); setUserMenuOpen(false); }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
@@ -191,7 +203,52 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
 
       <CreateCollectionModal open={createCollectionOpen} onClose={() => setCreateCollectionOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={menuSettings} onChange={setMenuSettings} />
+      {extensionModalOpen && (
+        <ExtensionModal onClose={() => setExtensionModalOpen(false)} />
+      )}
     </div>
+  );
+}
+
+function ExtensionModal({ onClose }: { onClose: () => void }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/60" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div className="bg-[#13111c] border border-[#1c1928] rounded-xl shadow-2xl w-full max-w-sm p-6 pointer-events-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-[#1a1726] flex items-center justify-center">
+              <PanelRight size={20} className="text-[#ec4899]" />
+            </div>
+            <div>
+              <h2 className="text-white font-semibold text-base">Petek Notes Extension</h2>
+              <p className="text-[#7a7890] text-xs">Quick access from Chrome sidebar</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-[13px] text-[#b0adc0]">
+            <p>Access your notes directly from Chrome's side panel without leaving your current tab.</p>
+
+            <ol className="space-y-2 list-decimal list-inside text-[#7a7890]">
+              <li>Download and unzip the <a href="https://github.com/yevgeniy-ovsyannikov/petek/releases" target="_blank" rel="noopener" className="text-[#ec4899] hover:underline">latest release</a></li>
+              <li>Open <code className="px-1.5 py-0.5 bg-white/5 rounded text-[#b0adc0] text-xs">chrome://extensions</code></li>
+              <li>Enable <span className="text-[#b0adc0]">Developer mode</span> (top right)</li>
+              <li>Click <span className="text-[#b0adc0]">Load unpacked</span> → select the unzipped folder</li>
+              <li>Click the extension icon to open the side panel</li>
+            </ol>
+
+            <p className="text-xs text-[#4a4660]">Your session syncs automatically — no need to sign in again.</p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="mt-5 w-full py-2 bg-[#1a1726] hover:bg-[#1e1b2e] text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
