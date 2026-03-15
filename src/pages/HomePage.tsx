@@ -20,6 +20,7 @@ import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
 import NoteEditor from '../components/notes/NoteEditor';
 import NoteCard from '../components/notes/NoteCard';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { Note } from '../types';
 
 function SortableLabelChip({ label, isSelected, onClick, onDelete }: {
@@ -72,6 +73,7 @@ export default function HomePage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filterImportant, setFilterImportant] = useState(false);
+  const [deletingLabelId, setDeletingLabelId] = useState<string | null>(null);
   const categoryInputRef = useRef<HTMLInputElement>(null);
   const selectedTagId = searchParams.get('tag');
 
@@ -236,7 +238,7 @@ export default function HomePage() {
                 label={label}
                 isSelected={selectedTagId === label.id}
                 onClick={() => handleCategoryClick(label.id)}
-                onDelete={() => deleteLabel(label.id)}
+                onDelete={() => setDeletingLabelId(label.id)}
               />
             ))}
           </SortableContext>
@@ -321,6 +323,22 @@ export default function HomePage() {
       >
         <Plus size={24} strokeWidth={2.5} />
       </button>
+
+      <ConfirmDialog
+        open={!!deletingLabelId}
+        onClose={() => setDeletingLabelId(null)}
+        onConfirm={() => {
+          if (deletingLabelId) {
+            if (selectedTagId === deletingLabelId) {
+              searchParams.delete('tag');
+              setSearchParams(searchParams);
+            }
+            deleteLabel(deletingLabelId);
+          }
+        }}
+        title="Delete category?"
+        message="This category will be permanently deleted. Notes in this category will not be deleted."
+      />
     </div>
   );
 }
