@@ -293,7 +293,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
   };
 
   return (
-    <div className={`rounded-xl border p-5 transition-colors ${
+    <div className={`rounded-xl border p-5 transition-colors min-w-0 ${
       isActive
         ? 'bg-[#13111c] border-[#1c1928] hover:border-[#2d2a40]'
         : 'bg-[#0f0d18] border-[#1c1928] opacity-60'
@@ -361,7 +361,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
         while (padded.length < numCols * 7) padded.push(null);
 
         return (
-          <div className="flex gap-[3px] mb-3">
+          <div className="flex gap-[3px] mb-3 overflow-x-auto">
             {Array.from({ length: numCols }, (_, col) => (
               <div key={col} className="flex flex-col gap-[3px]">
                 {Array.from({ length: 7 }, (_, row) => {

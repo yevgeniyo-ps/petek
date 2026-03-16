@@ -295,7 +295,7 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
   };
 
   return (
-    <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3">
+    <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3 min-w-0">
       <div className="flex items-start justify-between gap-2 mb-1.5">
         {editing ? (
           <input
@@ -337,7 +337,7 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
         while (padded.length < numCols * 7) padded.push(null);
 
         return (
-          <div className="flex gap-[2px] mb-2">
+          <div className="flex gap-[2px] mb-2 overflow-x-auto">
             {Array.from({ length: numCols }, (_, col) => (
               <div key={col} className="flex flex-col gap-[2px]">
                 {Array.from({ length: 7 }, (_, row) => {
