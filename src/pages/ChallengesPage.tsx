@@ -128,6 +128,18 @@ export default function ChallengesPage() {
         </button>
       </div>
 
+      {/* Today check-in */}
+      {activeChallenges.length > 0 && (
+        <TodayCheckin challenges={activeChallenges} onToggleDay={(id, day) => {
+          const challenge = activeChallenges.find(c => c.id === id)!;
+          const failedDays = challenge.failed_days || [];
+          const newFailedDays = failedDays.includes(day)
+            ? failedDays.filter(d => d !== day)
+            : [...failedDays, day];
+          updateChallenge(id, { failed_days: newFailedDays });
+        }} />
+      )}
+
       {/* Active challenges */}
       {activeChallenges.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -178,6 +190,40 @@ export default function ChallengesPage() {
         message={`This will permanently remove "${deletingChallenge?.name}".`}
         confirmLabel="Delete"
       />
+    </div>
+  );
+}
+
+function TodayCheckin({ challenges, onToggleDay }: {
+  challenges: Challenge[];
+  onToggleDay: (id: string, day: string) => void;
+}) {
+  const today = getTodayStr();
+  const date = new Date(today + 'T00:00:00');
+  const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+  return (
+    <div className="mb-6 rounded-xl border border-[#1c1928] bg-[#13111c] p-4">
+      <div className="text-[13px] text-[#7a7890] mb-3">Today, {label}</div>
+      <div className="flex flex-col gap-2">
+        {challenges.map(c => {
+          const failed = (c.failed_days || []).includes(today);
+          return (
+            <button
+              key={c.id}
+              onClick={() => onToggleDay(c.id, today)}
+              className="flex items-center gap-3 group text-left"
+            >
+              <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
+                failed ? 'bg-[#1a1826]' : 'bg-[#ec4899]'
+              }`} />
+              <span className={`text-[14px] transition-colors ${
+                failed ? 'text-[#4a4660] line-through' : 'text-white'
+              }`}>{c.name}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
