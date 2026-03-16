@@ -249,11 +249,6 @@ function TodayCheckin({ challenges, onToggleDay }: {
                   {streak}
                 </span>
               )}
-              {streak < 3 && (
-                <span className="flex items-center text-[#2a2835] shrink-0">
-                  <Flame size={12} />
-                </span>
-              )}
             </div>
           );
         })}
