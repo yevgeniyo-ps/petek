@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, Calendar, CalendarPlus, Pencil } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { Challenge, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
@@ -310,14 +310,8 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
       </div>
 
       {/* Date details */}
-      <div className="space-y-1 text-[12px] text-[#7a7890] mb-4">
-        <div className="flex items-center gap-1.5">
-          <Calendar size={12} />
-          <span>Started {formatDate(challenge.start_date)}</span>
-          <span className="mx-1">·</span>
-          <span>Ends {formatDate(challenge.end_date)}</span>
-          <span className="ml-auto">{totalDays} days</span>
-        </div>
+      <div className="text-[11px] text-[#4a4660] mb-4">
+        {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
       </div>
 
       {/* Extend inline */}
