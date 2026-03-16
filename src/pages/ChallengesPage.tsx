@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { Challenge, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
@@ -35,6 +35,23 @@ function getDateRange(startDate: string, endDate: string): string[] {
 function getTodayStr(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function getStreak(challenge: Challenge, today: string): number {
+  const failedDays = challenge.failed_days || [];
+  const start = new Date(challenge.start_date + 'T00:00:00');
+  const cur = new Date(today + 'T00:00:00');
+  let streak = 0;
+  while (cur >= start) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    const dayStr = `${y}-${m}-${d}`;
+    if (failedDays.includes(dayStr)) break;
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return streak;
 }
 
 function formatDate(dateStr: string): string {
@@ -208,19 +225,32 @@ function TodayCheckin({ challenges, onToggleDay }: {
       <div className="flex flex-col gap-2">
         {challenges.map(c => {
           const failed = (c.failed_days || []).includes(today);
+          const streak = getStreak(c, today);
           return (
-            <button
-              key={c.id}
-              onClick={() => onToggleDay(c.id, today)}
-              className="flex items-center gap-3 group text-left"
-            >
-              <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
-                failed ? 'bg-[#1a1826]' : 'bg-[#ec4899]'
-              }`} />
-              <span className={`text-[14px] transition-colors ${
-                failed ? 'text-[#4a4660] line-through' : 'text-white'
-              }`}>{c.name}</span>
-            </button>
+            <div key={c.id} className="flex items-center gap-3">
+              <button
+                onClick={() => onToggleDay(c.id, today)}
+                className="flex items-center gap-3 flex-1 text-left"
+              >
+                <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
+                  failed ? 'bg-[#1a1826]' : 'bg-[#ec4899]'
+                }`} />
+                <span className={`text-[14px] transition-colors ${
+                  failed ? 'text-[#4a4660] line-through' : 'text-white'
+                }`}>{c.name}</span>
+              </button>
+              {streak >= 3 && (
+                <span className="flex items-center gap-1 text-[12px] text-[#ec4899] font-medium shrink-0">
+                  <Flame size={14} />
+                  {streak}
+                </span>
+              )}
+              {streak < 3 && (
+                <span className="flex items-center gap-1 text-[12px] text-[#2a2835] shrink-0">
+                  <Flame size={14} />
+                </span>
+              )}
+            </div>
           );
         })}
       </div>

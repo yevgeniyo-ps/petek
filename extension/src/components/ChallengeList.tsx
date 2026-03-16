@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
-import { Plus, Check, X, Trash2, CalendarPlus, Pencil } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame } from 'lucide-react';
 import { ChallengeStatus } from '@shared/types';
 
 function getDaysRemaining(endDate: string): number {
@@ -121,6 +121,18 @@ export function ChallengeList() {
         )}
       </div>
 
+      {/* Today check-in */}
+      {activeChallenges.length > 0 && (
+        <TodayCheckin challenges={activeChallenges} onToggleDay={(id, day) => {
+          const challenge = activeChallenges.find(c => c.id === id)!;
+          const failedDays = challenge.failed_days || [];
+          const newFailedDays = failedDays.includes(day)
+            ? failedDays.filter(d => d !== day)
+            : [...failedDays, day];
+          updateChallenge(id, { failed_days: newFailedDays });
+        }} />
+      )}
+
       {/* Active challenges */}
       <div className="px-4 space-y-2">
         {activeChallenges.map(challenge => (
@@ -180,11 +192,75 @@ export function ChallengeList() {
   );
 }
 
+function getStreak(challenge: Challenge, today: string): number {
+  const failedDays = challenge.failed_days || [];
+  const start = new Date(challenge.start_date + 'T00:00:00');
+  const cur = new Date(today + 'T00:00:00');
+  let streak = 0;
+  while (cur >= start) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    const dayStr = `${y}-${m}-${d}`;
+    if (failedDays.includes(dayStr)) break;
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return streak;
+}
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 import { Challenge } from '@shared/types';
+
+function TodayCheckin({ challenges, onToggleDay }: {
+  challenges: Challenge[];
+  onToggleDay: (id: string, day: string) => void;
+}) {
+  const today = getTodayStr();
+  const date = new Date(today + 'T00:00:00');
+  const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+  return (
+    <div className="mx-4 mb-3 rounded-lg border border-[#1c1928] bg-[#13111c] p-3">
+      <div className="text-[11px] text-[#7a7890] mb-2">Today, {label}</div>
+      <div className="flex flex-col gap-1.5">
+        {challenges.map(c => {
+          const failed = (c.failed_days || []).includes(today);
+          const streak = getStreak(c, today);
+          return (
+            <div key={c.id} className="flex items-center gap-2">
+              <button
+                onClick={() => onToggleDay(c.id, today)}
+                className="flex items-center gap-2 flex-1 text-left min-w-0"
+              >
+                <span className={`w-4 h-4 rounded-[2px] flex-shrink-0 transition-colors ${
+                  failed ? 'bg-[#1a1826]' : 'bg-[#ec4899]'
+                }`} />
+                <span className={`text-[12px] truncate transition-colors ${
+                  failed ? 'text-[#4a4660] line-through' : 'text-white'
+                }`}>{c.name}</span>
+              </button>
+              {streak >= 3 && (
+                <span className="flex items-center gap-0.5 text-[11px] text-[#ec4899] font-medium shrink-0">
+                  <Flame size={12} />
+                  {streak}
+                </span>
+              )}
+              {streak < 3 && (
+                <span className="flex items-center text-[#2a2835] shrink-0">
+                  <Flame size={12} />
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay }: {
   challenge: Challenge;
