@@ -8,7 +8,7 @@ interface ChallengesContextType {
   loading: boolean;
   error: string | null;
   createChallenge: (data: Pick<Challenge, 'name' | 'start_date' | 'end_date'>) => Promise<void>;
-  updateChallenge: (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status'>>) => Promise<void>;
+  updateChallenge: (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status' | 'failed_days'>>) => Promise<void>;
   deleteChallenge: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -48,7 +48,7 @@ export function ChallengesProvider({ children }: { children: ReactNode }) {
     setChallenges(prev => [created, ...prev]);
   };
 
-  const updateChallenge = async (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status'>>) => {
+  const updateChallenge = async (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status' | 'failed_days'>>) => {
     const updated = await api.updateChallenge(id, updates);
     setChallenges(prev => prev.map(c => c.id === id ? updated : c));
   };

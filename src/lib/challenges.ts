@@ -27,7 +27,7 @@ export async function createChallenge(
 
 export async function updateChallenge(
   id: string,
-  updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status'>>
+  updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status' | 'failed_days'>>
 ): Promise<Challenge> {
   const { data, error } = await supabase
     .from('challenges')

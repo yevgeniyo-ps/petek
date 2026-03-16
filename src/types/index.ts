@@ -151,6 +151,7 @@ export interface Challenge {
   start_date: string;
   end_date: string;
   status: ChallengeStatus;
+  failed_days: string[];
   created_at: string;
 }
 

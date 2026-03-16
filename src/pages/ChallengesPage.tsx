@@ -18,11 +18,20 @@ function getTotalDays(startDate: string, endDate: string): number {
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function getElapsedDays(startDate: string): number {
-  const start = new Date(startDate + 'T00:00:00');
+function getDateRange(startDate: string, endDate: string): string[] {
+  const dates: string[] = [];
+  const current = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  while (current <= end) {
+    dates.push(current.toISOString().slice(0, 10));
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function getTodayStr(): string {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function formatDate(dateStr: string): string {
@@ -127,6 +136,13 @@ export default function ChallengesPage() {
               onFail={() => handleStatus(challenge.id, 'failed')}
               onExtend={(newEndDate) => updateChallenge(challenge.id, { end_date: newEndDate })}
               onDelete={() => handleDeleteConfirm(challenge)}
+              onToggleDay={(day) => {
+                const failedDays = challenge.failed_days || [];
+                const newFailedDays = failedDays.includes(day)
+                  ? failedDays.filter(d => d !== day)
+                  : [...failedDays, day];
+                updateChallenge(challenge.id, { failed_days: newFailedDays });
+              }}
             />
           ))}
         </div>
@@ -162,20 +178,22 @@ export default function ChallengesPage() {
   );
 }
 
-function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend }: {
+function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onToggleDay }: {
   challenge: Challenge;
   onComplete?: () => void;
   onFail?: () => void;
   onDelete: () => void;
   onExtend?: (newEndDate: string) => void;
+  onToggleDay?: (day: string) => void;
 }) {
   const isActive = challenge.status === 'active';
   const daysRemaining = getDaysRemaining(challenge.end_date);
   const totalDays = getTotalDays(challenge.start_date, challenge.end_date);
-  const elapsedDays = getElapsedDays(challenge.start_date);
-  const progress = totalDays > 0 ? Math.min(Math.max(elapsedDays / totalDays, 0), 1) : 0;
   const [extending, setExtending] = useState(false);
   const [newEndDate, setNewEndDate] = useState(challenge.end_date);
+  const days = useMemo(() => getDateRange(challenge.start_date, challenge.end_date), [challenge.start_date, challenge.end_date]);
+  const today = getTodayStr();
+  const failedDays = challenge.failed_days || [];
 
   const handleExtend = () => {
     if (newEndDate && newEndDate > challenge.end_date && onExtend) {
@@ -216,16 +234,35 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend }: {
         </div>
       )}
 
-      {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-white/[0.06] mb-3 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${
-            challenge.status === 'completed' ? 'bg-emerald-500' :
-            challenge.status === 'failed' ? 'bg-red-400' :
-            'bg-[#ec4899]'
-          }`}
-          style={{ width: `${(isActive ? progress : 1) * 100}%` }}
-        />
+      {/* Day dots timeline */}
+      <div className="flex flex-wrap gap-[5px] mb-3">
+        {days.map(day => {
+          const isFailed = failedDays.includes(day);
+          const isToday = day === today;
+          const isPast = day < today;
+          const clickable = (isPast || isToday) && isActive;
+
+          let dotColor: string;
+          if (isFailed) {
+            dotColor = 'bg-[#4a4660]';
+          } else if (isPast || isToday) {
+            dotColor = 'bg-[#ec4899]';
+          } else {
+            dotColor = 'bg-white/20';
+          }
+
+          return (
+            <button
+              key={day}
+              onClick={clickable ? () => onToggleDay?.(day) : undefined}
+              disabled={!clickable}
+              title={formatDate(day)}
+              className={`w-2 h-2 rounded-full transition-colors ${dotColor} ${
+                isToday ? 'ring-[1.5px] ring-white ring-offset-1 ring-offset-[#13111c]' : ''
+              } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+            />
+          );
+        })}
       </div>
 
       {/* Date details */}
