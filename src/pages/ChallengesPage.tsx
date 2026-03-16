@@ -361,7 +361,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
         while (padded.length < numCols * 7) padded.push(null);
 
         return (
-          <div className="flex gap-[3px] mb-3 overflow-x-auto">
+          <div className="flex gap-[3px] mb-3 overflow-x-auto p-[2px]">
             {Array.from({ length: numCols }, (_, col) => (
               <div key={col} className="flex flex-col gap-[3px]">
                 {Array.from({ length: 7 }, (_, row) => {
