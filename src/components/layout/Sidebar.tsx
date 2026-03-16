@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Settings, PanelRight } from 'lucide-react';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Trophy, Settings, PanelRight } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../context/CollectionsContext';
@@ -64,6 +64,9 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
           )}
           {menuSettings.subscriptions && (
             <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
+          )}
+          {menuSettings.challenges && (
+            <NavItem icon={Trophy} label="Challenges" active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
           )}
 
           {/* Collections */}

@@ -8,6 +8,7 @@ import { TagsProvider } from './context/TagsContext';
 import { CollectionsProvider } from './context/CollectionsContext';
 import { InsurancesProvider } from './context/InsurancesContext';
 import { SubscriptionsProvider } from './context/SubscriptionsContext';
+import { ChallengesProvider } from './context/ChallengesContext';
 import AuthGuard from './components/auth/AuthGuard';
 import { ApprovalProvider } from './context/ApprovalContext';
 import ApprovalGuard from './components/auth/ApprovalGuard';
@@ -20,6 +21,7 @@ const CollectionPage = lazy(() => import('./pages/CollectionPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const InsurancesPage = lazy(() => import('./pages/InsurancesPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const ChallengesPage = lazy(() => import('./pages/ChallengesPage'));
 
 function PageLoader() {
   return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
@@ -39,6 +41,7 @@ export default function App() {
                 <CollectionsProvider>
                   <InsurancesProvider>
                   <SubscriptionsProvider>
+                  <ChallengesProvider>
                     <Layout>
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
@@ -47,10 +50,12 @@ export default function App() {
                           <Route path="/c/:slug" element={<CollectionPage />} />
                           <Route path="/insurances" element={<InsurancesPage />} />
                           <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                          <Route path="/challenges" element={<ChallengesPage />} />
                           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
                         </Routes>
                       </Suspense>
                     </Layout>
+                  </ChallengesProvider>
                   </SubscriptionsProvider>
                   </InsurancesProvider>
                 </CollectionsProvider>

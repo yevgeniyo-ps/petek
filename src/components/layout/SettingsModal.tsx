@@ -5,6 +5,7 @@ export interface MenuSettings {
   notes: boolean;
   insurances: boolean;
   subscriptions: boolean;
+  challenges: boolean;
   collections: boolean;
 }
 
@@ -12,6 +13,7 @@ export const defaultMenuSettings: MenuSettings = {
   notes: true,
   insurances: true,
   subscriptions: true,
+  challenges: true,
   collections: true,
 };
 
@@ -47,6 +49,7 @@ export default function SettingsModal({ open, onClose, settings, onChange }: Set
     { key: 'notes', label: 'Notes' },
     { key: 'insurances', label: 'Insurances' },
     { key: 'subscriptions', label: 'Subscriptions' },
+    { key: 'challenges', label: 'Challenges' },
     { key: 'collections', label: 'Collections' },
   ];
 

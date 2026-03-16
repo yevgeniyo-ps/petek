@@ -2,23 +2,25 @@ import { ExtAuthProvider, useExtAuth } from './components/LoginForm';
 import { NotesProvider } from '@shared/context/NotesContext';
 import { LabelsProvider, useLabels } from '@shared/context/LabelsContext';
 import { TagsProvider } from '@shared/context/TagsContext';
-import { Header } from './components/Header';
+import { ChallengesProvider } from '@shared/context/ChallengesContext';
+import { Header, type View } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { NoteList } from './components/NoteList';
 import { NoteEditor } from './components/NoteEditor';
+import { ChallengeList } from './components/ChallengeList';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNotes } from '@shared/context/NotesContext';
 import { Note } from '@shared/types';
-
-type View = 'notes' | 'archive';
 
 function AuthenticatedApp() {
   return (
     <NotesProvider>
       <LabelsProvider>
       <TagsProvider>
+      <ChallengesProvider>
         <SyncOnFocus />
         <AppInner />
+      </ChallengesProvider>
       </TagsProvider>
       </LabelsProvider>
     </NotesProvider>
@@ -53,33 +55,39 @@ function AppInner() {
   return (
     <div className="flex flex-col h-screen bg-[#0c0a12]">
       <Header view={view} onViewChange={setView} />
-      <SearchBar
-        search={search}
-        onSearchChange={setSearch}
-        filterLabel={filterLabel}
-        onFilterLabelChange={handleFilterLabelChange}
-        filterImportant={filterImportant}
-        onFilterImportantChange={setFilterImportant}
-        filterTagIds={filterTagIds}
-        onFilterTagIdsChange={setFilterTagIds}
-      />
-      <NoteList
-        view={view}
-        search={search}
-        filterLabel={filterLabel}
-        filterImportant={filterImportant}
-        filterTagIds={filterTagIds}
-        onEdit={setEditingNote}
-        onNew={() => setIsCreating(true)}
-      />
-      {(editingNote || isCreating) && (
-        <NoteEditor
-          note={editingNote}
-          onClose={() => {
-            setEditingNote(null);
-            setIsCreating(false);
-          }}
-        />
+      {view === 'challenges' ? (
+        <ChallengeList />
+      ) : (
+        <>
+          <SearchBar
+            search={search}
+            onSearchChange={setSearch}
+            filterLabel={filterLabel}
+            onFilterLabelChange={handleFilterLabelChange}
+            filterImportant={filterImportant}
+            onFilterImportantChange={setFilterImportant}
+            filterTagIds={filterTagIds}
+            onFilterTagIdsChange={setFilterTagIds}
+          />
+          <NoteList
+            view={view}
+            search={search}
+            filterLabel={filterLabel}
+            filterImportant={filterImportant}
+            filterTagIds={filterTagIds}
+            onEdit={setEditingNote}
+            onNew={() => setIsCreating(true)}
+          />
+          {(editingNote || isCreating) && (
+            <NoteEditor
+              note={editingNote}
+              onClose={() => {
+                setEditingNote(null);
+                setIsCreating(false);
+              }}
+            />
+          )}
+        </>
       )}
     </div>
   );
