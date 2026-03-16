@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
 import { Plus, Check, X, Trash2, CalendarPlus } from 'lucide-react';
 import { ChallengeStatus } from '@shared/types';
@@ -16,11 +16,23 @@ function getTotalDays(startDate: string, endDate: string): number {
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function getElapsedDays(startDate: string): number {
-  const start = new Date(startDate + 'T00:00:00');
+function getDateRange(startDate: string, endDate: string): string[] {
+  const dates: string[] = [];
+  const current = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth() + 1).padStart(2, '0');
+    const d = String(current.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function getTodayStr(): string {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 export function ChallengeList() {
@@ -111,25 +123,24 @@ export function ChallengeList() {
 
       {/* Active challenges */}
       <div className="px-4 space-y-2">
-        {activeChallenges.map(challenge => {
-          const daysRemaining = getDaysRemaining(challenge.end_date);
-          const totalDays = getTotalDays(challenge.start_date, challenge.end_date);
-          const elapsed = getElapsedDays(challenge.start_date);
-          const progress = totalDays > 0 ? Math.min(Math.max(elapsed / totalDays, 0), 1) : 0;
-
-          return (
-            <ExtChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              daysRemaining={daysRemaining}
-              progress={progress}
-              onComplete={() => handleStatus(challenge.id, 'completed')}
-              onFail={() => handleStatus(challenge.id, 'failed')}
-              onExtend={(newEnd) => updateChallenge(challenge.id, { end_date: newEnd })}
-              onDelete={() => deleteChallenge(challenge.id)}
-            />
-          );
-        })}
+        {activeChallenges.map(challenge => (
+          <ExtChallengeCard
+            key={challenge.id}
+            challenge={challenge}
+            daysRemaining={getDaysRemaining(challenge.end_date)}
+            onComplete={() => handleStatus(challenge.id, 'completed')}
+            onFail={() => handleStatus(challenge.id, 'failed')}
+            onExtend={(newEnd) => updateChallenge(challenge.id, { end_date: newEnd })}
+            onDelete={() => deleteChallenge(challenge.id)}
+            onToggleDay={(day) => {
+              const failedDays = challenge.failed_days || [];
+              const newFailedDays = failedDays.includes(day)
+                ? failedDays.filter(d => d !== day)
+                : [...failedDays, day];
+              updateChallenge(challenge.id, { failed_days: newFailedDays });
+            }}
+          />
+        ))}
       </div>
 
       {/* Past challenges */}
@@ -174,17 +185,20 @@ function formatDate(dateStr: string): string {
 
 import { Challenge } from '@shared/types';
 
-function ExtChallengeCard({ challenge, daysRemaining, progress, onComplete, onFail, onExtend, onDelete }: {
+function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExtend, onDelete, onToggleDay }: {
   challenge: Challenge;
   daysRemaining: number;
-  progress: number;
   onComplete: () => void;
   onFail: () => void;
   onExtend: (newEndDate: string) => void;
   onDelete: () => void;
+  onToggleDay: (day: string) => void;
 }) {
   const [extending, setExtending] = useState(false);
   const [newEndDate, setNewEndDate] = useState(challenge.end_date);
+  const days = useMemo(() => getDateRange(challenge.start_date, challenge.end_date), [challenge.start_date, challenge.end_date]);
+  const today = getTodayStr();
+  const failedDays = challenge.failed_days || [];
 
   const handleExtend = () => {
     if (newEndDate && newEndDate > challenge.end_date) {
@@ -204,8 +218,35 @@ function ExtChallengeCard({ challenge, daysRemaining, progress, onComplete, onFa
       <div className="text-[10px] text-[#7a7890] mb-2">
         Started {formatDate(challenge.start_date)} · Ends {formatDate(challenge.end_date)}
       </div>
-      <div className="h-1 rounded-full bg-white/[0.06] mb-2 overflow-hidden">
-        <div className="h-full rounded-full bg-[#ec4899]" style={{ width: `${progress * 100}%` }} />
+      {/* Day dots timeline */}
+      <div className="flex flex-wrap gap-[4px] mb-2">
+        {days.map(day => {
+          const isFailed = failedDays.includes(day);
+          const isToday = day === today;
+          const isPast = day < today;
+          const clickable = isPast || isToday;
+
+          let dotColor: string;
+          if (isFailed) {
+            dotColor = 'bg-[#4a4660]';
+          } else if (isPast || isToday) {
+            dotColor = 'bg-[#ec4899]';
+          } else {
+            dotColor = 'bg-white/20';
+          }
+
+          return (
+            <button
+              key={day}
+              onClick={clickable ? () => onToggleDay(day) : undefined}
+              disabled={!clickable}
+              title={formatDate(day)}
+              className={`w-[6px] h-[6px] rounded-full transition-colors ${dotColor} ${
+                isToday ? 'ring-[1.5px] ring-white ring-offset-1 ring-offset-[#13111c]' : ''
+              } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+            />
+          );
+        })}
       </div>
       {extending && (
         <div className="flex items-center gap-1.5 mb-2">
