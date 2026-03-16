@@ -280,9 +280,9 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
 
       {/* GitHub-style day grid */}
       {(() => {
-        // Build grid: columns = weeks, rows = day-of-week (0=Mon..6=Sun)
+        // Build grid: columns = weeks, rows = day-of-week (0=Sun..6=Sat)
         const firstDate = new Date(days[0] + 'T00:00:00');
-        const firstDow = (firstDate.getDay() + 6) % 7; // 0=Mon
+        const firstDow = firstDate.getDay(); // 0=Sun
         // Pad start so first day lands in correct row
         const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
         const numCols = Math.ceil(padded.length / 7);
@@ -300,15 +300,18 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
                   const isFailed = failedDays.includes(day);
                   const isToday = day === today;
                   const isPast = day < today;
+                  const isFuture = day > today;
                   const clickable = (isPast || isToday) && isActive;
 
                   let color: string;
-                  if (isFailed) {
-                    color = 'bg-[#4a4660]';
+                  if (!isActive) {
+                    color = 'bg-[#2a2835]';
+                  } else if (isFailed) {
+                    color = 'bg-[#1a1826]';
                   } else if (isPast || isToday) {
                     color = 'bg-[#ec4899]';
                   } else {
-                    color = 'bg-white/[0.08]';
+                    color = 'bg-white/[0.15]';
                   }
 
                   return (
