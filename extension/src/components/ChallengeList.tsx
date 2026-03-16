@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
-import { Plus, Check, X, Trash2 } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus } from 'lucide-react';
 import { ChallengeStatus } from '@shared/types';
 
 function getDaysRemaining(endDate: string): number {
@@ -118,41 +118,16 @@ export function ChallengeList() {
           const progress = totalDays > 0 ? Math.min(Math.max(elapsed / totalDays, 0), 1) : 0;
 
           return (
-            <div key={challenge.id} className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <span className="text-[13px] text-white font-medium leading-snug">{challenge.name}</span>
-                <span className="text-[18px] font-bold text-[#ec4899] leading-none shrink-0">
-                  {Math.max(daysRemaining, 0)}d
-                </span>
-              </div>
-              <div className="h-1 rounded-full bg-white/[0.06] mb-2 overflow-hidden">
-                <div className="h-full rounded-full bg-[#ec4899]" style={{ width: `${progress * 100}%` }} />
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleStatus(challenge.id, 'completed')}
-                  title="Complete"
-                  className="p-1 rounded text-[#7a7890] hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
-                >
-                  <Check size={13} />
-                </button>
-                <button
-                  onClick={() => handleStatus(challenge.id, 'failed')}
-                  title="Failed"
-                  className="p-1 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                >
-                  <X size={13} />
-                </button>
-                <div className="flex-1" />
-                <button
-                  onClick={() => deleteChallenge(challenge.id)}
-                  title="Delete"
-                  className="p-1 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            </div>
+            <ExtChallengeCard
+              key={challenge.id}
+              challenge={challenge}
+              daysRemaining={daysRemaining}
+              progress={progress}
+              onComplete={() => handleStatus(challenge.id, 'completed')}
+              onFail={() => handleStatus(challenge.id, 'failed')}
+              onExtend={(newEnd) => updateChallenge(challenge.id, { end_date: newEnd })}
+              onDelete={() => deleteChallenge(challenge.id)}
+            />
           );
         })}
       </div>
@@ -189,6 +164,104 @@ export function ChallengeList() {
           No challenges yet. Create one to get started!
         </div>
       )}
+    </div>
+  );
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+import { Challenge } from '@shared/types';
+
+function ExtChallengeCard({ challenge, daysRemaining, progress, onComplete, onFail, onExtend, onDelete }: {
+  challenge: Challenge;
+  daysRemaining: number;
+  progress: number;
+  onComplete: () => void;
+  onFail: () => void;
+  onExtend: (newEndDate: string) => void;
+  onDelete: () => void;
+}) {
+  const [extending, setExtending] = useState(false);
+  const [newEndDate, setNewEndDate] = useState(challenge.end_date);
+
+  const handleExtend = () => {
+    if (newEndDate && newEndDate > challenge.end_date) {
+      onExtend(newEndDate);
+      setExtending(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <span className="text-[13px] text-white font-medium leading-snug">{challenge.name}</span>
+        <span className="text-[18px] font-bold text-[#ec4899] leading-none shrink-0">
+          {Math.max(daysRemaining, 0)}d
+        </span>
+      </div>
+      <div className="text-[10px] text-[#7a7890] mb-2">
+        Started {formatDate(challenge.start_date)} · Ends {formatDate(challenge.end_date)}
+      </div>
+      <div className="h-1 rounded-full bg-white/[0.06] mb-2 overflow-hidden">
+        <div className="h-full rounded-full bg-[#ec4899]" style={{ width: `${progress * 100}%` }} />
+      </div>
+      {extending && (
+        <div className="flex items-center gap-1.5 mb-2">
+          <input
+            type="date"
+            value={newEndDate}
+            onChange={e => setNewEndDate(e.target.value)}
+            min={challenge.end_date}
+            className="flex-1 px-2 py-1 bg-[#0c0a12] border border-[#1c1928] rounded text-[11px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
+          />
+          <button
+            onClick={handleExtend}
+            disabled={!newEndDate || newEndDate <= challenge.end_date}
+            className="px-2 py-1 text-[11px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded transition-colors disabled:opacity-50"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => { setExtending(false); setNewEndDate(challenge.end_date); }}
+            className="px-1 py-1 text-[11px] text-[#7a7890] hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={onComplete}
+          title="Complete"
+          className="p-1 rounded text-[#7a7890] hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
+        >
+          <Check size={13} />
+        </button>
+        <button
+          onClick={onFail}
+          title="Failed"
+          className="p-1 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+        >
+          <X size={13} />
+        </button>
+        <button
+          onClick={() => { setExtending(!extending); setNewEndDate(challenge.end_date); }}
+          title="Extend"
+          className="p-1 rounded text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
+        >
+          <CalendarPlus size={13} />
+        </button>
+        <div className="flex-1" />
+        <button
+          onClick={onDelete}
+          title="Delete"
+          className="p-1 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
     </div>
   );
 }
