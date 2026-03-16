@@ -257,36 +257,53 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
       <div className="text-[10px] text-[#7a7890] mb-2">
         Started {formatDate(challenge.start_date)} · Ends {formatDate(challenge.end_date)}
       </div>
-      {/* Day dots timeline */}
-      <div className="flex flex-wrap gap-[4px] mb-2">
-        {days.map(day => {
-          const isFailed = failedDays.includes(day);
-          const isToday = day === today;
-          const isPast = day < today;
-          const clickable = isPast || isToday;
+      {/* GitHub-style day grid */}
+      {(() => {
+        const firstDate = new Date(days[0] + 'T00:00:00');
+        const firstDow = firstDate.getDay(); // 0=Sun
+        const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
+        const numCols = Math.ceil(padded.length / 7);
+        while (padded.length < numCols * 7) padded.push(null);
 
-          let dotColor: string;
-          if (isFailed) {
-            dotColor = 'bg-[#4a4660]';
-          } else if (isPast || isToday) {
-            dotColor = 'bg-[#ec4899]';
-          } else {
-            dotColor = 'bg-white/20';
-          }
+        return (
+          <div className="flex gap-[2px] mb-2">
+            {Array.from({ length: numCols }, (_, col) => (
+              <div key={col} className="flex flex-col gap-[2px]">
+                {Array.from({ length: 7 }, (_, row) => {
+                  const day = padded[col * 7 + row];
+                  if (!day) return <div key={row} className="w-[7px] h-[7px]" />;
 
-          return (
-            <button
-              key={day}
-              onClick={clickable ? () => onToggleDay(day) : undefined}
-              disabled={!clickable}
-              title={formatDate(day)}
-              className={`w-[6px] h-[6px] rounded-full transition-colors ${dotColor} ${
-                isToday ? 'ring-[1.5px] ring-white ring-offset-1 ring-offset-[#13111c]' : ''
-              } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-            />
-          );
-        })}
-      </div>
+                  const isFailed = failedDays.includes(day);
+                  const isToday = day === today;
+                  const isPast = day < today;
+                  const clickable = isPast || isToday;
+
+                  let color: string;
+                  if (isFailed) {
+                    color = 'bg-[#1a1826]';
+                  } else if (isPast || isToday) {
+                    color = 'bg-[#ec4899]';
+                  } else {
+                    color = 'bg-white/[0.15]';
+                  }
+
+                  return (
+                    <button
+                      key={row}
+                      onClick={clickable ? () => onToggleDay(day) : undefined}
+                      disabled={!clickable}
+                      title={formatDate(day)}
+                      className={`w-[7px] h-[7px] rounded-[2px] transition-colors ${color} ${
+                        isToday ? 'ring-[1.5px] ring-white' : ''
+                      } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       {extending && (
         <div className="flex items-center gap-1.5 mb-2">
           <input
