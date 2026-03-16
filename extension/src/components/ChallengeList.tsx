@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
-import { Plus, Check, X, Trash2, CalendarPlus } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus, Pencil } from 'lucide-react';
 import { ChallengeStatus } from '@shared/types';
 
 function getDaysRemaining(endDate: string): number {
@@ -132,6 +132,7 @@ export function ChallengeList() {
             onFail={() => handleStatus(challenge.id, 'failed')}
             onExtend={(newEnd) => updateChallenge(challenge.id, { end_date: newEnd })}
             onDelete={() => deleteChallenge(challenge.id)}
+            onRename={(name) => updateChallenge(challenge.id, { name })}
             onToggleDay={(day) => {
               const failedDays = challenge.failed_days || [];
               const newFailedDays = failedDays.includes(day)
@@ -185,20 +186,35 @@ function formatDate(dateStr: string): string {
 
 import { Challenge } from '@shared/types';
 
-function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExtend, onDelete, onToggleDay }: {
+function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay }: {
   challenge: Challenge;
   daysRemaining: number;
   onComplete: () => void;
   onFail: () => void;
   onExtend: (newEndDate: string) => void;
   onDelete: () => void;
+  onRename: (name: string) => void;
   onToggleDay: (day: string) => void;
 }) {
   const [extending, setExtending] = useState(false);
   const [newEndDate, setNewEndDate] = useState(challenge.end_date);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(challenge.name);
+  const editRef = useRef<HTMLInputElement>(null);
   const days = useMemo(() => getDateRange(challenge.start_date, challenge.end_date), [challenge.start_date, challenge.end_date]);
   const today = getTodayStr();
   const failedDays = challenge.failed_days || [];
+
+  useEffect(() => {
+    if (editing) editRef.current?.focus();
+  }, [editing]);
+
+  const handleRename = () => {
+    const trimmed = editName.trim();
+    if (trimmed && trimmed !== challenge.name) onRename(trimmed);
+    else setEditName(challenge.name);
+    setEditing(false);
+  };
 
   const handleExtend = () => {
     if (newEndDate && newEndDate > challenge.end_date) {
@@ -210,7 +226,30 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
   return (
     <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3">
       <div className="flex items-start justify-between gap-2 mb-1.5">
-        <span className="text-[13px] text-white font-medium leading-snug">{challenge.name}</span>
+        {editing ? (
+          <input
+            ref={editRef}
+            value={editName}
+            onChange={e => setEditName(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleRename();
+              if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
+            }}
+            className="flex-1 text-[13px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
+          />
+        ) : (
+          <div className="flex items-center gap-1.5 flex-1 min-w-0 group">
+            <span className="text-[13px] text-white font-medium leading-snug truncate">{challenge.name}</span>
+            <button
+              onClick={() => { setEditName(challenge.name); setEditing(true); }}
+              className="p-0.5 rounded text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
+              title="Edit name"
+            >
+              <Pencil size={10} />
+            </button>
+          </div>
+        )}
         <span className="text-[18px] font-bold text-[#ec4899] leading-none shrink-0">
           {Math.max(daysRemaining, 0)}d
         </span>

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Trophy, Plus, Check, X, Trash2, Calendar, CalendarPlus } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Trophy, Plus, Check, X, Trash2, Calendar, CalendarPlus, Pencil } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { Challenge, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
@@ -139,6 +139,7 @@ export default function ChallengesPage() {
               onFail={() => handleStatus(challenge.id, 'failed')}
               onExtend={(newEndDate) => updateChallenge(challenge.id, { end_date: newEndDate })}
               onDelete={() => handleDeleteConfirm(challenge)}
+              onRename={(name) => updateChallenge(challenge.id, { name })}
               onToggleDay={(day) => {
                 const failedDays = challenge.failed_days || [];
                 const newFailedDays = failedDays.includes(day)
@@ -181,12 +182,13 @@ export default function ChallengesPage() {
   );
 }
 
-function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onToggleDay }: {
+function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay }: {
   challenge: Challenge;
   onComplete?: () => void;
   onFail?: () => void;
   onDelete: () => void;
   onExtend?: (newEndDate: string) => void;
+  onRename?: (name: string) => void;
   onToggleDay?: (day: string) => void;
 }) {
   const isActive = challenge.status === 'active';
@@ -194,9 +196,23 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onTo
   const totalDays = getTotalDays(challenge.start_date, challenge.end_date);
   const [extending, setExtending] = useState(false);
   const [newEndDate, setNewEndDate] = useState(challenge.end_date);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(challenge.name);
+  const editRef = useRef<HTMLInputElement>(null);
   const days = useMemo(() => getDateRange(challenge.start_date, challenge.end_date), [challenge.start_date, challenge.end_date]);
   const today = getTodayStr();
   const failedDays = challenge.failed_days || [];
+
+  useEffect(() => {
+    if (editing) editRef.current?.focus();
+  }, [editing]);
+
+  const handleRename = () => {
+    const trimmed = editName.trim();
+    if (trimmed && trimmed !== challenge.name) onRename?.(trimmed);
+    else setEditName(challenge.name);
+    setEditing(false);
+  };
 
   const handleExtend = () => {
     if (newEndDate && newEndDate > challenge.end_date && onExtend) {
@@ -212,7 +228,32 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onTo
         : 'bg-[#0f0d18] border-[#1c1928] opacity-60'
     }`}>
       {/* Name */}
-      <h3 className="text-[15px] font-medium text-white mb-3 leading-snug">{challenge.name}</h3>
+      {editing ? (
+        <input
+          ref={editRef}
+          value={editName}
+          onChange={e => setEditName(e.target.value)}
+          onBlur={handleRename}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleRename();
+            if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
+          }}
+          className="w-full text-[15px] font-medium text-white mb-3 leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
+        />
+      ) : (
+        <div className="flex items-start gap-2 mb-3 group">
+          <h3 className="text-[15px] font-medium text-white leading-snug flex-1">{challenge.name}</h3>
+          {isActive && onRename && (
+            <button
+              onClick={() => { setEditName(challenge.name); setEditing(true); }}
+              className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
+              title="Edit name"
+            >
+              <Pencil size={12} />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Countdown or badge */}
       {isActive ? (
