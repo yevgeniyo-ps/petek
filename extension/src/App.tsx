@@ -70,7 +70,7 @@ function AppInner() {
             onFilterTagIdsChange={setFilterTagIds}
           />
           <NoteList
-            view={view}
+            view="notes"
             search={search}
             filterLabel={filterLabel}
             filterImportant={filterImportant}
