@@ -278,36 +278,56 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
         </div>
       )}
 
-      {/* Day dots timeline */}
-      <div className="flex flex-wrap gap-[5px] mb-3">
-        {days.map(day => {
-          const isFailed = failedDays.includes(day);
-          const isToday = day === today;
-          const isPast = day < today;
-          const clickable = (isPast || isToday) && isActive;
+      {/* GitHub-style day grid */}
+      {(() => {
+        // Build grid: columns = weeks, rows = day-of-week (0=Mon..6=Sun)
+        const firstDate = new Date(days[0] + 'T00:00:00');
+        const firstDow = (firstDate.getDay() + 6) % 7; // 0=Mon
+        // Pad start so first day lands in correct row
+        const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
+        const numCols = Math.ceil(padded.length / 7);
+        // Fill remainder
+        while (padded.length < numCols * 7) padded.push(null);
 
-          let dotColor: string;
-          if (isFailed) {
-            dotColor = 'bg-[#4a4660]';
-          } else if (isPast || isToday) {
-            dotColor = 'bg-[#ec4899]';
-          } else {
-            dotColor = 'bg-white/20';
-          }
+        return (
+          <div className="flex gap-[3px] mb-3">
+            {Array.from({ length: numCols }, (_, col) => (
+              <div key={col} className="flex flex-col gap-[3px]">
+                {Array.from({ length: 7 }, (_, row) => {
+                  const day = padded[col * 7 + row];
+                  if (!day) return <div key={row} className="w-[10px] h-[10px]" />;
 
-          return (
-            <button
-              key={day}
-              onClick={clickable ? () => onToggleDay?.(day) : undefined}
-              disabled={!clickable}
-              title={formatDate(day)}
-              className={`w-2 h-2 rounded-full transition-colors ${dotColor} ${
-                isToday ? 'ring-[1.5px] ring-white ring-offset-1 ring-offset-[#13111c]' : ''
-              } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-            />
-          );
-        })}
-      </div>
+                  const isFailed = failedDays.includes(day);
+                  const isToday = day === today;
+                  const isPast = day < today;
+                  const clickable = (isPast || isToday) && isActive;
+
+                  let color: string;
+                  if (isFailed) {
+                    color = 'bg-[#4a4660]';
+                  } else if (isPast || isToday) {
+                    color = 'bg-[#ec4899]';
+                  } else {
+                    color = 'bg-white/[0.08]';
+                  }
+
+                  return (
+                    <button
+                      key={row}
+                      onClick={clickable ? () => onToggleDay?.(day) : undefined}
+                      disabled={!clickable}
+                      title={formatDate(day)}
+                      className={`w-[10px] h-[10px] rounded-[2px] transition-colors ${color} ${
+                        isToday ? 'ring-[1.5px] ring-white' : ''
+                      } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Date details */}
       <div className="text-[11px] text-[#4a4660] mb-4">
