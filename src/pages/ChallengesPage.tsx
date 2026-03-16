@@ -300,7 +300,6 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
                   const isFailed = failedDays.includes(day);
                   const isToday = day === today;
                   const isPast = day < today;
-                  const isFuture = day > today;
                   const clickable = (isPast || isToday) && isActive;
 
                   let color: string;
