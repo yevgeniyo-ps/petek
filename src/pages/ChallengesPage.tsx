@@ -220,39 +220,56 @@ function TodayCheckin({ challenges, onToggleDay }: {
   const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <div className="mb-6 rounded-xl border border-[#1c1928] bg-[#13111c] p-4">
-      <div className="text-[13px] text-[#7a7890] mb-3">Today, {label}</div>
-      <div className="flex flex-col gap-2">
+    <div className="mb-6 rounded-xl border border-[#1c1928] bg-[#13111c] p-5">
+      <div className="text-[13px] text-[#7a7890] mb-4">Today, {label}</div>
+      <div className="flex flex-col gap-3">
         {challenges.map(c => {
           const isFailed = (c.failed_days || []).includes(today);
           const streak = getStreak(c, today);
+          const totalDays = getTotalDays(c.start_date, c.end_date);
           const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(c.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
           const failedCount = (c.failed_days || []).filter(d => d >= c.start_date && d <= today).length;
           const passedCount = elapsed - failedCount;
+          const progressPct = Math.round((passedCount / totalDays) * 100);
           return (
-            <div key={c.id} className="flex items-center gap-3">
-              <button
-                onClick={() => onToggleDay(c.id, today)}
-                className="flex items-center gap-3 flex-1 text-left"
-              >
-                <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
-                  isFailed ? 'bg-amber-400' : 'bg-[#ec4899]'
-                }`} />
-                <span className={`text-[14px] transition-colors ${
-                  isFailed ? 'text-amber-400/70' : 'text-white'
-                }`}>{c.name}</span>
-              </button>
-              <span className="text-[12px] text-[#7a7890] shrink-0">
-                <span className="text-[#ec4899]">{passedCount}</span>
-                {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
-              </span>
-              {streak >= 3 && (
-                <span className="flex items-center gap-1 text-[12px] text-[#ec4899] font-medium shrink-0">
-                  <Flame size={14} />
-                  {streak}
-                </span>
-              )}
-            </div>
+            <button
+              key={c.id}
+              onClick={() => onToggleDay(c.id, today)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
+                isFailed
+                  ? 'bg-amber-400/[0.06] hover:bg-amber-400/[0.1]'
+                  : 'bg-[#ec4899]/[0.06] hover:bg-[#ec4899]/[0.1]'
+              }`}
+            >
+              <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
+                isFailed ? 'bg-amber-400' : 'bg-[#ec4899]'
+              }`} />
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className={`text-[14px] truncate transition-colors ${
+                    isFailed ? 'text-amber-400/80' : 'text-white'
+                  }`}>{c.name}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[11px] text-[#7a7890]">
+                      <span className="text-[#ec4899]">{passedCount}</span>
+                      {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
+                    </span>
+                    {streak >= 3 && (
+                      <span className="flex items-center gap-0.5 text-[12px] text-[#ec4899] font-medium">
+                        <Flame size={13} />
+                        {streak}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#ec4899]/60 transition-all"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            </button>
           );
         })}
       </div>
