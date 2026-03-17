@@ -226,9 +226,6 @@ function TodayCheckin({ challenges, onToggleDay }: {
         {challenges.map(c => {
           const isFailed = (c.failed_days || []).includes(today);
           const streak = getStreak(c, today);
-          const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(c.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-          const failedCount = (c.failed_days || []).filter(d => d >= c.start_date && d <= today).length;
-          const passedCount = elapsed - failedCount;
           return (
             <button
               key={c.id}
@@ -245,10 +242,6 @@ function TodayCheckin({ challenges, onToggleDay }: {
               <span className={`text-[14px] truncate flex-1 text-left transition-colors ${
                 isFailed ? 'text-amber-400/80' : 'text-white'
               }`}>{c.name}</span>
-              <span className="text-[11px] shrink-0">
-                <span className="text-[#ec4899]">{passedCount}</span>
-                {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
-              </span>
               {streak >= 3 && (
                 <span className="flex items-center gap-0.5 text-[12px] text-[#ec4899] font-medium shrink-0">
                   <Flame size={13} />
@@ -412,9 +405,20 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
         );
       })()}
 
-      {/* Date details */}
+      {/* Date details + counters */}
       <div className="text-[11px] text-[#4a4660] mb-4">
         {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
+        {isActive && (() => {
+          const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          const failedCount = failedDays.filter(d => d >= challenge.start_date && d <= today).length;
+          const passedCount = elapsed - failedCount;
+          return (
+            <span className="ml-1.5">
+              · <span className="text-[#ec4899]">{passedCount}</span>
+              {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
+            </span>
+          );
+        })()}
       </div>
 
       {/* Extend inline */}
