@@ -233,10 +233,10 @@ function TodayCheckin({ challenges, onToggleDay }: {
                 className="flex items-center gap-3 flex-1 text-left"
               >
                 <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
-                  failed ? 'bg-[#1a1826]' : 'bg-[#ec4899]'
+                  failed ? 'bg-amber-400' : 'bg-[#ec4899]'
                 }`} />
                 <span className={`text-[14px] transition-colors ${
-                  failed ? 'text-[#4a4660] line-through' : 'text-white'
+                  failed ? 'text-amber-400/70' : 'text-white'
                 }`}>{c.name}</span>
               </button>
               {streak >= 3 && (
