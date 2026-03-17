@@ -230,11 +230,9 @@ function TodayCheckin({ challenges, onToggleDay }: {
         {challenges.map(c => {
           const isFailed = (c.failed_days || []).includes(today);
           const streak = getStreak(c, today);
-          const totalDays = getTotalDays(c.start_date, c.end_date);
           const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(c.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
           const failedCount = (c.failed_days || []).filter(d => d >= c.start_date && d <= today).length;
           const passedCount = elapsed - failedCount;
-          const progressPct = Math.round((passedCount / totalDays) * 100);
           return (
             <button
               key={c.id}
@@ -248,31 +246,19 @@ function TodayCheckin({ challenges, onToggleDay }: {
               <span className={`w-4 h-4 rounded-[2px] flex-shrink-0 transition-colors ${
                 isFailed ? 'bg-amber-400' : 'bg-[#ec4899]'
               }`} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1.5 mb-1">
-                  <span className={`text-[12px] truncate transition-colors ${
-                    isFailed ? 'text-amber-400/80' : 'text-white'
-                  }`}>{c.name}</span>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px]">
-                      <span className="text-[#ec4899]">{passedCount}</span>
-                      {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
-                    </span>
-                    {streak >= 3 && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-[#ec4899] font-medium">
-                        <Flame size={11} />
-                        {streak}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="h-[2px] rounded-full bg-white/[0.06] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#ec4899]/60 transition-all"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-              </div>
+              <span className={`text-[12px] truncate flex-1 transition-colors ${
+                isFailed ? 'text-amber-400/80' : 'text-white'
+              }`}>{c.name}</span>
+              <span className="text-[10px] shrink-0">
+                <span className="text-[#ec4899]">{passedCount}</span>
+                {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
+              </span>
+              {streak >= 3 && (
+                <span className="flex items-center gap-0.5 text-[10px] text-[#ec4899] font-medium shrink-0">
+                  <Flame size={11} />
+                  {streak}
+                </span>
+              )}
             </button>
           );
         })}
