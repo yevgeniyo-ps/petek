@@ -224,8 +224,11 @@ function TodayCheckin({ challenges, onToggleDay }: {
       <div className="text-[13px] text-[#7a7890] mb-3">Today, {label}</div>
       <div className="flex flex-col gap-2">
         {challenges.map(c => {
-          const failed = (c.failed_days || []).includes(today);
+          const isFailed = (c.failed_days || []).includes(today);
           const streak = getStreak(c, today);
+          const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(c.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          const failedCount = (c.failed_days || []).filter(d => d >= c.start_date && d <= today).length;
+          const passedCount = elapsed - failedCount;
           return (
             <div key={c.id} className="flex items-center gap-3">
               <button
@@ -233,12 +236,16 @@ function TodayCheckin({ challenges, onToggleDay }: {
                 className="flex items-center gap-3 flex-1 text-left"
               >
                 <span className={`w-5 h-5 rounded flex-shrink-0 transition-colors ${
-                  failed ? 'bg-amber-400' : 'bg-[#ec4899]'
+                  isFailed ? 'bg-amber-400' : 'bg-[#ec4899]'
                 }`} />
                 <span className={`text-[14px] transition-colors ${
-                  failed ? 'text-amber-400/70' : 'text-white'
+                  isFailed ? 'text-amber-400/70' : 'text-white'
                 }`}>{c.name}</span>
               </button>
+              <span className="text-[12px] text-[#7a7890] shrink-0">
+                <span className="text-[#ec4899]">{passedCount}</span>
+                {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
+              </span>
               {streak >= 3 && (
                 <span className="flex items-center gap-1 text-[12px] text-[#ec4899] font-medium shrink-0">
                   <Flame size={14} />
