@@ -329,17 +329,13 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
         </span>
       </div>
       <div className="text-[10px] text-[#7a7890] mb-2">
-        Started {formatDate(challenge.start_date)} · Ends {formatDate(challenge.end_date)}
+        {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {getTotalDays(challenge.start_date, challenge.end_date)}d
         {(() => {
-          const today = getTodayStr();
           const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
           const failedCount = failedDays.filter(d => d >= challenge.start_date && d <= today).length;
           const passedCount = elapsed - failedCount;
           return (
-            <span className="ml-1">
-              · <span className="text-[#ec4899]">{passedCount}</span>
-              {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
-            </span>
+            <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
           );
         })()}
       </div>

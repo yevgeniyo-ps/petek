@@ -413,10 +413,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
           const failedCount = failedDays.filter(d => d >= challenge.start_date && d <= today).length;
           const passedCount = elapsed - failedCount;
           return (
-            <span className="ml-1.5">
-              · <span className="text-[#ec4899]">{passedCount}</span>
-              {failedCount > 0 && <span className="text-amber-400">/{failedCount}</span>}
-            </span>
+            <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
           );
         })()}
       </div>
