@@ -377,7 +377,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
                   if (!isActive) {
                     color = 'bg-[#2a2835]';
                   } else if (isFailed) {
-                    color = 'bg-[#1a1826]';
+                    color = 'bg-amber-400';
                   } else if (isPast || isToday) {
                     color = 'bg-[#ec4899]';
                   } else {

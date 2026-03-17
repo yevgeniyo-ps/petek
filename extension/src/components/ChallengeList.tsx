@@ -351,7 +351,7 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
 
                   let color: string;
                   if (isFailed) {
-                    color = 'bg-[#1a1826]';
+                    color = 'bg-amber-400';
                   } else if (isPast || isToday) {
                     color = 'bg-[#ec4899]';
                   } else {
