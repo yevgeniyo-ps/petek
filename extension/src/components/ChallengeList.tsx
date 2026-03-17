@@ -324,8 +324,9 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
             </button>
           </div>
         )}
-        <span className="text-[18px] font-bold text-[#ec4899] leading-none shrink-0">
-          {Math.max(daysRemaining, 0)} days left
+        <span className="shrink-0 leading-none">
+          <span className="text-[18px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
+          <span className="text-[10px] text-[#7a7890] ml-1">days left</span>
         </span>
       </div>
       <div className="text-[10px] text-[#7a7890] mb-2">
