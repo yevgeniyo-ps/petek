@@ -289,7 +289,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
   };
 
   const handleExtend = () => {
-    if (newEndDate && newEndDate > challenge.end_date && onExtend) {
+    if (newEndDate && newEndDate !== challenge.end_date && newEndDate >= today && onExtend) {
       onExtend(newEndDate);
       setExtending(false);
     }
@@ -428,12 +428,12 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
             type="date"
             value={newEndDate}
             onChange={e => setNewEndDate(e.target.value)}
-            min={challenge.end_date}
+            min={today}
             className="flex-1 px-3 py-1.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[12px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
           />
           <button
             onClick={handleExtend}
-            disabled={!newEndDate || newEndDate <= challenge.end_date}
+            disabled={!newEndDate || newEndDate === challenge.end_date || newEndDate < today}
             className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-lg transition-colors disabled:opacity-50"
           >
             Save
@@ -466,7 +466,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
           </button>
           <button
             onClick={() => { setExtending(!extending); setNewEndDate(challenge.end_date); }}
-            title="Extend challenge"
+            title="Change end date"
             className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
           >
             <CalendarPlus size={16} />

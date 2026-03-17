@@ -291,7 +291,7 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
   };
 
   const handleExtend = () => {
-    if (newEndDate && newEndDate > challenge.end_date) {
+    if (newEndDate && newEndDate !== challenge.end_date && newEndDate >= today) {
       onExtend(newEndDate);
       setExtending(false);
     }
@@ -396,12 +396,12 @@ function ExtChallengeCard({ challenge, daysRemaining, onComplete, onFail, onExte
             type="date"
             value={newEndDate}
             onChange={e => setNewEndDate(e.target.value)}
-            min={challenge.end_date}
+            min={today}
             className="flex-1 px-2 py-1 bg-[#0c0a12] border border-[#1c1928] rounded text-[11px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
           />
           <button
             onClick={handleExtend}
-            disabled={!newEndDate || newEndDate <= challenge.end_date}
+            disabled={!newEndDate || newEndDate === challenge.end_date || newEndDate < today}
             className="px-2 py-1 text-[11px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded transition-colors disabled:opacity-50"
           >
             Save
