@@ -679,7 +679,16 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
         return (
           <div className="space-y-1.5 mb-2">
             {me && renderParticipant(me, true)}
-            {others.map(p => renderParticipant(p, false))}
+            {others.length > 0 && (
+              <details>
+                <summary className="text-[9px] text-[#4a4660] cursor-pointer hover:text-[#7a7890] transition-colors list-none">
+                  +{others.length} {t.common.participants}
+                </summary>
+                <div className="space-y-1.5 mt-1.5">
+                  {others.map(p => renderParticipant(p, false))}
+                </div>
+              </details>
+            )}
             {/* Legend */}
             {showLegend && (
               <div className="flex items-center gap-2 mt-0.5">
