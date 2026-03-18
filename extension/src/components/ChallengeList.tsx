@@ -357,7 +357,8 @@ function TodayCheckin({ challenges, userId, onToggleDay }: {
 
   return (
     <div className="mx-4 mb-3 rounded-lg border border-[#1c1928] bg-[#13111c] p-3">
-      <div className="text-[11px] text-[#7a7890] mb-2.5">{t.challenges.today}, {label}</div>
+      <div className="text-[11px] text-[#7a7890] mb-1">{t.challenges.today}, {label}</div>
+      <div className="text-[9px] text-[#4a4660] mb-2">{t.challenges.tapIfFailed}</div>
       <div className="flex flex-col gap-2">
         {challenges.map(c => {
           const myFailedDays = getMyFailedDays(c, userId);
