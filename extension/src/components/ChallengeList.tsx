@@ -575,7 +575,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
               <details className="group">
                 <summary className="text-[13px] text-[#b0aec0] cursor-pointer hover:text-white transition-colors list-none flex items-center gap-1">
                   <span className="text-[10px] group-open:rotate-90 transition-transform">&#9654;</span>
-                  {others.length} other{others.length > 1 ? 's' : ''}
+                  +{others.length} participant{others.length > 1 ? 's' : ''}
                 </summary>
                 <div className="space-y-1.5 mt-1.5">
                   {others.map(p => renderParticipant(p, false))}

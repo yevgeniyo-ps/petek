@@ -602,7 +602,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
               <details className="group">
                 <summary className="text-[14px] text-[#b0aec0] cursor-pointer hover:text-white transition-colors list-none flex items-center gap-1.5">
                   <span className="text-[11px] group-open:rotate-90 transition-transform">&#9654;</span>
-                  {others.length} other{others.length > 1 ? 's' : ''}
+                  +{others.length} participant{others.length > 1 ? 's' : ''}
                 </summary>
                 <div className="space-y-2 mt-2">
                   {others.map(p => renderParticipant(p, false))}
