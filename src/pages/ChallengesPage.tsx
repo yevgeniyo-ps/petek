@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
-import { Challenge, ChallengeStatus } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { Challenge, ChallengeParticipant, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -37,9 +38,8 @@ function getTodayStr(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
-function getStreak(challenge: Challenge, today: string): number {
-  const failedDays = challenge.failed_days || [];
-  const start = new Date(challenge.start_date + 'T00:00:00');
+function getStreak(failedDays: string[], startDate: string, today: string): number {
+  const start = new Date(startDate + 'T00:00:00');
   const cur = new Date(today + 'T00:00:00');
   let streak = 0;
   while (cur >= start) {
@@ -58,11 +58,40 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function getMyFailedDays(challenge: Challenge, userId: string): string[] {
+  if (challenge.invite_code && challenge.participants) {
+    const me = challenge.participants.find(p => p.user_id === userId);
+    return me?.failed_days || [];
+  }
+  return challenge.failed_days || [];
+}
+
+function getDisplayEmail(email: string): string {
+  return email.split('@')[0];
+}
+
 export default function ChallengesPage() {
-  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge } = useChallenges();
+  const { user } = useAuth();
+  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge } = useChallenges();
   const [createOpen, setCreateOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingChallenge, setDeletingChallenge] = useState<Challenge | null>(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [leavingChallenge, setLeavingChallenge] = useState<Challenge | null>(null);
+
+  // Handle ?join=CODE query param
+  useEffect(() => {
+    const hash = window.location.hash;
+    const match = hash.match(/[?&]join=([A-Za-z0-9]+)/);
+    if (match) {
+      setJoinCode(match[1]);
+      setJoinOpen(true);
+      // Clean up the URL
+      window.location.hash = hash.replace(/[?&]join=[A-Za-z0-9]+/, '');
+    }
+  }, []);
 
   const activeChallenges = useMemo(() => challenges.filter(c => c.status === 'active'), [challenges]);
   const pastChallenges = useMemo(() => challenges.filter(c => c.status !== 'active'), [challenges]);
@@ -91,6 +120,25 @@ export default function ChallengesPage() {
     }
   };
 
+  const handleLeaveConfirm = (challenge: Challenge) => {
+    setLeavingChallenge(challenge);
+    setLeaveConfirmOpen(true);
+  };
+
+  const handleLeave = async () => {
+    if (leavingChallenge) {
+      await leaveChallenge(leavingChallenge.id);
+      setLeaveConfirmOpen(false);
+      setLeavingChallenge(null);
+    }
+  };
+
+  const handleJoin = async (code: string) => {
+    await joinChallenge(code);
+    setJoinOpen(false);
+    setJoinCode('');
+  };
+
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
   }
@@ -109,16 +157,26 @@ export default function ChallengesPage() {
         <div className="flex flex-col items-center justify-center py-20 rounded-xl bg-[#0f0d18] border border-[#1c1928]">
           <Trophy size={40} className="text-[#4a4660] mb-4" />
           <p className="text-[15px] text-[#7a7890] mb-4">No challenges yet</p>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
-          >
-            <Plus size={16} />
-            New Challenge
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
+            >
+              <Plus size={16} />
+              New Challenge
+            </button>
+            <button
+              onClick={() => setJoinOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-[#7a7890] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-full transition-colors"
+            >
+              <UserPlus size={16} />
+              Join
+            </button>
+          </div>
         </div>
 
         <CreateChallengeModal open={createOpen} onClose={() => setCreateOpen(false)} onSave={handleCreate} />
+        <JoinChallengeModal open={joinOpen} onClose={() => { setJoinOpen(false); setJoinCode(''); }} onJoin={handleJoin} initialCode={joinCode} />
       </div>
     );
   }
@@ -136,53 +194,56 @@ export default function ChallengesPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
-        >
-          <Plus size={16} />
-          New Challenge
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setJoinOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-[#7a7890] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-full transition-colors"
+          >
+            <UserPlus size={16} />
+            Join
+          </button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
+          >
+            <Plus size={16} />
+            New Challenge
+          </button>
+        </div>
       </div>
 
       {/* Today check-in */}
-      {activeChallenges.length > 0 && (
-        <TodayCheckin challenges={activeChallenges} onToggleDay={(id, day) => {
-          const challenge = activeChallenges.find(c => c.id === id)!;
-          const failedDays = challenge.failed_days || [];
-          const newFailedDays = failedDays.includes(day)
-            ? failedDays.filter(d => d !== day)
-            : [...failedDays, day];
-          updateChallenge(id, { failed_days: newFailedDays });
-        }} />
+      {activeChallenges.length > 0 && user && (
+        <TodayCheckin
+          challenges={activeChallenges}
+          userId={user.id}
+          onToggleDay={(id, day) => toggleFailedDay(id, day)}
+        />
       )}
 
       {/* Active challenges */}
-      {activeChallenges.length > 0 && (
+      {activeChallenges.length > 0 && user && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           {activeChallenges.map(challenge => (
             <ChallengeCard
               key={challenge.id}
               challenge={challenge}
-              onComplete={() => handleStatus(challenge.id, 'completed')}
-              onFail={() => handleStatus(challenge.id, 'failed')}
-              onExtend={(newEndDate) => updateChallenge(challenge.id, { end_date: newEndDate })}
-              onDelete={() => handleDeleteConfirm(challenge)}
-              onRename={(name) => updateChallenge(challenge.id, { name })}
-              onToggleDay={(day) => {
-                const failedDays = challenge.failed_days || [];
-                const newFailedDays = failedDays.includes(day)
-                  ? failedDays.filter(d => d !== day)
-                  : [...failedDays, day];
-                updateChallenge(challenge.id, { failed_days: newFailedDays });
-              }}
+              userId={user.id}
+              onComplete={challenge.user_id === user.id ? () => handleStatus(challenge.id, 'completed') : undefined}
+              onFail={challenge.user_id === user.id ? () => handleStatus(challenge.id, 'failed') : undefined}
+              onExtend={challenge.user_id === user.id ? (newEndDate) => updateChallenge(challenge.id, { end_date: newEndDate }) : undefined}
+              onDelete={challenge.user_id === user.id ? () => handleDeleteConfirm(challenge) : undefined}
+              onRename={challenge.user_id === user.id ? (name) => updateChallenge(challenge.id, { name }) : undefined}
+              onToggleDay={(day) => toggleFailedDay(challenge.id, day)}
+              onShare={challenge.user_id === user.id ? () => generateInviteCode(challenge.id) : undefined}
+              onLeave={challenge.user_id !== user.id ? () => handleLeaveConfirm(challenge) : undefined}
             />
           ))}
         </div>
       )}
 
       {/* Past challenges */}
-      {pastChallenges.length > 0 && (
+      {pastChallenges.length > 0 && user && (
         <>
           <h2 className="text-[13px] font-medium text-[#7a7890] uppercase tracking-wider mb-4">Past Challenges</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -190,7 +251,9 @@ export default function ChallengesPage() {
               <ChallengeCard
                 key={challenge.id}
                 challenge={challenge}
-                onDelete={() => handleDeleteConfirm(challenge)}
+                userId={user.id}
+                onDelete={challenge.user_id === user.id ? () => handleDeleteConfirm(challenge) : undefined}
+                onLeave={challenge.user_id !== user.id ? () => handleLeaveConfirm(challenge) : undefined}
               />
             ))}
           </div>
@@ -198,6 +261,7 @@ export default function ChallengesPage() {
       )}
 
       <CreateChallengeModal open={createOpen} onClose={() => setCreateOpen(false)} onSave={handleCreate} />
+      <JoinChallengeModal open={joinOpen} onClose={() => { setJoinOpen(false); setJoinCode(''); }} onJoin={handleJoin} initialCode={joinCode} />
 
       <ConfirmDialog
         open={deleteConfirmOpen}
@@ -207,12 +271,22 @@ export default function ChallengesPage() {
         message={`This will permanently remove "${deletingChallenge?.name}".`}
         confirmLabel="Delete"
       />
+
+      <ConfirmDialog
+        open={leaveConfirmOpen}
+        onClose={() => setLeaveConfirmOpen(false)}
+        onConfirm={handleLeave}
+        title="Leave challenge?"
+        message={`You will no longer see "${leavingChallenge?.name}". Your progress will be removed.`}
+        confirmLabel="Leave"
+      />
     </div>
   );
 }
 
-function TodayCheckin({ challenges, onToggleDay }: {
+function TodayCheckin({ challenges, userId, onToggleDay }: {
   challenges: Challenge[];
+  userId: string;
   onToggleDay: (id: string, day: string) => void;
 }) {
   const today = getTodayStr();
@@ -224,8 +298,9 @@ function TodayCheckin({ challenges, onToggleDay }: {
       <div className="text-[13px] text-[#7a7890] mb-4">Today, {label}</div>
       <div className="flex flex-col gap-3">
         {challenges.map(c => {
-          const isFailed = (c.failed_days || []).includes(today);
-          const streak = getStreak(c, today);
+          const myFailedDays = getMyFailedDays(c, userId);
+          const isFailed = myFailedDays.includes(today);
+          const streak = getStreak(myFailedDays, c.start_date, today);
           return (
             <button
               key={c.id}
@@ -242,6 +317,9 @@ function TodayCheckin({ challenges, onToggleDay }: {
               <span className={`text-[14px] truncate flex-1 text-left transition-colors ${
                 isFailed ? 'text-amber-400/80' : 'text-white'
               }`}>{c.name}</span>
+              {c.invite_code && (
+                <span className="text-[#4a4660]"><Users size={13} /></span>
+              )}
               {streak >= 3 && (
                 <span className="flex items-center gap-0.5 text-[12px] text-[#ec4899] font-medium shrink-0">
                   <Flame size={13} />
@@ -256,16 +334,77 @@ function TodayCheckin({ challenges, onToggleDay }: {
   );
 }
 
-function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay }: {
+function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay }: {
+  days: string[];
+  failedDays: string[];
+  today: string;
+  isActive: boolean;
+  clickable: boolean;
+  onToggleDay?: (day: string) => void;
+}) {
+  const firstDate = new Date(days[0] + 'T00:00:00');
+  const firstDow = firstDate.getDay();
+  const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
+  const numCols = Math.ceil(padded.length / 7);
+  while (padded.length < numCols * 7) padded.push(null);
+
+  return (
+    <div className="flex gap-[3px] overflow-x-auto p-[2px]">
+      {Array.from({ length: numCols }, (_, col) => (
+        <div key={col} className="flex flex-col gap-[3px]">
+          {Array.from({ length: 7 }, (_, row) => {
+            const day = padded[col * 7 + row];
+            if (!day) return <div key={row} className="w-[10px] h-[10px]" />;
+
+            const isFailed = failedDays.includes(day);
+            const isToday = day === today;
+            const isPast = day < today;
+            const canClick = clickable && (isPast || isToday) && isActive;
+
+            let color: string;
+            if (!isActive) {
+              color = 'bg-[#2a2835]';
+            } else if (isFailed) {
+              color = 'bg-amber-400';
+            } else if (isPast || isToday) {
+              color = 'bg-[#ec4899]';
+            } else {
+              color = 'bg-white/[0.15]';
+            }
+
+            return (
+              <button
+                key={row}
+                onClick={canClick ? () => onToggleDay?.(day) : undefined}
+                disabled={!canClick}
+                title={formatDate(day)}
+                className={`w-[10px] h-[10px] rounded-[2px] transition-colors ${color} ${
+                  isToday ? 'ring-[1.5px] ring-white' : ''
+                } ${canClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave }: {
   challenge: Challenge;
+  userId: string;
   onComplete?: () => void;
   onFail?: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onExtend?: (newEndDate: string) => void;
   onRename?: (name: string) => void;
   onToggleDay?: (day: string) => void;
+  onShare?: () => Promise<string>;
+  onLeave?: () => void;
 }) {
   const isActive = challenge.status === 'active';
+  const isOwner = challenge.user_id === userId;
+  const isShared = !!challenge.invite_code;
   const daysRemaining = getDaysRemaining(challenge.end_date);
   const totalDays = getTotalDays(challenge.start_date, challenge.end_date);
   const [extending, setExtending] = useState(false);
@@ -275,11 +414,20 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
   const editRef = useRef<HTMLInputElement>(null);
   const days = useMemo(() => getDateRange(challenge.start_date, challenge.end_date), [challenge.start_date, challenge.end_date]);
   const today = getTodayStr();
-  const failedDays = challenge.failed_days || [];
+  const [showInviteCode, setShowInviteCode] = useState(false);
+  const [inviteCode, setInviteCode] = useState(challenge.invite_code || '');
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const myFailedDays = getMyFailedDays(challenge, userId);
 
   useEffect(() => {
     if (editing) editRef.current?.focus();
   }, [editing]);
+
+  useEffect(() => {
+    if (challenge.invite_code) setInviteCode(challenge.invite_code);
+  }, [challenge.invite_code]);
 
   const handleRename = () => {
     const trimmed = editName.trim();
@@ -294,6 +442,27 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
       setExtending(false);
     }
   };
+
+  const handleShare = async () => {
+    if (!onShare) return;
+    setSharing(true);
+    try {
+      const code = await onShare();
+      setInviteCode(code);
+      setShowInviteCode(true);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    await navigator.clipboard.writeText(inviteCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Find owner participant for "by" label
+  const ownerParticipant = challenge.participants?.find(p => p.user_id === challenge.user_id);
 
   return (
     <div className={`rounded-xl border p-5 transition-colors min-w-0 ${
@@ -317,6 +486,12 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
       ) : (
         <div className="flex items-start gap-2 mb-3 group">
           <h3 className="text-[15px] font-medium text-white leading-snug flex-1">{challenge.name}</h3>
+          {isShared && (
+            <span className="flex items-center gap-1 text-[11px] text-[#4a4660] shrink-0 mt-0.5">
+              <Users size={12} />
+              {challenge.participants?.length || 0}
+            </span>
+          )}
           {isActive && onRename && (
             <button
               onClick={() => { setEditName(challenge.name); setEditing(true); }}
@@ -326,6 +501,13 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
               <Pencil size={12} />
             </button>
           )}
+        </div>
+      )}
+
+      {/* "by owner" for joined challenges */}
+      {!isOwner && ownerParticipant && (
+        <div className="text-[11px] text-[#4a4660] mb-2">
+          by {getDisplayEmail(ownerParticipant.email)}
         </div>
       )}
 
@@ -352,71 +534,68 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
         </div>
       )}
 
-      {/* GitHub-style day grid */}
-      {(() => {
-        // Build grid: columns = weeks, rows = day-of-week (0=Sun..6=Sat)
-        const firstDate = new Date(days[0] + 'T00:00:00');
-        const firstDow = firstDate.getDay(); // 0=Sun
-        // Pad start so first day lands in correct row
-        const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
-        const numCols = Math.ceil(padded.length / 7);
-        // Fill remainder
-        while (padded.length < numCols * 7) padded.push(null);
-
-        return (
-          <div className="flex gap-[3px] mb-3 overflow-x-auto p-[2px]">
-            {Array.from({ length: numCols }, (_, col) => (
-              <div key={col} className="flex flex-col gap-[3px]">
-                {Array.from({ length: 7 }, (_, row) => {
-                  const day = padded[col * 7 + row];
-                  if (!day) return <div key={row} className="w-[10px] h-[10px]" />;
-
-                  const isFailed = failedDays.includes(day);
-                  const isToday = day === today;
-                  const isPast = day < today;
-                  const clickable = (isPast || isToday) && isActive;
-
-                  let color: string;
-                  if (!isActive) {
-                    color = 'bg-[#2a2835]';
-                  } else if (isFailed) {
-                    color = 'bg-amber-400';
-                  } else if (isPast || isToday) {
-                    color = 'bg-[#ec4899]';
-                  } else {
-                    color = 'bg-white/[0.15]';
-                  }
-
-                  return (
-                    <button
-                      key={row}
-                      onClick={clickable ? () => onToggleDay?.(day) : undefined}
-                      disabled={!clickable}
-                      title={formatDate(day)}
-                      className={`w-[10px] h-[10px] rounded-[2px] transition-colors ${color} ${
-                        isToday ? 'ring-[1.5px] ring-white' : ''
-                      } ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-                    />
-                  );
-                })}
+      {/* Day grids */}
+      {isShared && challenge.participants ? (
+        <div className="space-y-2 mb-3">
+          {/* Current user first */}
+          {challenge.participants
+            .slice()
+            .sort((a, b) => (a.user_id === userId ? -1 : b.user_id === userId ? 1 : 0))
+            .map(participant => (
+              <div key={participant.id}>
+                <div className="text-[10px] text-[#4a4660] mb-1 truncate">
+                  {participant.user_id === userId ? 'You' : getDisplayEmail(participant.email)}
+                </div>
+                <DayGrid
+                  days={days}
+                  failedDays={participant.failed_days || []}
+                  today={today}
+                  isActive={isActive}
+                  clickable={participant.user_id === userId}
+                  onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
+                />
               </div>
             ))}
-          </div>
-        );
-      })()}
+        </div>
+      ) : (
+        <div className="mb-3">
+          <DayGrid
+            days={days}
+            failedDays={myFailedDays}
+            today={today}
+            isActive={isActive}
+            clickable={true}
+            onToggleDay={onToggleDay}
+          />
+        </div>
+      )}
 
       {/* Date details + counters */}
       <div className="text-[11px] text-[#4a4660] mb-4">
         {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
         {isActive && (() => {
           const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-          const failedCount = failedDays.filter(d => d >= challenge.start_date && d <= today).length;
+          const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
           const passedCount = elapsed - failedCount;
           return (
             <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
           );
         })()}
       </div>
+
+      {/* Invite code display */}
+      {showInviteCode && inviteCode && (
+        <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-[#0c0a12] border border-[#1c1928]">
+          <span className="text-[14px] font-mono font-medium text-white tracking-widest flex-1">{inviteCode}</span>
+          <button
+            onClick={handleCopyCode}
+            className="flex items-center gap-1 px-2 py-1 text-[11px] text-[#7a7890] hover:text-white transition-colors"
+          >
+            <Copy size={12} />
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      )}
 
       {/* Extend inline */}
       {extending && (
@@ -445,7 +624,7 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
       )}
 
       {/* Actions */}
-      {isActive && (
+      {isActive && isOwner && (
         <div className="flex items-center gap-2">
           <button
             onClick={onComplete}
@@ -468,6 +647,14 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
           >
             <CalendarPlus size={16} />
           </button>
+          <button
+            onClick={isShared ? () => setShowInviteCode(!showInviteCode) : handleShare}
+            disabled={sharing}
+            title={isShared ? 'Show invite code' : 'Share challenge'}
+            className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
+          >
+            <Share2 size={16} />
+          </button>
           <div className="flex-1" />
           <button
             onClick={onDelete}
@@ -478,7 +665,19 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
           </button>
         </div>
       )}
-      {!isActive && (
+      {isActive && !isOwner && (
+        <div className="flex justify-end">
+          <button
+            onClick={onLeave}
+            title="Leave challenge"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+          >
+            <LogOut size={14} />
+            Leave
+          </button>
+        </div>
+      )}
+      {!isActive && isOwner && (
         <div className="flex justify-end">
           <button
             onClick={onDelete}
@@ -486,6 +685,18 @@ function ChallengeCard({ challenge, onComplete, onFail, onDelete, onExtend, onRe
             className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <Trash2 size={14} />
+          </button>
+        </div>
+      )}
+      {!isActive && !isOwner && (
+        <div className="flex justify-end">
+          <button
+            onClick={onLeave}
+            title="Leave challenge"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+          >
+            <LogOut size={14} />
+            Leave
           </button>
         </div>
       )}
@@ -564,6 +775,84 @@ function CreateChallengeModal({ open, onClose, onSave }: {
             className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Creating...' : 'Create Challenge'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function JoinChallengeModal({ open, onClose, onJoin, initialCode }: {
+  open: boolean;
+  onClose: () => void;
+  onJoin: (code: string) => Promise<void>;
+  initialCode?: string;
+}) {
+  const [code, setCode] = useState(initialCode || '');
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initialCode) setCode(initialCode);
+  }, [initialCode]);
+
+  useEffect(() => {
+    if (!open) { setCode(initialCode || ''); setError(''); }
+  }, [open, initialCode]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    setJoining(true);
+    setError('');
+    try {
+      await onJoin(trimmed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join challenge');
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <UserPlus size={18} className="text-[#ec4899]" />
+          <h2 className="text-[16px] font-semibold text-white">Join Challenge</h2>
+        </div>
+
+        <div>
+          <label className="block text-[13px] text-[#7a7890] mb-1.5">Invite code</label>
+          <input
+            type="text"
+            value={code}
+            onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
+            placeholder="e.g., ABC123"
+            maxLength={6}
+            className="w-full px-4 py-2.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[14px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors font-mono tracking-widest text-center uppercase"
+            autoFocus
+          />
+          {error && (
+            <p className="text-[12px] text-red-400 mt-2">{error}</p>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2.5 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={code.trim().length < 6 || joining}
+            className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {joining ? 'Joining...' : 'Join Challenge'}
           </button>
         </div>
       </form>

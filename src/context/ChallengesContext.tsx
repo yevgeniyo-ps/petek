@@ -10,6 +10,10 @@ interface ChallengesContextType {
   createChallenge: (data: Pick<Challenge, 'name' | 'start_date' | 'end_date'>) => Promise<void>;
   updateChallenge: (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status' | 'failed_days'>>) => Promise<void>;
   deleteChallenge: (id: string) => Promise<void>;
+  generateInviteCode: (challengeId: string) => Promise<string>;
+  joinChallenge: (inviteCode: string) => Promise<void>;
+  toggleFailedDay: (challengeId: string, day: string) => void;
+  leaveChallenge: (challengeId: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -50,7 +54,7 @@ export function ChallengesProvider({ children }: { children: ReactNode }) {
 
   const updateChallenge = async (id: string, updates: Partial<Pick<Challenge, 'name' | 'start_date' | 'end_date' | 'status' | 'failed_days'>>) => {
     const updated = await api.updateChallenge(id, updates);
-    setChallenges(prev => prev.map(c => c.id === id ? updated : c));
+    setChallenges(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
   };
 
   const deleteChallenge = async (id: string) => {
@@ -58,10 +62,62 @@ export function ChallengesProvider({ children }: { children: ReactNode }) {
     setChallenges(prev => prev.filter(c => c.id !== id));
   };
 
+  const generateInviteCode = async (challengeId: string): Promise<string> => {
+    const code = await api.generateInviteCode(challengeId);
+    await refresh();
+    return code;
+  };
+
+  const joinChallenge = async (inviteCode: string) => {
+    await api.joinChallenge(inviteCode);
+    await refresh();
+  };
+
+  const toggleFailedDay = (challengeId: string, day: string) => {
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (!challenge) return;
+
+    if (challenge.invite_code && challenge.participants && user) {
+      // Shared challenge: update participant row
+      const participant = challenge.participants.find(p => p.user_id === user.id);
+      if (!participant) return;
+      const failedDays = participant.failed_days || [];
+      const newFailedDays = failedDays.includes(day)
+        ? failedDays.filter(d => d !== day)
+        : [...failedDays, day];
+
+      // Optimistic update
+      setChallenges(prev => prev.map(c => {
+        if (c.id !== challengeId) return c;
+        return {
+          ...c,
+          participants: c.participants?.map(p =>
+            p.id === participant.id ? { ...p, failed_days: newFailedDays } : p
+          ),
+        };
+      }));
+      api.updateParticipantFailedDays(participant.id, newFailedDays);
+    } else {
+      // Private challenge: update challenge directly
+      const failedDays = challenge.failed_days || [];
+      const newFailedDays = failedDays.includes(day)
+        ? failedDays.filter(d => d !== day)
+        : [...failedDays, day];
+      updateChallenge(challengeId, { failed_days: newFailedDays });
+    }
+  };
+
+  const leaveChallenge = async (challengeId: string) => {
+    await api.leaveChallenge(challengeId);
+    setChallenges(prev => prev.filter(c => c.id !== challengeId));
+  };
+
   return (
     <ChallengesContext.Provider value={{
       challenges, loading, error,
-      createChallenge, updateChallenge, deleteChallenge, refresh,
+      createChallenge, updateChallenge, deleteChallenge,
+      generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge,
+      refresh,
     }}>
       {children}
     </ChallengesContext.Provider>

@@ -144,6 +144,15 @@ export interface Subscription {
 
 export type ChallengeStatus = 'active' | 'completed' | 'failed';
 
+export interface ChallengeParticipant {
+  id: string;
+  challenge_id: string;
+  user_id: string;
+  email: string;
+  failed_days: string[];
+  joined_at: string;
+}
+
 export interface Challenge {
   id: string;
   user_id: string;
@@ -152,6 +161,8 @@ export interface Challenge {
   end_date: string;
   status: ChallengeStatus;
   failed_days: string[];
+  invite_code?: string | null;
+  participants?: ChallengeParticipant[];
   created_at: string;
 }
 
