@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
 import { useExtAuth } from './LoginForm';
 import { useLanguage } from '@shared/i18n';
-import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info } from 'lucide-react';
 import { Challenge, ChallengeStatus } from '@shared/types';
 import React from 'react';
 
@@ -493,6 +493,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   const [inviteCode, setInviteCode] = useState(challenge.invite_code || '');
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
 
   useEffect(() => {
     if (editing) editRef.current?.focus();
@@ -636,20 +637,27 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
                 </div>
               </details>
             )}
-            {/* Legend */}
+            {/* Legend toggle */}
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-                <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> {t.challenges.passed}
-              </span>
-              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-                <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> {t.challenges.failed}
-              </span>
-              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-                <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> {t.challenges.upcoming}
-              </span>
-              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-                <span className="w-[6px] h-[6px] rounded-[1px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> {t.challenges.beforeJoin}
-              </span>
+              <button onClick={() => setShowLegend(!showLegend)} className="p-0.5 rounded text-[#4a4660] hover:text-[#7a7890] transition-colors">
+                <Info size={10} />
+              </button>
+              {showLegend && (
+                <>
+                  <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                    <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> {t.challenges.passed}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                    <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> {t.challenges.failed}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                    <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> {t.challenges.upcoming}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                    <span className="w-[6px] h-[6px] rounded-[1px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> {t.challenges.beforeJoin}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         );
@@ -664,15 +672,22 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             onToggleDay={onToggleDay}
           />
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> {t.challenges.passed}
-            </span>
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> {t.challenges.failed}
-            </span>
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> {t.challenges.upcoming}
-            </span>
+            <button onClick={() => setShowLegend(!showLegend)} className="p-0.5 rounded text-[#4a4660] hover:text-[#7a7890] transition-colors">
+              <Info size={10} />
+            </button>
+            {showLegend && (
+              <>
+                <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                  <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> {t.challenges.passed}
+                </span>
+                <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                  <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> {t.challenges.failed}
+                </span>
+                <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                  <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> {t.challenges.upcoming}
+                </span>
+              </>
+            )}
           </div>
         </div>
       )}
