@@ -39,9 +39,10 @@ const FEATURE_ROUTES: Record<string, string> = {
 function FeatureHome() {
   const { features, hasFeature } = useFeatures();
   if (hasFeature('notes')) return <HomePage />;
-  for (const feat of ['challenges', 'insurances', 'subscriptions']) {
-    if (features.includes(feat)) {
-      return <Navigate to={FEATURE_ROUTES[feat]} replace />;
+  for (const feat of ['challenges', 'insurances', 'subscriptions'] as const) {
+    const route = FEATURE_ROUTES[feat];
+    if (features.includes(feat) && route) {
+      return <Navigate to={route} replace />;
     }
   }
   return <PageLoader />;
