@@ -698,17 +698,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         return (
           <div className="space-y-2 mb-3">
             {me && renderParticipant(me, true)}
-            {others.length > 0 && (
-              <details className="group">
-                <summary className="text-[14px] text-[#b0aec0] cursor-pointer hover:text-white transition-colors list-none flex items-center gap-1.5">
-                  <span className="text-[11px] group-open:rotate-90 transition-transform">&#9654;</span>
-                  {t.challenges.participantCount.replace('{n}', String(others.length))}
-                </summary>
-                <div className="space-y-2 mt-2">
-                  {others.map(p => renderParticipant(p, false))}
-                </div>
-              </details>
-            )}
+            {others.map(p => renderParticipant(p, false))}
             {/* Legend */}
             {showLegend && (
               <div className="flex items-center gap-3 mt-1">
