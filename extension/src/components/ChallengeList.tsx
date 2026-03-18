@@ -70,7 +70,7 @@ function getParticipantLabel(displayName: string, email: string): string {
     const parts = displayName.split(' ');
     const first = parts[0];
     const lastInitial = parts[1]?.[0] ? ` ${parts[1][0]}.` : '';
-    return `${first}${lastInitial}`;
+    return `${first}${lastInitial} (${email})`;
   }
   return email.split('@')[0] || email;
 }
