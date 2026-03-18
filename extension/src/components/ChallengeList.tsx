@@ -98,6 +98,7 @@ export function ChallengeList() {
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [duration, setDuration] = useState<'1w' | '1m' | '3m' | 'custom'>('1m');
   const [removeConfirmUid, setRemoveConfirmUid] = useState<string | null>(null);
   const [removeConfirmChallengeId, setRemoveConfirmChallengeId] = useState<string | null>(null);
 
@@ -105,16 +106,27 @@ export function ChallengeList() {
   const activeChallenges = challenges.filter(c => c.status === 'active');
   const pastChallenges = challenges.filter(c => c.status !== 'active');
 
+  const getEndDateForDuration = (d: '1w' | '1m' | '3m') => {
+    const date = new Date();
+    if (d === '1w') date.setDate(date.getDate() + 7);
+    else if (d === '1m') date.setMonth(date.getMonth() + 1);
+    else date.setMonth(date.getMonth() + 3);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const effectiveEndDate = duration === 'custom' ? endDate : getEndDateForDuration(duration);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !endDate) return;
+    if (!name.trim() || !effectiveEndDate) return;
     setSaving(true);
     try {
       const today = new Date();
       const startDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      await createChallenge({ name: name.trim(), start_date: startDate, end_date: endDate });
+      await createChallenge({ name: name.trim(), start_date: startDate, end_date: effectiveEndDate });
       setName('');
       setEndDate('');
+      setDuration('1m');
       setCreating(false);
     } finally {
       setSaving(false);
@@ -180,24 +192,42 @@ export function ChallengeList() {
               className="w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-xs text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
               autoFocus
             />
-            <input
-              type="date"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              min={minDate}
-              className="w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-xs text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
-            />
+            <div className="flex gap-1.5">
+              {(['1w', '1m', '3m', 'custom'] as const).map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDuration(d)}
+                  className={`flex-1 py-1.5 text-[10px] rounded-lg transition-colors ${
+                    duration === d
+                      ? 'bg-[#ec4899]/20 text-[#ec4899] font-medium'
+                      : 'text-[#7a7890] hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {d === '1w' ? t.challenges.oneWeek : d === '1m' ? t.challenges.oneMonth : d === '3m' ? t.challenges.threeMonths : t.challenges.custom}
+                </button>
+              ))}
+            </div>
+            {duration === 'custom' && (
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                min={minDate}
+                className="w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-xs text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
+              />
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => { setCreating(false); setName(''); setEndDate(''); }}
+                onClick={() => { setCreating(false); setName(''); setEndDate(''); setDuration('1m'); }}
                 className="flex-1 py-1.5 text-xs text-[#7a7890] hover:text-white rounded-lg hover:bg-white/5 transition-colors"
               >
                 {t.common.cancel}
               </button>
               <button
                 type="submit"
-                disabled={!name.trim() || !endDate || saving}
+                disabled={!name.trim() || !effectiveEndDate || saving}
                 className="flex-1 py-1.5 text-xs font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-lg transition-colors disabled:opacity-50"
               >
                 {saving ? '...' : t.common.create}
