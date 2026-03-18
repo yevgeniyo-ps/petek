@@ -527,38 +527,100 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         : 'bg-[#0f0d18] border-white/10 opacity-60'
     }`}>
       {/* Name */}
-      {editing ? (
-        <input
-          ref={editRef}
-          value={editName}
-          onChange={e => setEditName(e.target.value)}
-          onBlur={handleRename}
-          onKeyDown={e => {
-            if (e.key === 'Enter') handleRename();
-            if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
-          }}
-          className="w-full text-[15px] font-medium text-white mb-3 leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
-        />
-      ) : (
-        <div className="flex items-start gap-2 mb-3 group">
-          <h3 className="text-[15px] font-medium text-white leading-snug flex-1">{challenge.name}</h3>
-          {isShared && (
-            <span className="flex items-center gap-1 text-[11px] text-[#4a4660] shrink-0 mt-0.5">
-              <Users size={12} />
-              {challenge.participants?.length || 0}
-            </span>
-          )}
-          {isActive && onRename && (
-            <button
-              onClick={() => { setEditName(challenge.name); setEditing(true); }}
-              className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
-              title={t.challenges.editName}
-            >
-              <Pencil size={12} />
-            </button>
+      {/* Header: name + menu */}
+      <div className="flex items-start gap-2 mb-3 group">
+        {editing ? (
+          <input
+            ref={editRef}
+            value={editName}
+            onChange={e => setEditName(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleRename();
+              if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
+            }}
+            className="flex-1 text-[15px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
+          />
+        ) : (
+          <>
+            <h3 className="text-[15px] font-medium text-white leading-snug flex-1">{challenge.name}</h3>
+            {isShared && (
+              <span className="flex items-center gap-1 text-[11px] text-[#4a4660] shrink-0 mt-0.5">
+                <Users size={12} />
+                {challenge.participants?.length || 0}
+              </span>
+            )}
+            {isActive && onRename && (
+              <button
+                onClick={() => { setEditName(challenge.name); setEditing(true); }}
+                className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
+                title={t.challenges.editName}
+              >
+                <Pencil size={12} />
+              </button>
+            )}
+          </>
+        )}
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="p-1 rounded-lg text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-colors"
+          >
+            <Menu size={14} />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute top-full right-0 mt-1 z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-44">
+                {isActive && isOwner && (
+                  <>
+                    <button onClick={() => { onComplete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Check size={14} /> {t.challenges.markCompleted}
+                    </button>
+                    <button onClick={() => { onFail?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <X size={14} /> {t.challenges.markFailed}
+                    </button>
+                    <button onClick={() => { setExtending(true); setNewEndDate(challenge.end_date); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <CalendarPlus size={14} /> {t.challenges.changeEndDate}
+                    </button>
+                    <button onClick={() => { if (isShared) setShowInviteCode(!showInviteCode); else handleShare(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Share2 size={14} /> {isShared ? t.challenges.showInviteCode : t.challenges.shareChallenge}
+                    </button>
+                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Info size={14} /> {t.challenges.legend}
+                    </button>
+                    <div className="border-t border-[#1c1928] my-1" />
+                    <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                      <Trash2 size={14} /> {t.common.delete}
+                    </button>
+                  </>
+                )}
+                {isActive && !isOwner && (
+                  <>
+                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Info size={14} /> {t.challenges.legend}
+                    </button>
+                    <div className="border-t border-[#1c1928] my-1" />
+                    <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                      <LogOut size={14} /> {t.common.leave}
+                    </button>
+                  </>
+                )}
+                {!isActive && isOwner && (
+                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <Trash2 size={14} /> {t.common.delete}
+                  </button>
+                )}
+                {!isActive && !isOwner && (
+                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <LogOut size={14} /> {t.common.leave}
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
-      )}
+      </div>
 
       {/* Countdown or badge */}
       {isActive ? (
@@ -732,66 +794,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* Menu */}
-      <div className="flex justify-end relative">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded-lg text-[#7a7890] hover:text-white hover:bg-white/[0.08] transition-colors"
-        >
-          <Menu size={16} />
-        </button>
-        {menuOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-            <div className="absolute bottom-full right-0 mb-1 z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-44">
-              {isActive && isOwner && (
-                <>
-                  <button onClick={() => { onComplete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <Check size={14} /> {t.challenges.markCompleted}
-                  </button>
-                  <button onClick={() => { onFail?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <X size={14} /> {t.challenges.markFailed}
-                  </button>
-                  <button onClick={() => { setExtending(true); setNewEndDate(challenge.end_date); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <CalendarPlus size={14} /> {t.challenges.changeEndDate}
-                  </button>
-                  <button onClick={() => { if (isShared) setShowInviteCode(!showInviteCode); else handleShare(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <Share2 size={14} /> {isShared ? t.challenges.showInviteCode : t.challenges.shareChallenge}
-                  </button>
-                  <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <Info size={14} /> {t.challenges.legend}
-                  </button>
-                  <div className="border-t border-[#1c1928] my-1" />
-                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                    <Trash2 size={14} /> {t.common.delete}
-                  </button>
-                </>
-              )}
-              {isActive && !isOwner && (
-                <>
-                  <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                    <Info size={14} /> {t.challenges.legend}
-                  </button>
-                  <div className="border-t border-[#1c1928] my-1" />
-                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                    <LogOut size={14} /> {t.common.leave}
-                  </button>
-                </>
-              )}
-              {!isActive && isOwner && (
-                <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                  <Trash2 size={14} /> {t.common.delete}
-                </button>
-              )}
-              {!isActive && !isOwner && (
-                <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                  <LogOut size={14} /> {t.common.leave}
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 }
