@@ -28,9 +28,7 @@ export function Header({ view, onViewChange }: HeaderProps) {
     <div className="flex-shrink-0 border-b border-[#1c1928]">
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3">
-        <h1 className="text-lg font-semibold text-white tracking-tight">
-          petek<span className="text-pink-500">.</span>
-        </h1>
+        <div className="w-0" />
         <div className="flex items-center gap-2">
           <div className="relative">
             <button
