@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock, UserMinus } from 'lucide-react';
 import { AdminUser } from '../types';
-import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser } from '../lib/admin';
+import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser, updateUserFeatures } from '../lib/admin';
 import { formatDate } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+
+const ALL_FEATURES = ['notes', 'challenges', 'insurances', 'subscriptions', 'collections'];
 
 export default function AdminPage() {
   const { user: currentUser } = useAuth();
@@ -135,13 +137,24 @@ export default function AdminPage() {
           <tbody>
             {filtered.map(user => (
               <tr key={user.id} className="border-t border-[#1c1928] hover:bg-white/[0.02] transition-colors">
-                <td className="px-4 py-3 text-white">
-                  {user.email}
-                  {isPending(user) && (
-                    <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">Pending</span>
-                  )}
-                  {isSuspended(user) && (
-                    <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">Suspended</span>
+                <td className="px-4 py-3">
+                  <div className="text-white">
+                    {user.email}
+                    {isPending(user) && (
+                      <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">Pending</span>
+                    )}
+                    {isSuspended(user) && (
+                      <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">Suspended</span>
+                    )}
+                  </div>
+                  {!isSelf(user) && (
+                    <FeatureChips
+                      features={user.features ?? ALL_FEATURES}
+                      userId={user.id}
+                      onUpdate={(newFeatures) => {
+                        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, features: newFeatures } : u));
+                      }}
+                    />
                   )}
                 </td>
                 <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at)}</td>
@@ -251,6 +264,41 @@ export default function AdminPage() {
         message={`This will permanently delete all data AND the account for ${removeTarget?.email}. This cannot be undone.`}
         confirmLabel="Remove user"
       />
+    </div>
+  );
+}
+
+function FeatureChips({ features, userId, onUpdate }: {
+  features: string[];
+  userId: string;
+  onUpdate: (features: string[]) => void;
+}) {
+  const toggle = async (feat: string) => {
+    const next = features.includes(feat)
+      ? features.filter(f => f !== feat)
+      : [...features, feat];
+    onUpdate(next);
+    await updateUserFeatures(userId, next);
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1 mt-1.5">
+      {ALL_FEATURES.map(feat => {
+        const enabled = features.includes(feat);
+        return (
+          <button
+            key={feat}
+            onClick={() => toggle(feat)}
+            className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+              enabled
+                ? 'bg-[#ec4899]/15 text-[#ec4899]'
+                : 'bg-white/[0.04] text-[#4a4660] hover:text-[#7a7890]'
+            }`}
+          >
+            {feat}
+          </button>
+        );
+      })}
     </div>
   );
 }

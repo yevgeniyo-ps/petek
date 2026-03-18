@@ -43,3 +43,17 @@ export async function removeUser(userId: string): Promise<void> {
   const { error } = await supabase.rpc('admin_remove_user', { target_user_id: userId });
   if (error) throw error;
 }
+
+export async function fetchMyFeatures(): Promise<string[]> {
+  const { data, error } = await supabase.rpc('get_my_features');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateUserFeatures(userId: string, features: string[]): Promise<void> {
+  const { error } = await supabase.rpc('admin_update_user_features', {
+    target_user_id: userId,
+    new_features: features,
+  });
+  if (error) throw error;
+}

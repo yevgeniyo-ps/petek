@@ -6,6 +6,7 @@ import { useCollections } from '../../context/CollectionsContext';
 import { getCollectionIcon } from '../../lib/icons';
 import { useGravatar } from '../../hooks/useGravatar';
 import { useAdmin } from '../../context/AdminContext';
+import { useFeatures } from '../../context/FeaturesContext';
 import CreateCollectionModal from '../collections/CreateCollectionModal';
 import SettingsModal, { loadMenuSettings, type MenuSettings } from './SettingsModal';
 
@@ -22,6 +23,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   const { user, signOut } = useAuth();
   const { collections } = useCollections();
   const { isAdmin } = useAdmin();
+  const { features, hasFeature } = useFeatures();
   const avatarUrl = useGravatar(user?.email ?? undefined, 64);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
@@ -56,21 +58,21 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
-          {menuSettings.notes && (
+          {hasFeature('notes') && menuSettings.notes && (
             <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => handleNav('/')} collapsed={!open} />
           )}
-          {menuSettings.insurances && (
+          {hasFeature('insurances') && menuSettings.insurances && (
             <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => handleNav('/insurances')} collapsed={!open} />
           )}
-          {menuSettings.subscriptions && (
+          {hasFeature('subscriptions') && menuSettings.subscriptions && (
             <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
           )}
-          {menuSettings.challenges && (
+          {hasFeature('challenges') && menuSettings.challenges && (
             <NavItem icon={Trophy} label="Challenges" active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
           )}
 
           {/* Collections */}
-          {menuSettings.collections && (
+          {hasFeature('collections') && menuSettings.collections && (
             <>
               {collections.length > 0 && (
                 <div className={`mt-4 pt-4 border-t border-white/[0.06] space-y-1`}>
@@ -205,7 +207,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
       )}
 
       <CreateCollectionModal open={createCollectionOpen} onClose={() => setCreateCollectionOpen(false)} />
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={menuSettings} onChange={setMenuSettings} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={menuSettings} onChange={setMenuSettings} enabledFeatures={features} />
       {extensionModalOpen && (
         <ExtensionModal onClose={() => setExtensionModalOpen(false)} />
       )}

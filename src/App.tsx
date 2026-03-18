@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
+import { FeaturesProvider } from './context/FeaturesContext';
 import { NotesProvider } from './context/NotesContext';
 import { LabelsProvider } from './context/LabelsContext';
 import { TagsProvider } from './context/TagsContext';
@@ -35,6 +36,7 @@ export default function App() {
           <ApprovalProvider>
           <ApprovalGuard>
           <AdminProvider>
+          <FeaturesProvider>
             <NotesProvider>
               <LabelsProvider>
               <TagsProvider>
@@ -62,6 +64,7 @@ export default function App() {
               </TagsProvider>
               </LabelsProvider>
             </NotesProvider>
+          </FeaturesProvider>
           </AdminProvider>
           </ApprovalGuard>
           </ApprovalProvider>

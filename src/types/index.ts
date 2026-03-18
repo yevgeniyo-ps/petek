@@ -171,4 +171,5 @@ export interface AdminUser {
   notes_this_month: number;
   policies_this_month: number;
   approved_at: string | null;
+  features: string[];
 }

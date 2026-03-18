@@ -36,22 +36,27 @@ interface SettingsModalProps {
   onClose: () => void;
   settings: MenuSettings;
   onChange: (settings: MenuSettings) => void;
+  enabledFeatures?: string[];
 }
 
-export default function SettingsModal({ open, onClose, settings, onChange }: SettingsModalProps) {
+export default function SettingsModal({ open, onClose, settings, onChange, enabledFeatures }: SettingsModalProps) {
   const toggle = (key: keyof MenuSettings) => {
     const next = { ...settings, [key]: !settings[key] };
     onChange(next);
     saveMenuSettings(next);
   };
 
-  const items: { key: keyof MenuSettings; label: string }[] = [
+  const allItems: { key: keyof MenuSettings; label: string }[] = [
     { key: 'notes', label: 'Notes' },
     { key: 'insurances', label: 'Insurances' },
     { key: 'subscriptions', label: 'Subscriptions' },
     { key: 'challenges', label: 'Challenges' },
     { key: 'collections', label: 'Collections' },
   ];
+
+  const items = enabledFeatures
+    ? allItems.filter(item => enabledFeatures.includes(item.key))
+    : allItems;
 
   return (
     <Modal open={open} onClose={onClose}>
