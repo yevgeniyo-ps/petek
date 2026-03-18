@@ -366,10 +366,14 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
             const canClick = clickable && (isPast || isToday) && isActive && !isBeforeJoin;
 
             let color: string;
+            let style: React.CSSProperties | undefined;
             if (!isActive) {
               color = 'bg-[#2a2835]';
             } else if (isBeforeJoin) {
-              color = 'bg-white/[0.15]';
+              color = 'bg-[#1c1928]';
+              style = {
+                backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)',
+              };
             } else if (isFailed) {
               color = 'bg-amber-400';
             } else if (isPast || isToday) {
@@ -383,7 +387,8 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
                 key={row}
                 onClick={canClick ? () => onToggleDay?.(day) : undefined}
                 disabled={!canClick}
-                title={formatDate(day)}
+                title={isBeforeJoin ? `${formatDate(day)} (before join)` : formatDate(day)}
+                style={style}
                 className={`w-[10px] h-[10px] rounded-[2px] transition-colors ${color} ${
                   isToday ? 'ring-[1.5px] ring-white' : ''
                 } ${canClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
@@ -573,6 +578,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             </span>
             <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
               <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> upcoming
+            </span>
+            <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+              <span className="w-[8px] h-[8px] rounded-[2px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> before join
             </span>
           </div>
         </div>
