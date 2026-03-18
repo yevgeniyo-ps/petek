@@ -5,6 +5,10 @@ import path from 'path';
 
 export default defineConfig({
   envDir: path.resolve(__dirname, '..'),
+  define: {
+    // Extension always uses real auth, never dev bypass
+    'import.meta.env.VITE_DEV_BYPASS_AUTH': JSON.stringify(''),
+  },
   plugins: [
     // Redirect shared contexts' `./AuthContext` import to extension's auth bridge
     {
