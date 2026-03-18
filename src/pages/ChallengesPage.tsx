@@ -685,6 +685,19 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             clickable={true}
             onToggleDay={onToggleDay}
           />
+          {isActive && (
+            <div className="flex items-center gap-3 mt-1">
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

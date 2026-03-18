@@ -663,6 +663,17 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             clickable={true}
             onToggleDay={onToggleDay}
           />
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+              <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> {t.challenges.passed}
+            </span>
+            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+              <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> {t.challenges.failed}
+            </span>
+            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+              <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> {t.challenges.upcoming}
+            </span>
+          </div>
         </div>
       )}
 
