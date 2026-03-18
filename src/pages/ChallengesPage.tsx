@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
-import { Challenge, ChallengeParticipant, ChallengeStatus } from '../types';
+import { Challenge, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -67,7 +67,7 @@ function getMyFailedDays(challenge: Challenge, userId: string): string[] {
 }
 
 function getDisplayEmail(email: string): string {
-  return email.split('@')[0];
+  return email.split('@')[0] || email;
 }
 
 export default function ChallengesPage() {
@@ -85,7 +85,7 @@ export default function ChallengesPage() {
   useEffect(() => {
     const hash = window.location.hash;
     const match = hash.match(/[?&]join=([A-Za-z0-9]+)/);
-    if (match) {
+    if (match?.[1]) {
       setJoinCode(match[1]);
       setJoinOpen(true);
       // Clean up the URL
