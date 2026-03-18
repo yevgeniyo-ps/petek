@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { Subscription } from '../../types';
 import { formatAmount, getCategoryLabel, getCategoryIcon, getBillingCycleShort } from '../../lib/subscription-constants';
+import { useLanguage } from '../../i18n';
 
 function getFaviconUrl(url: string): string | null {
   try {
@@ -40,10 +41,12 @@ interface Props {
 }
 
 export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: Props) {
+  const { t } = useLanguage();
+
   if (subscriptions.length === 0) {
     return (
       <div className="text-center py-12 text-[14px] text-[#7a7890]">
-        No subscriptions match your search.
+        {t.subscriptions.noMatch}
       </div>
     );
   }
@@ -54,10 +57,10 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
       <table className="w-full">
         <thead>
           <tr className="bg-[#0f0d18] border-b border-[#1c1928]">
-            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">Name</th>
-            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">Amount</th>
-            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">Category</th>
-            <th className="text-center px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider w-24">Status</th>
+            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">{t.subscriptions.tableNameHeader}</th>
+            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">{t.subscriptions.tableAmountHeader}</th>
+            <th className="text-left px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider">{t.subscriptions.tableCategoryHeader}</th>
+            <th className="text-center px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider w-24">{t.subscriptions.tableStatusHeader}</th>
             <th className="text-right px-4 py-3 text-[12px] font-medium text-[#7a7890] uppercase tracking-wider w-24">Actions</th>
           </tr>
         </thead>
@@ -97,7 +100,7 @@ export default function SubscriptionTable({ subscriptions, onEdit, onDelete }: P
               </td>
               <td className="px-4 py-3 text-center">
                 <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/[0.06] text-[#7a7890]">
-                  {sub.status === 'active' ? 'Active' : 'Blocked'}
+                  {sub.status === 'active' ? t.common.active : t.common.blocked}
                 </span>
               </td>
               <td className="px-4 py-3">

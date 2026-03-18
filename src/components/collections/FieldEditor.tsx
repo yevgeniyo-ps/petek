@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Trash2, ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
 import { CollectionField, FieldType } from '../../types';
+import { useLanguage } from '../../i18n';
 
 interface FieldEditorProps {
   field: CollectionField;
@@ -22,6 +23,7 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
 ];
 
 export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete, onMoveUp, onMoveDown }: FieldEditorProps) {
+  const { t } = useLanguage();
   const [newChoice, setNewChoice] = useState('');
   const choices = field.options?.choices ?? [];
 
@@ -44,7 +46,7 @@ export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete
           type="text"
           value={field.name}
           onChange={e => onUpdate({ name: e.target.value })}
-          placeholder="Field name"
+          placeholder={t.collections.fieldName}
           className="flex-1 bg-transparent border border-[#1c1928] rounded-lg px-3 py-1.5 text-[13px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
         />
 
@@ -62,14 +64,14 @@ export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete
         {/* Required toggle */}
         <button
           onClick={() => onUpdate({ is_required: !field.is_required })}
-          title={field.is_required ? 'Required' : 'Optional'}
+          title={field.is_required ? t.collections.required : t.collections.optional}
           className={`px-2 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ${
             field.is_required
               ? 'border-[#ec4899]/30 text-[#ec4899] bg-[#ec4899]/10'
               : 'border-[#1c1928] text-[#4a4660] hover:text-[#7a7890]'
           }`}
         >
-          Req
+          {t.collections.req}
         </button>
 
         {/* Move */}
@@ -95,14 +97,14 @@ export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete
             type="text"
             value={field.options?.prefix ?? ''}
             onChange={e => onUpdate({ options: { ...field.options, prefix: e.target.value } })}
-            placeholder="Prefix (e.g. $)"
+            placeholder={t.collections.prefixPlaceholder}
             className="w-24 bg-transparent border border-[#1c1928] rounded-lg px-2 py-1 text-[12px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
           />
           <input
             type="text"
             value={field.options?.suffix ?? ''}
             onChange={e => onUpdate({ options: { ...field.options, suffix: e.target.value } })}
-            placeholder="Suffix (e.g. /mo)"
+            placeholder={t.collections.suffixPlaceholder}
             className="w-28 bg-transparent border border-[#1c1928] rounded-lg px-2 py-1 text-[12px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
           />
         </div>
@@ -125,7 +127,7 @@ export default function FieldEditor({ field, isFirst, isLast, onUpdate, onDelete
               value={newChoice}
               onChange={e => setNewChoice(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addChoice(); } }}
-              placeholder="Add choice..."
+              placeholder={t.collections.addChoicePlaceholder}
               className="w-24 bg-transparent border border-[#1c1928] rounded-lg px-2 py-0.5 text-[12px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
             />
             <button onClick={addChoice} className="text-[#7a7890] hover:text-[#ec4899] transition-colors">

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, Star, Plus } from 'lucide-react';
 import { useLabels } from '@shared/context/LabelsContext';
 import { useTags } from '@shared/context/TagsContext';
+import { useLanguage } from '@shared/i18n';
 
 interface SearchBarProps {
   search: string;
@@ -26,6 +27,7 @@ export function SearchBar({
 }: SearchBarProps) {
   const { labels, createLabel } = useLabels();
   const { getTagsForLabel, createTag } = useTags();
+  const { t } = useLanguage();
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [addingTag, setAddingTag] = useState(false);
@@ -72,7 +74,7 @@ export function SearchBar({
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a4660]" />
         <input
           type="text"
-          placeholder="Search notes..."
+          placeholder={t.notes.searchPlaceholder}
           value={search}
           onChange={e => onSearchChange(e.target.value)}
           className="w-full pl-8 pr-3 py-2 bg-[#13111c] border border-[#1c1928] rounded-lg text-white placeholder-[#4a4660] text-sm focus:outline-none focus:border-pink-500/50"
@@ -90,7 +92,7 @@ export function SearchBar({
           }`}
         >
           <Star size={12} className={filterImportant ? 'fill-pink-400' : ''} />
-          Starred
+          {t.notes.starred}
         </button>
 
         {[...labels].sort((a, b) => {
@@ -119,7 +121,7 @@ export function SearchBar({
               : 'text-[#7a7890] hover:bg-white/5'
           }`}
         >
-          Uncategorized
+          {t.notes.uncategorized}
         </button>
 
         {adding ? (
@@ -133,14 +135,14 @@ export function SearchBar({
               if (e.key === 'Escape') { setAdding(false); setNewName(''); }
             }}
             onBlur={handleCreate}
-            placeholder="Label name..."
+            placeholder={t.ext.labelPlaceholder}
             className="px-2 py-1 bg-transparent border border-[#2d2a40] rounded-md text-xs text-white placeholder-[#4a4660] outline-none focus:border-pink-500/50 w-24"
           />
         ) : (
           <button
             onClick={() => setAdding(true)}
             className="flex items-center gap-0.5 px-1.5 py-1 rounded-md text-xs text-[#4a4660] hover:text-pink-400 hover:bg-white/5 transition-colors whitespace-nowrap"
-            title="Add label"
+            title={t.ext.addLabel}
           >
             <Plus size={12} />
           </button>
@@ -174,7 +176,7 @@ export function SearchBar({
                 if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
               }}
               onBlur={handleCreateTag}
-              placeholder="Tag..."
+              placeholder={t.ext.tagPlaceholder}
               className="px-2 py-0.5 bg-transparent border border-[#2d2a40] rounded text-[10px] text-white placeholder-[#4a4660] outline-none focus:border-pink-500/50 w-16"
             />
           ) : (

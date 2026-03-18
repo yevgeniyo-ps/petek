@@ -20,6 +20,7 @@ import {
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Note } from '../../types';
 import NoteCard from './NoteCard';
+import { useLanguage } from '../../i18n';
 
 interface NoteBoardProps {
   notes: Note[];
@@ -30,6 +31,7 @@ interface NoteBoardProps {
 }
 
 export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle, groupId }: NoteBoardProps) {
+  const { t } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
@@ -70,7 +72,7 @@ export default function NoteBoard({ notes, onNoteClick, onReorder, sectionTitle,
         ))
       ) : (
         <div className="col-span-full flex items-center justify-center py-4 text-[13px] text-[#4a4660]">
-          Drag notes here
+          {t.notes.dragNotesHere}
         </div>
       )}
     </div>

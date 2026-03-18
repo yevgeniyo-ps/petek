@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { Subscription, BillingCycle, Currency, SubscriptionCategory, SubscriptionStatus } from '../../types';
 import { BILLING_CYCLES, CURRENCIES, SUBSCRIPTION_CATEGORIES } from '../../lib/subscription-constants';
+import { useLanguage } from '../../i18n';
 
 interface SubscriptionEditorProps {
   subscription: Subscription | null;
@@ -15,6 +16,7 @@ const labelClass = 'text-[12px] text-[#7a7890] mb-1.5 block';
 const selectClass = 'w-full px-3 py-2 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] transition-colors appearance-none cursor-pointer';
 
 export default function SubscriptionEditor({ subscription, open, onClose, onSave }: SubscriptionEditorProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<Currency>('USD');
@@ -82,18 +84,18 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
     <Modal open={open} onClose={onClose}>
       <div className="p-6">
         <h3 className="text-[15px] font-semibold text-white mb-6">
-          {isEdit ? 'Edit Subscription' : 'New Subscription'}
+          {isEdit ? t.subscriptions.editSubscription : t.subscriptions.newSubscription}
         </h3>
 
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className={labelClass}>Name</label>
+            <label className={labelClass}>{t.common.name}</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Netflix, Spotify, GitHub..."
+              placeholder={t.subscriptions.namePlaceholder}
               className={inputClass}
               autoFocus
             />
@@ -102,7 +104,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
           {/* Amount + Currency + Billing Cycle */}
           <div className="grid grid-cols-[1fr_auto_1fr] gap-3">
             <div>
-              <label className={labelClass}>Amount</label>
+              <label className={labelClass}>{t.subscriptions.amount}</label>
               <input
                 type="number"
                 value={amount}
@@ -114,7 +116,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
               />
             </div>
             <div>
-              <label className={labelClass}>Currency</label>
+              <label className={labelClass}>{t.subscriptions.currency}</label>
               <select
                 value={currency}
                 onChange={e => setCurrency(e.target.value as Currency)}
@@ -126,7 +128,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
               </select>
             </div>
             <div>
-              <label className={labelClass}>Billing Cycle</label>
+              <label className={labelClass}>{t.subscriptions.billingCycle}</label>
               <select
                 value={billingCycle}
                 onChange={e => setBillingCycle(e.target.value as BillingCycle)}
@@ -141,7 +143,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
 
           {/* Category */}
           <div>
-            <label className={labelClass}>Category</label>
+            <label className={labelClass}>{t.subscriptions.category}</label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as SubscriptionCategory)}
@@ -155,7 +157,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
 
           {/* Start Date */}
           <div>
-            <label className={labelClass}>Start Date</label>
+            <label className={labelClass}>{t.subscriptions.startDate}</label>
             <input
               type="date"
               value={startDate}
@@ -166,23 +168,23 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
 
           {/* URL */}
           <div>
-            <label className={labelClass}>Website URL</label>
+            <label className={labelClass}>{t.subscriptions.websiteUrl}</label>
             <input
               type="url"
               value={url}
               onChange={e => setUrl(e.target.value)}
-              placeholder="https://..."
+              placeholder={t.subscriptions.urlPlaceholder}
               className={inputClass}
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className={labelClass}>Notes</label>
+            <label className={labelClass}>{t.subscriptions.notesLabel}</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Optional notes..."
+              placeholder={t.subscriptions.notesPlaceholder}
               rows={2}
               className={`${inputClass} resize-none`}
             />
@@ -190,7 +192,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
 
           {/* Status toggle */}
           <div>
-            <label className={labelClass}>Status</label>
+            <label className={labelClass}>{t.subscriptions.status}</label>
             <div className="flex rounded-lg border border-[#1c1928] overflow-hidden">
               <button
                 type="button"
@@ -201,7 +203,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
                     : 'text-[#4a4660] hover:text-[#7a7890]'
                 }`}
               >
-                Active
+                {t.common.active}
               </button>
               <button
                 type="button"
@@ -212,7 +214,7 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
                     : 'text-[#4a4660] hover:text-[#7a7890]'
                 }`}
               >
-                Blocked
+                {t.common.blocked}
               </button>
             </div>
           </div>
@@ -224,14 +226,14 @@ export default function SubscriptionEditor({ subscription, open, onClose, onSave
             onClick={onClose}
             className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white transition-colors"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             onClick={handleSave}
             disabled={!isValid || saving}
             className="px-5 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] disabled:opacity-40 disabled:cursor-not-allowed rounded-full transition-colors"
           >
-            {saving ? 'Saving...' : isEdit ? 'Save' : 'Add'}
+            {saving ? t.common.saving : isEdit ? t.common.save : t.common.add}
           </button>
         </div>
       </div>

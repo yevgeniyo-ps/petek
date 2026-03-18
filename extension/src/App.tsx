@@ -1,3 +1,4 @@
+import { LanguageProvider } from '@shared/i18n';
 import { ExtAuthProvider, useExtAuth } from './components/LoginForm';
 import { FeaturesProvider, useFeatures } from '@shared/context/FeaturesContext';
 import { NotesProvider } from '@shared/context/NotesContext';
@@ -140,8 +141,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ExtAuthProvider>
-      <AppContent />
-    </ExtAuthProvider>
+    <LanguageProvider>
+      <ExtAuthProvider>
+        <AppContent />
+      </ExtAuthProvider>
+    </LanguageProvider>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
 import { useTags } from '@shared/context/TagsContext';
+import { useLanguage } from '@shared/i18n';
 import { Note } from '@shared/types';
 import { NoteCard } from './NoteCard';
 import { Plus, FileText } from 'lucide-react';
@@ -38,6 +39,7 @@ export function NoteList({ view, search, filterLabel, filterImportant, filterTag
   const { notes, loading, reorderNotes } = useNotes();
   const { labels, getNoteIdsForLabel } = useLabels();
   const { getNoteIdsForTag } = useTags();
+  const { t } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -121,7 +123,7 @@ export function NoteList({ view, search, filterLabel, filterImportant, filterTag
         <div className="flex flex-col items-center justify-center h-full text-[#4a4660]">
           <FileText size={32} className="mb-2 opacity-50" />
           <p className="text-sm">
-            {search ? 'No matching notes' : view === 'notes' ? 'No notes yet' : `No ${view} notes`}
+            {search ? t.ext.noMatchingNotes : view === 'notes' ? t.ext.noNotesYet : t.ext.noArchiveNotes}
           </p>
         </div>
       ) : view === 'notes' ? (

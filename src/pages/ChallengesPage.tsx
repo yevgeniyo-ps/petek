@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n';
 import { Challenge, ChallengeStatus } from '../types';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -54,8 +55,9 @@ function getStreak(failedDays: string[], startDate: string, today: string): numb
   return streak;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+function formatDate(dateStr: string, lang: string = 'en'): string {
+  const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString(localeMap[lang] || 'en-US', { month: 'short', day: 'numeric' });
 }
 
 function getMyParticipant(challenge: Challenge, userId: string) {
@@ -91,6 +93,7 @@ function getParticipantLabel(displayName: string, email: string): string {
 
 export default function ChallengesPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge } = useChallenges();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
@@ -159,7 +162,7 @@ export default function ChallengesPage() {
   };
 
   if (loading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
   }
 
   if (challenges.length === 0) {
@@ -167,29 +170,29 @@ export default function ChallengesPage() {
       <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
         <div className="flex items-center gap-3 mb-1">
           <Trophy size={24} className="text-[#ec4899]" />
-          <h1 className="text-[26px] font-bold text-white leading-tight">Challenges</h1>
+          <h1 className="text-[26px] font-bold text-white leading-tight">{t.challenges.title}</h1>
         </div>
         <p className="text-[14px] text-[#7a7890] mt-2 mb-8">
-          Set personal challenges and track your progress.
+          {t.challenges.subtitle}
         </p>
 
         <div className="flex flex-col items-center justify-center py-20 rounded-xl bg-[#0f0d18] border border-[#1c1928]">
           <Trophy size={40} className="text-[#4a4660] mb-4" />
-          <p className="text-[15px] text-[#7a7890] mb-4">No challenges yet</p>
+          <p className="text-[15px] text-[#7a7890] mb-4">{t.challenges.noChallenges}</p>
           <div className="flex gap-2">
             <button
               onClick={() => setCreateOpen(true)}
               className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
             >
               <Plus size={16} />
-              New Challenge
+              {t.challenges.newChallenge}
             </button>
             <button
               onClick={() => setJoinOpen(true)}
               className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-[#7a7890] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-full transition-colors"
             >
               <UserPlus size={16} />
-              Join
+              {t.common.join}
             </button>
           </div>
         </div>
@@ -207,9 +210,9 @@ export default function ChallengesPage() {
         <div className="flex items-center gap-3">
           <Trophy size={24} className="text-[#ec4899]" />
           <div>
-            <h1 className="text-[26px] font-bold text-white leading-tight">Challenges</h1>
+            <h1 className="text-[26px] font-bold text-white leading-tight">{t.challenges.title}</h1>
             <p className="text-[14px] text-[#7a7890] mt-1">
-              {activeChallenges.length} active
+              {t.challenges.activeCount.replace('{n}', String(activeChallenges.length))}
             </p>
           </div>
         </div>
@@ -219,14 +222,14 @@ export default function ChallengesPage() {
             className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-[#7a7890] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-full transition-colors"
           >
             <UserPlus size={16} />
-            Join
+            {t.common.join}
           </button>
           <button
             onClick={() => setCreateOpen(true)}
             className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
           >
             <Plus size={16} />
-            New Challenge
+            {t.challenges.newChallenge}
           </button>
         </div>
       </div>
@@ -264,7 +267,7 @@ export default function ChallengesPage() {
       {/* Past challenges */}
       {pastChallenges.length > 0 && user && (
         <>
-          <h2 className="text-[13px] font-medium text-[#7a7890] uppercase tracking-wider mb-4">Past Challenges</h2>
+          <h2 className="text-[13px] font-medium text-[#7a7890] uppercase tracking-wider mb-4">{t.challenges.pastChallenges}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {pastChallenges.map(challenge => (
               <ChallengeCard
@@ -286,18 +289,18 @@ export default function ChallengesPage() {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDelete}
-        title="Delete challenge?"
-        message={`This will permanently remove "${deletingChallenge?.name}".`}
-        confirmLabel="Delete"
+        title={t.challenges.deleteChallenge}
+        message={t.challenges.deleteMessage.replace('{name}', deletingChallenge?.name ?? '')}
+        confirmLabel={t.common.delete}
       />
 
       <ConfirmDialog
         open={leaveConfirmOpen}
         onClose={() => setLeaveConfirmOpen(false)}
         onConfirm={handleLeave}
-        title="Leave challenge?"
-        message={`You will no longer see "${leavingChallenge?.name}". Your progress will be removed.`}
-        confirmLabel="Leave"
+        title={t.challenges.leaveChallenge}
+        message={t.challenges.leaveMessage.replace('{name}', leavingChallenge?.name ?? '')}
+        confirmLabel={t.common.leave}
       />
     </div>
   );
@@ -308,13 +311,15 @@ function TodayCheckin({ challenges, userId, onToggleDay }: {
   userId: string;
   onToggleDay: (id: string, day: string) => void;
 }) {
+  const { t, language } = useLanguage();
   const today = getTodayStr();
   const date = new Date(today + 'T00:00:00');
-  const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
+  const label = date.toLocaleDateString(localeMap[language] || 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
     <div className="mb-6 rounded-xl border border-[#1c1928] bg-[#13111c] p-5">
-      <div className="text-[13px] text-[#7a7890] mb-4">Today, {label}</div>
+      <div className="text-[13px] text-[#7a7890] mb-4">{t.challenges.today}, {label}</div>
       <div className="flex flex-col gap-3">
         {challenges.map(c => {
           const myFailedDays = getMyFailedDays(c, userId);
@@ -363,6 +368,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   onToggleDay?: (day: string) => void;
   joinedAt?: string;
 }) {
+  const { t, language } = useLanguage();
   // Date the participant joined (days before this are not tracked)
   const joinDate = joinedAt ? joinedAt.slice(0, 10) : null;
   const firstDate = new Date(days[0] + 'T00:00:00');
@@ -407,7 +413,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
                 key={row}
                 onClick={canClick ? () => onToggleDay?.(day) : undefined}
                 disabled={!canClick}
-                title={isBeforeJoin ? `${formatDate(day)} (before join)` : formatDate(day)}
+                title={isBeforeJoin ? `${formatDate(day, language)} (${t.challenges.beforeJoin})` : formatDate(day, language)}
                 style={style}
                 className={`w-[10px] h-[10px] rounded-[2px] transition-colors ${color} ${
                   isToday ? 'ring-[1.5px] ring-white' : ''
@@ -433,6 +439,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onShare?: () => Promise<string>;
   onLeave?: () => void;
 }) {
+  const { t, language } = useLanguage();
   const isActive = challenge.status === 'active';
   const isOwner = challenge.user_id === userId;
   const isShared = !!challenge.invite_code;
@@ -527,7 +534,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             <button
               onClick={() => { setEditName(challenge.name); setEditing(true); }}
               className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
-              title="Edit name"
+              title={t.challenges.editName}
             >
               <Pencil size={12} />
             </button>
@@ -542,7 +549,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             {Math.max(daysRemaining, 0)}
           </span>
           <span className="text-[13px] text-[#7a7890] ml-2">
-            {daysRemaining === 1 ? 'day left' : 'days left'}
+            {daysRemaining === 1 ? t.challenges.dayLeft : t.challenges.daysLeft}
           </span>
         </div>
       ) : (
@@ -553,7 +560,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
               : 'bg-red-500/10 text-red-400'
           }`}>
             {challenge.status === 'completed' ? <Check size={12} /> : <X size={12} />}
-            {challenge.status === 'completed' ? 'Completed' : 'Failed'}
+            {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
           </span>
         </div>
       )}
@@ -574,7 +581,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             <div key={participant.id}>
               <div className="flex items-center gap-1.5 text-[10px] text-[#7a7890] mb-1">
                 <span className="truncate">
-                  {isMe ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
+                  {isMe ? t.common.you : getParticipantLabel(participant.display_name, participant.email)}
                 </span>
                 {isActive && (
                   <span className="shrink-0">
@@ -602,7 +609,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
               <details className="group">
                 <summary className="text-[14px] text-[#b0aec0] cursor-pointer hover:text-white transition-colors list-none flex items-center gap-1.5">
                   <span className="text-[11px] group-open:rotate-90 transition-transform">&#9654;</span>
-                  +{others.length} participant{others.length > 1 ? 's' : ''}
+                  {t.challenges.participantCount.replace('{n}', String(others.length))}
                 </summary>
                 <div className="space-y-2 mt-2">
                   {others.map(p => renderParticipant(p, false))}
@@ -612,16 +619,16 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             {/* Legend */}
             <div className="flex items-center gap-3 mt-1">
               <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> passed
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
               </span>
               <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> failed
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
               </span>
               <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> upcoming
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
               </span>
               <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> before join
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> {t.challenges.beforeJoin}
               </span>
             </div>
           </div>
@@ -643,7 +650,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
       <details className="mb-4 group">
         <summary className="text-[11px] text-[#4a4660] cursor-pointer hover:text-[#7a7890] transition-colors list-none flex items-center gap-1">
           <span className="text-[9px] group-open:rotate-90 transition-transform">&#9654;</span>
-          {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
+          {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)} · {totalDays}d
           {!isShared && isActive && (() => {
             const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
             const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
@@ -655,9 +662,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </summary>
         <div className="mt-2 text-[11px] text-[#4a4660] space-y-1">
           {!isOwner && ownerParticipant && (
-            <div>by {getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email)}</div>
+            <div>{t.challenges.by.replace('{name}', getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email))}</div>
           )}
-          {isShared && <div>{challenge.participants?.length || 0} participants</div>}
+          {isShared && <div>{challenge.participants?.length || 0} {t.common.participants}</div>}
         </div>
       </details>
 
@@ -670,7 +677,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             className="flex items-center gap-1 px-2 py-1 text-[11px] text-[#7a7890] hover:text-white transition-colors"
           >
             <Copy size={12} />
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? t.common.copied : t.common.copy}
           </button>
         </div>
       )}
@@ -690,13 +697,13 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             disabled={!newEndDate || newEndDate === challenge.end_date || newEndDate < today}
             className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-lg transition-colors disabled:opacity-50"
           >
-            Save
+            {t.common.save}
           </button>
           <button
             onClick={() => { setExtending(false); setNewEndDate(challenge.end_date); }}
             className="px-2 py-1.5 text-[12px] text-[#7a7890] hover:text-white transition-colors"
           >
-            Cancel
+            {t.common.cancel}
           </button>
         </div>
       )}
@@ -706,21 +713,21 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         <div className="flex items-center gap-2">
           <button
             onClick={onComplete}
-            title="Mark completed"
+            title={t.challenges.markCompleted}
             className="p-2 rounded-lg text-[#7a7890] hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
           >
             <Check size={16} />
           </button>
           <button
             onClick={onFail}
-            title="Mark failed"
+            title={t.challenges.markFailed}
             className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <X size={16} />
           </button>
           <button
             onClick={() => { setExtending(!extending); setNewEndDate(challenge.end_date); }}
-            title="Change end date"
+            title={t.challenges.changeEndDate}
             className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
           >
             <CalendarPlus size={16} />
@@ -728,7 +735,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           <button
             onClick={isShared ? () => setShowInviteCode(!showInviteCode) : handleShare}
             disabled={sharing}
-            title={isShared ? 'Show invite code' : 'Share challenge'}
+            title={isShared ? t.challenges.showInviteCode : t.challenges.shareChallenge}
             className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
           >
             <Share2 size={16} />
@@ -736,7 +743,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           <div className="flex-1" />
           <button
             onClick={onDelete}
-            title="Delete"
+            title={t.common.delete}
             className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <Trash2 size={14} />
@@ -747,11 +754,11 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         <div className="flex justify-end">
           <button
             onClick={onLeave}
-            title="Leave challenge"
+            title={t.challenges.leaveChallenge}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <LogOut size={14} />
-            Leave
+            {t.common.leave}
           </button>
         </div>
       )}
@@ -759,7 +766,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         <div className="flex justify-end">
           <button
             onClick={onDelete}
-            title="Delete"
+            title={t.common.delete}
             className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <Trash2 size={14} />
@@ -770,11 +777,11 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         <div className="flex justify-end">
           <button
             onClick={onLeave}
-            title="Leave challenge"
+            title={t.challenges.leaveChallenge}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <LogOut size={14} />
-            Leave
+            {t.common.leave}
           </button>
         </div>
       )}
@@ -787,6 +794,7 @@ function CreateChallengeModal({ open, onClose, onSave }: {
   onClose: () => void;
   onSave: (name: string, endDate: string) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saving, setSaving] = useState(false);
@@ -812,23 +820,23 @@ function CreateChallengeModal({ open, onClose, onSave }: {
       <form onSubmit={handleSubmit} className="p-6">
         <div className="flex items-center gap-2.5 mb-5">
           <Trophy size={18} className="text-[#ec4899]" />
-          <h2 className="text-[16px] font-semibold text-white">New Challenge</h2>
+          <h2 className="text-[16px] font-semibold text-white">{t.challenges.newChallenge}</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-[13px] text-[#7a7890] mb-1.5">Challenge name</label>
+            <label className="block text-[13px] text-[#7a7890] mb-1.5">{t.challenges.challengeName}</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g., No sweets for 30 days"
+              placeholder={t.challenges.challengePlaceholder}
               className="w-full px-4 py-2.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[14px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-[13px] text-[#7a7890] mb-1.5">End date</label>
+            <label className="block text-[13px] text-[#7a7890] mb-1.5">{t.challenges.endDate}</label>
             <input
               type="date"
               value={endDate}
@@ -845,14 +853,14 @@ function CreateChallengeModal({ open, onClose, onSave }: {
             onClick={onClose}
             className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             type="submit"
             disabled={!name.trim() || !endDate || saving}
             className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? 'Creating...' : 'Create Challenge'}
+            {saving ? t.common.creating : t.challenges.createChallenge}
           </button>
         </div>
       </form>
@@ -866,6 +874,7 @@ function JoinChallengeModal({ open, onClose, onJoin, initialCode }: {
   onJoin: (code: string) => Promise<void>;
   initialCode?: string;
 }) {
+  const { t } = useLanguage();
   const [code, setCode] = useState(initialCode || '');
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState('');
@@ -898,16 +907,16 @@ function JoinChallengeModal({ open, onClose, onJoin, initialCode }: {
       <form onSubmit={handleSubmit} className="p-6">
         <div className="flex items-center gap-2.5 mb-5">
           <UserPlus size={18} className="text-[#ec4899]" />
-          <h2 className="text-[16px] font-semibold text-white">Join Challenge</h2>
+          <h2 className="text-[16px] font-semibold text-white">{t.challenges.joinChallenge}</h2>
         </div>
 
         <div>
-          <label className="block text-[13px] text-[#7a7890] mb-1.5">Invite code</label>
+          <label className="block text-[13px] text-[#7a7890] mb-1.5">{t.challenges.inviteCode}</label>
           <input
             type="text"
             value={code}
             onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
-            placeholder="e.g., ABC123"
+            placeholder={t.challenges.inviteCodePlaceholder}
             maxLength={6}
             className="w-full px-4 py-2.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[14px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors font-mono tracking-widest text-center uppercase"
             autoFocus
@@ -923,14 +932,14 @@ function JoinChallengeModal({ open, onClose, onJoin, initialCode }: {
             onClick={onClose}
             className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             type="submit"
             disabled={code.trim().length < 6 || joining}
             className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {joining ? 'Joining...' : 'Join Challenge'}
+            {joining ? t.challenges.joining : t.challenges.joinChallenge}
           </button>
         </div>
       </form>

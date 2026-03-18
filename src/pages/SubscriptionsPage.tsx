@@ -7,8 +7,10 @@ import SubscriptionEditor from '../components/subscriptions/SubscriptionEditor';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { Subscription, SubscriptionCategory } from '../types';
 import { getCategoryLabel } from '../lib/subscription-constants';
+import { useLanguage } from '../i18n';
 
 export default function SubscriptionsPage() {
+  const { t } = useLanguage();
   const { subscriptions, loading, createSubscription, updateSubscription, deleteSubscription } = useSubscriptions();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<SubscriptionCategory | null>(null);
@@ -75,7 +77,7 @@ export default function SubscriptionsPage() {
   };
 
   if (loading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
   }
 
   // Empty state
@@ -84,21 +86,21 @@ export default function SubscriptionsPage() {
       <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
         <div className="flex items-center gap-3 mb-1">
           <RepeatIcon size={24} className="text-[#ec4899]" />
-          <h1 className="text-[26px] font-bold text-white leading-tight">Subscriptions</h1>
+          <h1 className="text-[26px] font-bold text-white leading-tight">{t.subscriptions.title}</h1>
         </div>
         <p className="text-[14px] text-[#7a7890] mt-2 mb-8">
-          Track your recurring subscriptions and payments.
+          {t.subscriptions.subtitle}
         </p>
 
         <div className="flex flex-col items-center justify-center py-20 rounded-xl bg-[#0f0d18] border border-[#1c1928]">
           <RepeatIcon size={40} className="text-[#4a4660] mb-4" />
-          <p className="text-[15px] text-[#7a7890] mb-4">No subscriptions yet</p>
+          <p className="text-[15px] text-[#7a7890] mb-4">{t.subscriptions.noSubscriptions}</p>
           <button
             onClick={handleCreate}
             className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
           >
             <Plus size={16} />
-            Add Subscription
+            {t.subscriptions.addSubscription}
           </button>
         </div>
 
@@ -119,9 +121,9 @@ export default function SubscriptionsPage() {
         <div className="flex items-center gap-3">
           <RepeatIcon size={24} className="text-[#ec4899]" />
           <div>
-            <h1 className="text-[26px] font-bold text-white leading-tight">Subscriptions</h1>
+            <h1 className="text-[26px] font-bold text-white leading-tight">{t.subscriptions.title}</h1>
             <p className="text-[14px] text-[#7a7890] mt-1">
-              {subscriptions.length} {subscriptions.length === 1 ? 'subscription' : 'subscriptions'}
+              {subscriptions.length} {subscriptions.length === 1 ? t.subscriptions.subscription : t.subscriptions.subscriptionPlural}
             </p>
           </div>
         </div>
@@ -130,7 +132,7 @@ export default function SubscriptionsPage() {
           className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
         >
           <Plus size={16} />
-          Add
+          {t.common.add}
         </button>
       </div>
 
@@ -143,7 +145,7 @@ export default function SubscriptionsPage() {
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
           <input
             type="text"
-            placeholder="Search subscriptions..."
+            placeholder={t.subscriptions.searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
@@ -162,7 +164,7 @@ export default function SubscriptionsPage() {
                 : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
             }`}
           >
-            All
+            {t.common.all}
           </button>
           {categories.map(cat => (
             <button
@@ -200,9 +202,9 @@ export default function SubscriptionsPage() {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDelete}
-        title="Delete subscription?"
-        message={`This will permanently remove "${deletingSubscription?.name}".`}
-        confirmLabel="Delete"
+        title={t.subscriptions.deleteTitle}
+        message={t.subscriptions.deleteMessage.replace('{name}', deletingSubscription?.name ?? '')}
+        confirmLabel={t.common.delete}
       />
     </div>
   );

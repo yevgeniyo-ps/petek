@@ -1,5 +1,6 @@
 import { Settings } from 'lucide-react';
 import Modal from '../ui/Modal';
+import { useLanguage } from '../../i18n';
 
 export interface MenuSettings {
   notes: boolean;
@@ -40,6 +41,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ open, onClose, settings, onChange, enabledFeatures }: SettingsModalProps) {
+  const { t } = useLanguage();
   const toggle = (key: keyof MenuSettings) => {
     const next = { ...settings, [key]: !settings[key] };
     onChange(next);
@@ -47,11 +49,11 @@ export default function SettingsModal({ open, onClose, settings, onChange, enabl
   };
 
   const allItems: { key: keyof MenuSettings; label: string }[] = [
-    { key: 'notes', label: 'Notes' },
-    { key: 'insurances', label: 'Insurances' },
-    { key: 'subscriptions', label: 'Subscriptions' },
-    { key: 'challenges', label: 'Challenges' },
-    { key: 'collections', label: 'Collections' },
+    { key: 'notes', label: t.sidebar.notes },
+    { key: 'insurances', label: t.sidebar.insurances },
+    { key: 'subscriptions', label: t.sidebar.subscriptions },
+    { key: 'challenges', label: t.sidebar.challenges },
+    { key: 'collections', label: t.sidebar.collections },
   ];
 
   const items = enabledFeatures
@@ -63,11 +65,11 @@ export default function SettingsModal({ open, onClose, settings, onChange, enabl
       <div className="px-6 py-5">
         <div className="flex items-center gap-2.5 mb-5">
           <Settings size={18} className="text-[#ec4899]" />
-          <h2 className="text-[16px] font-semibold text-white">Settings</h2>
+          <h2 className="text-[16px] font-semibold text-white">{t.settings.title}</h2>
         </div>
 
         <div className="space-y-1">
-          <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Sidebar sections</span>
+          <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">{t.settings.sidebarSections}</span>
           <div className="space-y-2 pt-2">
             {items.map(({ key, label }) => (
               <label key={key} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/[0.04] cursor-pointer transition-colors">

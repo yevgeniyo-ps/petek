@@ -8,10 +8,12 @@ import { CollectionItem } from '../types';
 import CollectionTable from '../components/collections/CollectionTable';
 import ItemEditor from '../components/collections/ItemEditor';
 import CollectionSettings from '../components/collections/CollectionSettings';
+import { useLanguage } from '../i18n';
 
 export default function CollectionPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { collections, fieldsByCollection, loading: collectionsLoading } = useCollections();
 
   const collection = collections.find(c => c.slug === slug);
@@ -88,15 +90,15 @@ export default function CollectionPage() {
   };
 
   if (collectionsLoading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
   }
 
   if (!collection) {
     return (
       <div className="text-center pt-40">
-        <p className="text-[14px] text-[#7a7890]">Collection not found.</p>
+        <p className="text-[14px] text-[#7a7890]">{t.collections.collectionNotFound}</p>
         <button onClick={() => navigate('/')} className="text-[#ec4899] text-[13px] mt-2 hover:underline">
-          Go home
+          {t.collections.goHome}
         </button>
       </div>
     );
@@ -113,14 +115,14 @@ export default function CollectionPage() {
           <div>
             <h1 className="text-[26px] font-bold text-white leading-tight">{collection.name}</h1>
             <p className="text-[14px] text-[#7a7890] mt-1">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
+              {items.length} {items.length === 1 ? t.collections.item : t.collections.items}
             </p>
           </div>
         </div>
         <button
           onClick={() => setSettingsOpen(true)}
           className="p-2 text-[#7a7890] hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
-          title="Collection settings"
+          title={t.collections.collectionSettingsTitle}
         >
           <Settings size={18} />
         </button>
@@ -132,7 +134,7 @@ export default function CollectionPage() {
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
           <input
             type="text"
-            placeholder={`Search ${collection.name.toLowerCase()}...`}
+            placeholder={t.collections.searchPlaceholder.replace('{name}', collection.name.toLowerCase())}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
@@ -142,7 +144,7 @@ export default function CollectionPage() {
 
       {/* Table */}
       {loadingItems ? (
-        <div className="text-[#7a7890] text-[14px] text-center pt-20">Loading items...</div>
+        <div className="text-[#7a7890] text-[14px] text-center pt-20">{t.collections.loadingItems}</div>
       ) : (
         <CollectionTable
           fields={fields}
@@ -176,7 +178,7 @@ export default function CollectionPage() {
       <button
         onClick={handleNewItem}
         className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#ec4899] hover:bg-[#db2777] text-white shadow-lg shadow-[#ec4899]/25 hover:shadow-[#ec4899]/40 transition-all flex items-center justify-center z-30"
-        title="Add Item"
+        title={t.collections.addItem}
       >
         <Plus size={24} strokeWidth={2.5} />
       </button>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Umbrella, Search, Upload, Trash2 } from 'lucide-react';
+import { useLanguage } from '../i18n';
 import { useInsurances } from '../context/InsurancesContext';
 import InsuranceTable from '../components/insurances/InsuranceTable';
 import InsuranceUpload from '../components/insurances/InsuranceUpload';
@@ -14,6 +15,8 @@ import { formatDate } from '../lib/utils';
 
 export default function InsurancesPage() {
   const { policies, allPolicies, loading, lastUploadDate, clearProfilePolicies, activeProfileId } = useInsurances();
+  const { t, language } = useLanguage();
+  const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
   const [lang, setLang] = useState<InsuranceLang>('he');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export default function InsurancesPage() {
   }, [policies, search, selectedCategory, selectedCompany]);
 
   if (loading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
   }
 
   return (
@@ -95,10 +98,10 @@ export default function InsurancesPage() {
         <div className="flex items-center gap-3">
           <Umbrella size={24} className="text-[#ec4899]" />
           <div>
-            <h1 className="text-[26px] font-bold text-white leading-tight">Insurances</h1>
+            <h1 className="text-[26px] font-bold text-white leading-tight">{t.insurances.title}</h1>
             <p className="text-[14px] text-[#7a7890] mt-1">
-              {policies.length} {policies.length === 1 ? 'policy' : 'policies'}
-              {lastUploadDate && <> · Updated {formatDate(lastUploadDate)}</>}
+              {policies.length} {policies.length === 1 ? t.insurances.policy : t.insurances.policies}
+              {lastUploadDate && <> · {t.insurances.updated} {formatDate(lastUploadDate, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</>}
             </p>
           </div>
         </div>
@@ -134,7 +137,7 @@ export default function InsurancesPage() {
                 className="flex items-center gap-2 px-4 py-2 text-[13px] text-[#7a7890] hover:text-white border border-[#1c1928] hover:border-[#2d2a40] rounded-lg transition-all"
               >
                 <Upload size={14} />
-                {policies.length > 0 ? 'Re-upload' : 'Upload'}
+                {policies.length > 0 ? t.insurances.reUpload : t.insurances.upload}
               </button>
               {policies.length > 0 && (
                 <button
@@ -164,7 +167,7 @@ export default function InsurancesPage() {
       {allPolicies.length === 0 && isAllTab && (
         <div className="text-center py-16">
           <p className="text-[14px] text-[#7a7890]">
-            No insurance data yet. Select a profile tab and upload a file to get started.
+            {t.insurances.noDataYet}
           </p>
         </div>
       )}
@@ -184,7 +187,7 @@ export default function InsurancesPage() {
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
               <input
                 type="text"
-                placeholder="Search policies..."
+                placeholder={t.insurances.searchPlaceholder}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
@@ -205,7 +208,7 @@ export default function InsurancesPage() {
                       : 'bg-white/[0.04] text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
                   }`}
                 >
-                  {lang === 'he' ? 'הכל' : 'All'}
+                  {t.common.all}
                 </button>
                 {categories.map(cat => (
                   <button
@@ -225,7 +228,7 @@ export default function InsurancesPage() {
             {/* Company */}
             {companies.length > 1 && (
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] text-[#4a4660] uppercase tracking-wider">{lang === 'he' ? 'חברה' : 'Company'}</span>
+                <span className="text-[11px] text-[#4a4660] uppercase tracking-wider">{t.insurances.company}</span>
                 {companies.map(co => (
                   <button
                     key={co}
@@ -253,21 +256,21 @@ export default function InsurancesPage() {
         open={clearOpen}
         onClose={() => setClearOpen(false)}
         onConfirm={clearProfilePolicies}
-        title="Delete insurance data for this profile?"
-        message="This will permanently remove all insurance policies for this profile. You can re-upload anytime."
-        confirmLabel="Delete"
+        title={t.insurances.deleteDataTitle}
+        message={t.insurances.deleteDataMessage}
+        confirmLabel={t.common.delete}
       />
 
       {/* Upload modal */}
       <Modal open={uploadOpen} onClose={() => setUploadOpen(false)}>
         <div className="p-6">
           <h3 className="text-[15px] font-semibold text-white mb-2">
-            {policies.length > 0 ? 'Re-upload Insurance Data' : 'Upload Insurance Data'}
+            {policies.length > 0 ? t.insurances.reUploadTitle : t.insurances.uploadTitle}
           </h3>
           <p className="text-[13px] text-[#7a7890] mb-6">
             {policies.length > 0
-              ? 'This will replace existing insurance data for this profile with the new file.'
-              : 'Upload a Har HaBituach file for this profile.'}
+              ? t.insurances.reUploadMessage
+              : t.insurances.uploadMessage}
           </p>
           <InsuranceUpload onDone={() => setUploadOpen(false)} />
           <HarbImportGuide lang={lang} />

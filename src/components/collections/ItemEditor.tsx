@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { CollectionField, CollectionItem } from '../../types';
+import { useLanguage } from '../../i18n';
 
 interface ItemEditorProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ItemEditorProps {
 }
 
 export default function ItemEditor({ open, onClose, onSave, fields, item }: ItemEditorProps) {
+  const { t } = useLanguage();
   const [data, setData] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
 
@@ -39,7 +41,7 @@ export default function ItemEditor({ open, onClose, onSave, fields, item }: Item
     <Modal open={open} onClose={onClose}>
       <form onSubmit={handleSubmit} className="p-6">
         <h3 className="text-[15px] font-semibold text-white mb-5">
-          {item ? 'Edit Item' : 'Add Item'}
+          {item ? t.collections.editItem : t.collections.addItem}
         </h3>
 
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -59,7 +61,7 @@ export default function ItemEditor({ open, onClose, onSave, fields, item }: Item
         </div>
 
         {fields.length === 0 && (
-          <p className="text-[13px] text-[#7a7890] py-4">No fields defined. Add fields in collection settings first.</p>
+          <p className="text-[13px] text-[#7a7890] py-4">{t.collections.noFieldsMessage}</p>
         )}
 
         <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-[#1c1928]">
@@ -68,14 +70,14 @@ export default function ItemEditor({ open, onClose, onSave, fields, item }: Item
             onClick={onClose}
             className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             type="submit"
             disabled={saving || fields.length === 0}
             className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t.common.saving : t.common.save}
           </button>
         </div>
       </form>
@@ -84,6 +86,7 @@ export default function ItemEditor({ open, onClose, onSave, fields, item }: Item
 }
 
 function FieldInput({ field, value, onChange }: { field: CollectionField; value: unknown; onChange: (v: unknown) => void }) {
+  const { t } = useLanguage();
   const baseClass = 'w-full bg-transparent border border-[#1c1928] rounded-lg px-3 py-2 text-[13px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors';
 
   switch (field.field_type) {
@@ -136,7 +139,7 @@ function FieldInput({ field, value, onChange }: { field: CollectionField; value:
           required={field.is_required}
           className={`${baseClass} bg-[#13111c]`}
         >
-          <option value="">Select...</option>
+          <option value="">{t.collections.selectPlaceholder}</option>
           {choices.map(c => (
             <option key={c} value={c}>{c}</option>
           ))}

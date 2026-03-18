@@ -4,12 +4,15 @@ import { AdminUser } from '../types';
 import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser, updateUserFeatures } from '../lib/admin';
 import { formatDate } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 const ALL_FEATURES = ['notes', 'challenges', 'insurances', 'subscriptions', 'collections'];
 
 export default function AdminPage() {
   const { user: currentUser } = useAuth();
+  const { t, language } = useLanguage();
+  const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -83,7 +86,7 @@ export default function AdminPage() {
   }).length;
 
   if (loading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
   }
 
   return (
@@ -91,18 +94,18 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Shield size={22} className="text-[#ec4899]" />
-        <h1 className="text-[22px] font-bold text-white">Admin</h1>
+        <h1 className="text-[22px] font-bold text-white">{t.admin.title}</h1>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <StatCard icon={Users} label="Total users" value={users.length} />
-        <StatCard icon={Clock} label="Pending users" value={pendingCount} />
-        <StatCard icon={Users} label="Active today" value={activeToday} />
-        <StatCard icon={StickyNote} label="Total notes" value={totalNotes} />
-        <StatCard icon={Umbrella} label="Total policies" value={totalPolicies} />
-        <StatCard icon={FolderOpen} label="Total collections" value={totalCollections} />
-        <StatCard icon={HardDrive} label="Total disk" value={formatBytes(users.reduce((sum, u) => sum + u.disk_usage, 0))} />
+        <StatCard icon={Users} label={t.admin.totalUsers} value={users.length} />
+        <StatCard icon={Clock} label={t.admin.pendingUsers} value={pendingCount} />
+        <StatCard icon={Users} label={t.admin.activeToday} value={activeToday} />
+        <StatCard icon={StickyNote} label={t.admin.totalNotes} value={totalNotes} />
+        <StatCard icon={Umbrella} label={t.admin.totalPolicies} value={totalPolicies} />
+        <StatCard icon={FolderOpen} label={t.admin.totalCollections} value={totalCollections} />
+        <StatCard icon={HardDrive} label={t.admin.totalDisk} value={formatBytes(users.reduce((sum, u) => sum + u.disk_usage, 0))} />
       </div>
 
       {/* Search */}
@@ -110,7 +113,7 @@ export default function AdminPage() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a4660]" />
         <input
           type="text"
-          placeholder="Search by email..."
+          placeholder={t.admin.searchPlaceholder}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full bg-[#13111c] border border-[#1c1928] rounded-lg pl-10 pr-4 py-2.5 text-[13px] text-white placeholder-[#4a4660] outline-none focus:border-[#ec4899]/50 transition-colors"
@@ -123,9 +126,9 @@ export default function AdminPage() {
         <table className="w-full text-[13px]">
           <thead>
             <tr className="bg-[#13111c] text-[#7a7890] text-left">
-              <th className="px-4 py-3 font-medium">Email</th>
-              <th className="px-4 py-3 font-medium">Signed up</th>
-              <th className="px-4 py-3 font-medium">Last active</th>
+              <th className="px-4 py-3 font-medium">{t.admin.email}</th>
+              <th className="px-4 py-3 font-medium">{t.admin.signedUp}</th>
+              <th className="px-4 py-3 font-medium">{t.admin.lastActive}</th>
               <th className="px-4 py-3 font-medium text-right">Notes</th>
               <th className="px-4 py-3 font-medium text-right">Policies</th>
               <th className="px-4 py-3 font-medium text-right">Collections</th>
@@ -141,10 +144,10 @@ export default function AdminPage() {
                   <div className="text-white">
                     {user.email}
                     {isPending(user) && (
-                      <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">Pending</span>
+                      <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">{t.common.pending}</span>
                     )}
                     {isSuspended(user) && (
-                      <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">Suspended</span>
+                      <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{t.common.suspended}</span>
                     )}
                   </div>
                   {!isSelf(user) && (
@@ -157,9 +160,9 @@ export default function AdminPage() {
                     />
                   )}
                 </td>
-                <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at)}</td>
+                <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</td>
                 <td className="px-4 py-3 text-[#7a7890]">
-                  {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : '—'}
+                  {user.last_sign_in_at ? formatDate(user.last_sign_in_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'}
                 </td>
                 <td className="px-4 py-3 text-[#7a7890] text-right">
                   {user.notes_count}
@@ -174,14 +177,14 @@ export default function AdminPage() {
                 <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
                 <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                   {isSelf(user) ? (
-                    <span className="text-[11px] text-[#4a4660]">You</span>
+                    <span className="text-[11px] text-[#4a4660]">{t.common.you}</span>
                   ) : (
                     <>
                       {isPending(user) && (
                         <button
                           onClick={() => setApproveTarget(user)}
                           className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
-                          title="Approve user"
+                          title={t.admin.approveUser}
                         >
                           <CheckCircle size={14} />
                         </button>
@@ -189,21 +192,21 @@ export default function AdminPage() {
                       <button
                         onClick={() => setSuspendTarget(user)}
                         className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
-                        title={isSuspended(user) ? 'Unsuspend user' : 'Suspend user'}
+                        title={isSuspended(user) ? t.admin.unsuspendUser : t.admin.suspendUser}
                       >
                         {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
                       </button>
                       <button
                         onClick={() => setDeleteTarget(user)}
                         className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                        title="Delete user data"
+                        title={t.admin.deleteUserData}
                       >
                         <Trash2 size={14} />
                       </button>
                       <button
                         onClick={() => setRemoveTarget(user)}
                         className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                        title="Remove user"
+                        title={t.admin.removeUser}
                       >
                         <UserMinus size={14} />
                       </button>
@@ -215,7 +218,7 @@ export default function AdminPage() {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-8 text-center text-[#7a7890]">
-                  No users found
+                  {t.admin.noUsersFound}
                 </td>
               </tr>
             )}
@@ -228,31 +231,31 @@ export default function AdminPage() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteData}
-        title="Delete user data"
-        message={`This will permanently delete all notes, collections, labels, and policies for ${deleteTarget?.email}. The user account itself will remain.`}
-        confirmLabel="Delete data"
+        title={t.admin.deleteUserData}
+        message={t.admin.deleteDataMessage.replace('{email}', deleteTarget?.email ?? '')}
+        confirmLabel={t.admin.deleteData}
       />
 
       <ConfirmDialog
         open={!!suspendTarget}
         onClose={() => setSuspendTarget(null)}
         onConfirm={handleToggleSuspend}
-        title={suspendTarget && isSuspended(suspendTarget) ? 'Unsuspend user' : 'Suspend user'}
+        title={suspendTarget && isSuspended(suspendTarget) ? t.admin.unsuspendUser : t.admin.suspendUser}
         message={
           suspendTarget && isSuspended(suspendTarget)
-            ? `Unsuspend user? ${suspendTarget?.email} will be able to sign in again.`
-            : `Suspend user? ${suspendTarget?.email} will not be able to sign in.`
+            ? t.admin.unsuspendMessage.replace('{email}', suspendTarget?.email ?? '')
+            : t.admin.suspendMessage.replace('{email}', suspendTarget?.email ?? '')
         }
-        confirmLabel={suspendTarget && isSuspended(suspendTarget) ? 'Unsuspend' : 'Suspend'}
+        confirmLabel={suspendTarget && isSuspended(suspendTarget) ? t.admin.unsuspend : t.admin.suspend}
       />
 
       <ConfirmDialog
         open={!!approveTarget}
         onClose={() => setApproveTarget(null)}
         onConfirm={handleApprove}
-        title="Approve user"
-        message={`Approve ${approveTarget?.email}? They will receive an email and gain access to Petek.`}
-        confirmLabel="Approve"
+        title={t.admin.approveUser}
+        message={t.admin.approveMessage.replace('{email}', approveTarget?.email ?? '')}
+        confirmLabel={t.admin.approve}
         variant="success"
       />
 
@@ -260,9 +263,9 @@ export default function AdminPage() {
         open={!!removeTarget}
         onClose={() => setRemoveTarget(null)}
         onConfirm={handleRemoveUser}
-        title="Remove user"
-        message={`This will permanently delete all data AND the account for ${removeTarget?.email}. This cannot be undone.`}
-        confirmLabel="Remove user"
+        title={t.admin.removeUser}
+        message={t.admin.removeMessage.replace('{email}', removeTarget?.email ?? '')}
+        confirmLabel={t.admin.removeUserLabel}
       />
     </div>
   );

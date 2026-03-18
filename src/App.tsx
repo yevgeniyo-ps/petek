@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LanguageProvider, useLanguage } from './i18n';
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
 import { FeaturesProvider } from './context/FeaturesContext';
@@ -26,7 +27,8 @@ const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const ChallengesPage = lazy(() => import('./pages/ChallengesPage'));
 
 function PageLoader() {
-  return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading...</div>;
+  const { t } = useLanguage();
+  return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
 }
 
 const FEATURE_ROUTES: Record<string, string> = {
@@ -50,6 +52,7 @@ function FeatureHome() {
 
 export default function App() {
   return (
+    <LanguageProvider>
     <HashRouter>
       <AuthProvider>
         <AuthGuard>
@@ -91,5 +94,6 @@ export default function App() {
         </AuthGuard>
       </AuthProvider>
     </HashRouter>
+    </LanguageProvider>
   );
 }

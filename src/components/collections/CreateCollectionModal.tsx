@@ -6,6 +6,7 @@ import { useCollections } from '../../context/CollectionsContext';
 import { useNavigate } from 'react-router-dom';
 import { FieldType, CollectionField } from '../../types';
 import { slugify } from '../../lib/utils';
+import { useLanguage } from '../../i18n';
 
 interface CreateCollectionModalProps {
   open: boolean;
@@ -33,6 +34,7 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
 export default function CreateCollectionModal({ open, onClose }: CreateCollectionModalProps) {
   const { createCollection } = useCollections();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('folder');
@@ -101,26 +103,26 @@ export default function CreateCollectionModal({ open, onClose }: CreateCollectio
       <div className="p-6">
         {step === 1 ? (
           <>
-            <h3 className="text-[15px] font-semibold text-white mb-5">New Collection</h3>
+            <h3 className="text-[15px] font-semibold text-white mb-5">{t.collections.newCollection}</h3>
 
             <div className="mb-4">
-              <label className="block text-[13px] text-[#b0adc0] mb-1.5">Name</label>
+              <label className="block text-[13px] text-[#b0adc0] mb-1.5">{t.common.name}</label>
               <input
                 autoFocus
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && name.trim()) setStep(2); }}
-                placeholder="e.g. Insurances, Subscriptions..."
+                placeholder={t.collections.namePlaceholder}
                 className="w-full bg-transparent border border-[#1c1928] rounded-lg px-3 py-2 text-[13px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors"
               />
               {name.trim() && (
-                <p className="text-[11px] text-[#4a4660] mt-1">slug: {slugify(name)}</p>
+                <p className="text-[11px] text-[#4a4660] mt-1">{t.collections.slug}: {slugify(name)}</p>
               )}
             </div>
 
             <div className="mb-5">
-              <label className="block text-[13px] text-[#b0adc0] mb-1.5">Icon</label>
+              <label className="block text-[13px] text-[#b0adc0] mb-1.5">{t.common.icon}</label>
               <IconPicker current={icon} onChange={setIcon} />
             </div>
 
@@ -130,15 +132,15 @@ export default function CreateCollectionModal({ open, onClose }: CreateCollectio
                 disabled={!name.trim()}
                 className="inline-flex items-center gap-1.5 px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50"
               >
-                Next
+                {t.common.next}
                 <ArrowRight size={14} />
               </button>
             </div>
           </>
         ) : (
           <>
-            <h3 className="text-[15px] font-semibold text-white mb-1">Define Fields</h3>
-            <p className="text-[12px] text-[#7a7890] mb-5">Add columns for your "{name}" collection. You can also add fields later.</p>
+            <h3 className="text-[15px] font-semibold text-white mb-1">{t.collections.defineFields}</h3>
+            <p className="text-[12px] text-[#7a7890] mb-5">{t.collections.addColumnsMessage.replace('{name}', name)}</p>
 
             <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
               {fields.map(field => (
@@ -147,7 +149,7 @@ export default function CreateCollectionModal({ open, onClose }: CreateCollectio
                     type="text"
                     value={field.name}
                     onChange={e => updateField(field.id, { name: e.target.value })}
-                    placeholder="Field name"
+                    placeholder={t.collections.fieldName}
                     className="flex-1 bg-transparent border border-[#1c1928] rounded-lg px-2.5 py-1.5 text-[13px] text-white placeholder-[#4a4660] outline-none focus:border-[#2d2a40]"
                   />
                   <select
@@ -174,7 +176,7 @@ export default function CreateCollectionModal({ open, onClose }: CreateCollectio
               className="inline-flex items-center gap-1.5 text-[13px] text-[#7a7890] hover:text-[#ec4899] transition-colors mb-5"
             >
               <Plus size={14} />
-              Add Field
+              {t.collections.addField}
             </button>
 
             {error && (
@@ -187,14 +189,14 @@ export default function CreateCollectionModal({ open, onClose }: CreateCollectio
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
               >
                 <ArrowLeft size={14} />
-                Back
+                {t.common.back}
               </button>
               <button
                 onClick={handleCreate}
                 disabled={creating}
                 className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50"
               >
-                {creating ? 'Creating...' : 'Create Collection'}
+                {creating ? t.common.creating : t.common.create}
               </button>
             </div>
           </>

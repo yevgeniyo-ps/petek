@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Subscription, Currency } from '../../types';
 import { toMonthly, formatAmount } from '../../lib/subscription-constants';
+import { useLanguage } from '../../i18n';
 
 interface Props {
   subscriptions: Subscription[];
@@ -9,6 +10,7 @@ interface Props {
 type Period = 'monthly' | 'yearly';
 
 export default function SubscriptionDashboard({ subscriptions }: Props) {
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<Period>('monthly');
 
   const stats = useMemo(() => {
@@ -64,7 +66,7 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
                     : 'text-[#4a4660] hover:text-[#7a7890]'
                 }`}
               >
-                Monthly
+                {t.subscriptions.monthly}
               </button>
               <button
                 onClick={() => setPeriod('yearly')}
@@ -74,7 +76,7 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
                     : 'text-[#4a4660] hover:text-[#7a7890]'
                 }`}
               >
-                Yearly
+                {t.subscriptions.yearly}
               </button>
             </div>
           </div>
@@ -84,7 +86,7 @@ export default function SubscriptionDashboard({ subscriptions }: Props) {
         <div className="bg-[#13111c] border border-[#1c1928] rounded-xl px-5 py-4">
           <div className="text-[22px] font-bold text-white tabular-nums">{stats.count}</div>
           <div className="text-[12px] text-[#7a7890] mt-0.5">
-            {stats.activeCount} active{stats.blockedCount > 0 && ` · ${stats.blockedCount} blocked`}
+            {stats.activeCount} {t.common.active.toLowerCase()}{stats.blockedCount > 0 && ` · ${stats.blockedCount} ${t.common.blocked.toLowerCase()}`}
           </div>
         </div>
 

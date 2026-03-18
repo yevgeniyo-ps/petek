@@ -1,4 +1,5 @@
 import Modal from './Modal';
+import { useLanguage } from '../../i18n';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -10,7 +11,9 @@ interface ConfirmDialogProps {
   variant?: 'danger' | 'success';
 }
 
-export default function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Delete', variant = 'danger' }: ConfirmDialogProps) {
+export default function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel, variant = 'danger' }: ConfirmDialogProps) {
+  const { t } = useLanguage();
+  const resolvedConfirmLabel = confirmLabel ?? t.common.delete;
   const btnClass = variant === 'success'
     ? 'bg-emerald-500 hover:bg-emerald-600'
     : 'bg-[#f87171] hover:bg-[#ef4444]';
@@ -25,13 +28,13 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
             onClick={onClose}
             className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
             className={`px-5 py-2 text-[13px] ${btnClass} text-white font-medium rounded-full transition-colors`}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>

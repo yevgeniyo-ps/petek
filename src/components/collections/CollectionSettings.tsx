@@ -8,6 +8,7 @@ import { useCollections } from '../../context/CollectionsContext';
 import { Collection, CollectionField } from '../../types';
 import { slugify } from '../../lib/utils';
 import { getCollectionIcon } from '../../lib/icons';
+import { useLanguage } from '../../i18n';
 
 interface CollectionSettingsProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface CollectionSettingsProps {
 }
 
 export default function CollectionSettings({ open, onClose, collection, fields, onDeleted }: CollectionSettingsProps) {
+  const { t } = useLanguage();
   const { updateCollection, deleteCollection, createField, updateField, deleteField, refreshFields } = useCollections();
   const [name, setName] = useState(collection.name);
   const [icon, setIcon] = useState(collection.icon);
@@ -84,11 +86,11 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
     <>
       <Modal open={open} onClose={onClose}>
         <div className="p-6 max-h-[80vh] overflow-y-auto">
-          <h3 className="text-[15px] font-semibold text-white mb-5">Collection Settings</h3>
+          <h3 className="text-[15px] font-semibold text-white mb-5">{t.collections.collectionSettings}</h3>
 
           {/* Name */}
           <div className="mb-4">
-            <label className="block text-[13px] text-[#b0adc0] mb-1.5">Name</label>
+            <label className="block text-[13px] text-[#b0adc0] mb-1.5">{t.common.name}</label>
             <input
               type="text"
               value={name}
@@ -99,7 +101,7 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
 
           {/* Icon */}
           <div className="mb-6">
-            <label className="block text-[13px] text-[#b0adc0] mb-1.5">Icon</label>
+            <label className="block text-[13px] text-[#b0adc0] mb-1.5">{t.common.icon}</label>
             <button
               onClick={() => setShowIconPicker(!showIconPicker)}
               className="flex items-center gap-2 px-3 py-2 border border-[#1c1928] rounded-lg text-[13px] text-[#e0dfe4] hover:border-[#2d2a40] transition-colors"
@@ -120,13 +122,13 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
           {/* Fields */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-[13px] text-[#b0adc0]">Fields</label>
+              <label className="text-[13px] text-[#b0adc0]">{t.common.fields}</label>
               <button
                 onClick={handleAddField}
                 className="inline-flex items-center gap-1 text-[12px] text-[#7a7890] hover:text-[#ec4899] transition-colors"
               >
                 <Plus size={12} />
-                Add
+                {t.common.add}
               </button>
             </div>
             <div className="space-y-2">
@@ -143,7 +145,7 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
                 />
               ))}
               {fields.length === 0 && (
-                <p className="text-[12px] text-[#4a4660] py-4 text-center">No fields yet.</p>
+                <p className="text-[12px] text-[#4a4660] py-4 text-center">{t.common.noFieldsYet}</p>
               )}
             </div>
           </div>
@@ -154,21 +156,21 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
               onClick={() => setConfirmDelete(true)}
               className="text-[13px] text-red-400 hover:text-red-300 transition-colors"
             >
-              Delete Collection
+              {t.collections.deleteCollection}
             </button>
             <div className="flex gap-2.5">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !name.trim()}
                 className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? t.common.saving : t.common.save}
               </button>
             </div>
           </div>
@@ -179,8 +181,8 @@ export default function CollectionSettings({ open, onClose, collection, fields, 
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
-        title="Delete Collection"
-        message={`Are you sure you want to delete "${collection.name}"? All items in this collection will be permanently deleted.`}
+        title={t.collections.deleteCollection}
+        message={t.collections.deleteCollectionMessage.replace('{name}', collection.name)}
       />
     </>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pin, PinOff, Smile, Trash2, ArchiveRestore, Archive, Star, Tag } from 'lucide-react';
 import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 import { Label } from '../../types';
+import { useLanguage } from '../../i18n';
 
 interface NoteToolbarProps {
   isPinned: boolean;
@@ -25,6 +26,7 @@ export default function NoteToolbar({
 }: NoteToolbarProps) {
   const [showIcons, setShowIcons] = useState(false);
   const [showLabels, setShowLabels] = useState(false);
+  const { t } = useLanguage();
 
   const btnClass = "p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors";
 
@@ -34,10 +36,10 @@ export default function NoteToolbar({
     <div className="flex items-center gap-1 relative">
       {!isArchived && (
         <>
-          <button onClick={onTogglePin} className={btnClass} title={isPinned ? 'Unpin' : 'Pin'}>
+          <button onClick={onTogglePin} className={btnClass} title={isPinned ? t.notes.unpin : t.notes.pin}>
             {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
           </button>
-          <button onClick={onToggleImportant} className={`p-2 rounded-lg transition-colors ${isImportant ? 'text-[#ec4899] hover:bg-white/[0.06]' : btnClass}`} title={isImportant ? 'Unstar' : 'Star'}>
+          <button onClick={onToggleImportant} className={`p-2 rounded-lg transition-colors ${isImportant ? 'text-[#ec4899] hover:bg-white/[0.06]' : btnClass}`} title={isImportant ? t.notes.unstar : t.notes.star}>
             <Star size={16} className={isImportant ? 'fill-[#ec4899]' : ''} />
           </button>
           <div className="relative">
@@ -55,7 +57,7 @@ export default function NoteToolbar({
           </div>
           {labels && onLabelChange && (
             <div className="relative">
-              <button onClick={() => setShowLabels(!showLabels)} className={`p-2 rounded-lg transition-colors ${currentLabelId ? 'text-[#f472b6] hover:bg-white/[0.06]' : btnClass}`} title="Category">
+              <button onClick={() => setShowLabels(!showLabels)} className={`p-2 rounded-lg transition-colors ${currentLabelId ? 'text-[#f472b6] hover:bg-white/[0.06]' : btnClass}`} title={t.notes.category}>
                 <Tag size={16} />
               </button>
               {showLabels && (
@@ -68,7 +70,7 @@ export default function NoteToolbar({
                         !currentLabelId ? 'text-[#f472b6]' : 'text-[#c0bfd0]'
                       }`}
                     >
-                      Uncategorized
+                      {t.notes.uncategorized}
                     </button>
                     {labels.map(l => (
                       <button
@@ -88,7 +90,7 @@ export default function NoteToolbar({
             </div>
           )}
           {onArchive && (
-            <button onClick={onArchive} className={btnClass} title="Archive">
+            <button onClick={onArchive} className={btnClass} title={t.notes.archive}>
               <Archive size={16} />
             </button>
           )}
@@ -97,12 +99,12 @@ export default function NoteToolbar({
       {isArchived && (
         <>
           {onRestore && (
-            <button onClick={onRestore} className={btnClass} title="Restore">
+            <button onClick={onRestore} className={btnClass} title={t.notes.restore}>
               <ArchiveRestore size={16} />
             </button>
           )}
           {onDelete && (
-            <button onClick={onDelete} className="p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#f87171] transition-colors" title="Delete permanently">
+            <button onClick={onDelete} className="p-2 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#f87171] transition-colors" title={t.notes.deletePermanently}>
               <Trash2 size={16} />
             </button>
           )}

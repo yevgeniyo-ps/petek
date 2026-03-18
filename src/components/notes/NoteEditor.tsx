@@ -5,6 +5,7 @@ import IconPicker, { ICON_MAP } from '../ui/IconPicker';
 import { Note } from '../../types';
 import { useLabels } from '../../context/LabelsContext';
 import { useTags } from '../../context/TagsContext';
+import { useLanguage } from '../../i18n';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -16,6 +17,7 @@ interface NoteEditorProps {
 export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorProps) {
   const { labels, getLabelsForNote } = useLabels();
   const { getTagsForLabel, getTagsForNote, addTagToNote, removeTagFromNote } = useTags();
+  const { t } = useLanguage();
   const [isStarred, setIsStarred] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -96,7 +98,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
       <div className="bg-[#13111c]">
         <input
           type="text"
-          placeholder="Title"
+          placeholder={t.notes.titlePlaceholder}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-6 pt-6 pb-2 bg-transparent text-white text-[16px] font-semibold placeholder-[#4a4660] outline-none"
@@ -131,7 +133,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
             ref={textareaRef}
             value={content}
             onChange={(e) => { setContent(e.target.value); autoResize(); }}
-            placeholder="Write your note... (supports markdown)"
+            placeholder={t.notes.contentPlaceholder}
             className="w-full bg-transparent text-[14px] text-[#e0dfe4] placeholder-[#4a4660] outline-none resize-none leading-relaxed font-mono"
             style={{ minHeight: 200 }}
             onKeyDown={(e) => {
@@ -153,7 +155,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
               <button
                 onClick={() => setShowIconPicker(!showIconPicker)}
                 className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0] transition-colors flex items-center gap-1.5"
-                title="Pick icon"
+                title={t.notes.pickIcon}
               >
                 {emoji && ICON_MAP[emoji] ? (() => { const I = ICON_MAP[emoji]; return <I size={16} />; })() : <Smile size={16} />}
               </button>
@@ -168,7 +170,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
               className={`p-1.5 rounded-lg transition-colors ${
                 isStarred ? 'text-[#ec4899] hover:bg-white/[0.06]' : 'hover:bg-white/[0.06] text-[#6b6882] hover:text-[#b0adc0]'
               }`}
-              title={isStarred ? 'Unstar' : 'Star'}
+              title={isStarred ? t.notes.unstar : t.notes.star}
             >
               <Star size={16} className={isStarred ? 'fill-[#ec4899]' : ''} />
             </button>
@@ -182,7 +184,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
                       : 'text-[#6b6882] hover:text-[#b0adc0] hover:bg-white/[0.06]'
                   }`}
                 >
-                  <span>{selectedLabel?.name ?? 'Category'}</span>
+                  <span>{selectedLabel?.name ?? t.notes.category}</span>
                   <ChevronDown size={12} />
                 </button>
                 {showCategoryPicker && (
@@ -193,7 +195,7 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
                         !selectedLabelId ? 'text-[#f472b6]' : 'text-[#c0bfd0]'
                       }`}
                     >
-                      Uncategorized
+                      {t.notes.uncategorized}
                     </button>
                     {labels.map(label => (
                       <button
@@ -217,14 +219,14 @@ export default function NoteEditor({ note, open, onClose, onSave }: NoteEditorPr
               onClick={onClose}
               className="px-4 py-2 text-[13px] text-[#7a7890] hover:text-white rounded-lg hover:bg-white/[0.04] transition-all"
             >
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
               className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-all disabled:opacity-50"
             >
-              {saving ? '...' : 'Save'}
+              {saving ? '...' : t.common.save}
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { CollectionField, CollectionItem } from '../../types';
 import FieldRenderer from './FieldRenderer';
+import { useLanguage } from '../../i18n';
 
 interface CollectionTableProps {
   fields: CollectionField[];
@@ -10,10 +11,12 @@ interface CollectionTableProps {
 }
 
 export default function CollectionTable({ fields, items, onItemClick, onDeleteItem }: CollectionTableProps) {
+  const { t } = useLanguage();
+
   if (fields.length === 0) {
     return (
       <div className="rounded-xl border border-[#1c1928] bg-[#0f0d18] py-16 text-center">
-        <p className="text-[14px] text-[#7a7890]">No fields defined yet. Open settings to add fields.</p>
+        <p className="text-[14px] text-[#7a7890]">{t.collections.noFieldsDefined}</p>
       </div>
     );
   }
@@ -51,7 +54,7 @@ export default function CollectionTable({ fields, items, onItemClick, onDeleteIt
                   <button
                     onClick={e => { e.stopPropagation(); onDeleteItem(item.id); }}
                     className="opacity-0 group-hover:opacity-100 text-[#7a7890] hover:text-red-400 transition-all p-1"
-                    title="Delete item"
+                    title={t.collections.deleteItem}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -64,7 +67,7 @@ export default function CollectionTable({ fields, items, onItemClick, onDeleteIt
 
       {items.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-[14px] text-[#7a7890]">No items yet. Add one to get started.</p>
+          <p className="text-[14px] text-[#7a7890]">{t.collections.noItemsYet}</p>
         </div>
       )}
     </div>

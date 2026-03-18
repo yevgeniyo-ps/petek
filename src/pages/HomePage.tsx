@@ -19,6 +19,7 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useNotes } from '../context/NotesContext';
 import { useLabels } from '../context/LabelsContext';
 import { useTags } from '../context/TagsContext';
+import { useLanguage } from '../i18n';
 import NoteEditor from '../components/notes/NoteEditor';
 import NoteCard from '../components/notes/NoteCard';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -66,6 +67,7 @@ export default function HomePage() {
   const { notes, loading, createNote, updateNote, reorderNotes } = useNotes();
   const { labels, getLabelsForNote, getNoteIdsForLabel, createLabel, deleteLabel, reorderLabels, addLabelToNote, removeLabelFromNote } = useLabels();
   const { getTagsForLabel, getNoteIdsForTag, createTag } = useTags();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editorOpen, setEditorOpen] = useState(false);
@@ -243,15 +245,15 @@ export default function HomePage() {
   };
 
   if (loading) {
-    return <div className="text-[#7a7890] text-[14px] text-center pt-40">Loading notes...</div>;
+    return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.notes.loadingNotes}</div>;
   }
 
   return (
     <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
       {/* Page header */}
       <div className="mb-1">
-        <h1 className="text-[26px] font-bold text-white leading-tight">Notes</h1>
-        <p className="text-[14px] text-[#7a7890] mt-1">Create and manage your markdown notes</p>
+        <h1 className="text-[26px] font-bold text-white leading-tight">{t.notes.title}</h1>
+        <p className="text-[14px] text-[#7a7890] mt-1">{t.notes.subtitle}</p>
       </div>
 
       {/* Toolbar */}
@@ -260,7 +262,7 @@ export default function HomePage() {
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7890]" />
           <input
             type="text"
-            placeholder="Search notes..."
+            placeholder={t.notes.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 pr-5 py-2 bg-transparent border border-[#1c1928] rounded-full text-[13px] text-[#e0dfe4] placeholder-[#4a4660] outline-none focus:border-[#2d2a40] transition-colors w-full md:w-72"
@@ -273,10 +275,10 @@ export default function HomePage() {
               ? 'bg-[#ec4899]/20 text-[#f472b6]'
               : 'text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.04]'
           }`}
-          title="Filter starred"
+          title={t.notes.filterStarred}
         >
           <Star size={13} className={filterImportant ? 'fill-[#f472b6]' : ''} />
-          <span>Starred</span>
+          <span>{t.notes.starred}</span>
         </button>
       </div>
 
@@ -308,7 +310,7 @@ export default function HomePage() {
               : 'bg-white/[0.04] text-[#7a7890] hover:text-[#b0adc0] hover:bg-white/[0.06]'
           }`}
         >
-          Uncategorized
+          {t.notes.uncategorized}
         </button>
         {addingCategory ? (
           <input
@@ -321,17 +323,17 @@ export default function HomePage() {
               if (e.key === 'Escape') { setAddingCategory(false); setNewCategoryName(''); }
             }}
             onBlur={handleCreateCategory}
-            placeholder="Category name..."
+            placeholder={t.notes.categoryPlaceholder}
             className="px-3 py-1 rounded-full bg-transparent border border-[#2d2a40] text-[12px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50 w-32"
           />
         ) : (
           <button
             onClick={() => setAddingCategory(true)}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] text-[#7a7890] hover:text-[#ec4899] hover:bg-white/[0.04] transition-colors"
-            title="Add category"
+            title={t.notes.addCategory}
           >
             <Plus size={12} />
-            <span>Category</span>
+            <span>{t.notes.category}</span>
           </button>
         )}
       </div>
@@ -363,17 +365,17 @@ export default function HomePage() {
                 if (e.key === 'Escape') { setAddingTag(false); setNewTagName(''); }
               }}
               onBlur={handleCreateTag}
-              placeholder="Tag name..."
+              placeholder={t.notes.tagPlaceholder}
               className="px-2.5 py-0.5 rounded-md bg-transparent border border-[#2d2a40] text-[11px] text-white placeholder-[#6b6882] outline-none focus:border-[#ec4899]/50 w-24"
             />
           ) : (
             <button
               onClick={() => setAddingTag(true)}
               className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[11px] text-[#4a4660] hover:text-[#ec4899] hover:bg-white/[0.04] transition-colors"
-              title="Add tag"
+              title={t.notes.addTag}
             >
               <Plus size={10} />
-              <span>Tag</span>
+              <span>{t.notes.tag}</span>
             </button>
           )}
         </div>
@@ -384,7 +386,7 @@ export default function HomePage() {
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-[#1c1928] bg-[#0f0d18] py-24 text-center">
           <p className="text-[14px] text-[#7a7890]">
-            {search ? 'No notes found matching your criteria.' : 'No notes yet. Create one to get started.'}
+            {search ? t.notes.noNotesSearch : t.notes.noNotes}
           </p>
         </div>
       ) : (
@@ -416,7 +418,7 @@ export default function HomePage() {
           className="mt-10 mx-auto flex items-center gap-2 text-[13px] text-[#7a7890] hover:text-[#b0adc0] transition-colors"
         >
           <Archive size={14} />
-          <span>{notes.filter(n => n.is_archived).length} archived notes</span>
+          <span>{notes.filter(n => n.is_archived).length} {t.notes.archivedNotes}</span>
         </button>
       )}
 
@@ -430,7 +432,7 @@ export default function HomePage() {
       <button
         onClick={handleNewNote}
         className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#ec4899] hover:bg-[#db2777] text-white shadow-lg shadow-[#ec4899]/25 hover:shadow-[#ec4899]/40 transition-all flex items-center justify-center z-30"
-        title="New Note"
+        title={t.notes.newNote}
       >
         <Plus size={24} strokeWidth={2.5} />
       </button>
@@ -447,8 +449,8 @@ export default function HomePage() {
             deleteLabel(deletingLabelId);
           }
         }}
-        title="Delete category?"
-        message="This category will be permanently deleted. Notes in this category will not be deleted."
+        title={t.notes.deleteCategoryTitle}
+        message={t.notes.deleteCategoryMessage}
       />
     </div>
   );

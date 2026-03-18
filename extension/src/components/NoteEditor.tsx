@@ -3,6 +3,7 @@ import { Note } from '@shared/types';
 import { useNotes } from '@shared/context/NotesContext';
 import { useLabels } from '@shared/context/LabelsContext';
 import { useTags } from '@shared/context/TagsContext';
+import { useLanguage } from '@shared/i18n';
 import { NoteToolbar } from './NoteToolbar';
 import { X, Tag, SmilePlus } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
   const { notes, createNote, updateNote } = useNotes();
   const { labels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
   const { getTagsForLabel, getTagsForNote, addTagToNote, removeTagFromNote } = useTags();
+  const { t } = useLanguage();
 
   // Get live note from context so toolbar actions (star, pin) reflect immediately
   const note = initialNote ? notes.find(n => n.id === initialNote.id) ?? initialNote : null;
@@ -99,7 +101,7 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
             disabled={saving}
             className="px-3 py-1.5 bg-pink-500 hover:bg-pink-600 text-white text-xs font-medium rounded-md transition-colors disabled:opacity-50"
           >
-            {saving ? '...' : 'Save'}
+            {saving ? '...' : t.common.save}
           </button>
         </div>
       </div>
@@ -132,7 +134,7 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
 
           <input
             type="text"
-            placeholder="Title"
+            placeholder={t.notes.titlePlaceholder}
             value={title}
             onChange={e => setTitle(e.target.value)}
             className="flex-1 bg-transparent text-white text-lg font-medium placeholder-[#4a4660] focus:outline-none"
@@ -151,14 +153,14 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
             <button
               onClick={() => setShowLabelPicker(!showLabelPicker)}
               className="p-1 rounded text-[#7a7890] hover:text-white hover:bg-white/5 transition-colors"
-              title="Manage labels"
+              title={t.ext.manageLabels}
             >
               <Tag size={14} />
             </button>
             {showLabelPicker && (
               <div className="absolute top-8 left-0 bg-[#13111c] border border-[#1c1928] rounded-lg p-2 min-w-[160px] z-10 shadow-xl">
                 {labels.length === 0 ? (
-                  <p className="text-xs text-[#4a4660] px-2 py-1">No labels</p>
+                  <p className="text-xs text-[#4a4660] px-2 py-1">{t.ext.noLabels}</p>
                 ) : (
                   labels.map(label => (
                     <button
@@ -212,7 +214,7 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
           ref={textareaRef}
           value={content}
           onChange={(e) => { setContent(e.target.value); autoResize(); }}
-          placeholder="Write your note... (supports markdown)"
+          placeholder={t.notes.contentPlaceholder}
           className="flex-1 bg-transparent text-sm text-[#e0dfe4] placeholder-[#4a4660] outline-none resize-none leading-relaxed font-mono"
           style={{ minHeight: 200 }}
           onKeyDown={(e) => {

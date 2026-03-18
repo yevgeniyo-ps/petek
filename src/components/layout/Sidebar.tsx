@@ -7,6 +7,7 @@ import { getCollectionIcon } from '../../lib/icons';
 import { useGravatar } from '../../hooks/useGravatar';
 import { useAdmin } from '../../context/AdminContext';
 import { useFeatures } from '../../context/FeaturesContext';
+import { useLanguage, type Language } from '../../i18n';
 import CreateCollectionModal from '../collections/CreateCollectionModal';
 import SettingsModal, { loadMenuSettings, type MenuSettings } from './SettingsModal';
 
@@ -24,6 +25,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   const { collections } = useCollections();
   const { isAdmin } = useAdmin();
   const { features, hasFeature } = useFeatures();
+  const { language, setLanguage, t } = useLanguage();
   const avatarUrl = useGravatar(user?.email ?? undefined, 64);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
@@ -59,16 +61,16 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
           {hasFeature('notes') && menuSettings.notes && (
-            <NavItem icon={StickyNote} label="Notes" active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => handleNav('/')} collapsed={!open} />
+            <NavItem icon={StickyNote} label={t.sidebar.notes} active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => handleNav('/')} collapsed={!open} />
           )}
           {hasFeature('insurances') && menuSettings.insurances && (
-            <NavItem icon={Umbrella} label="Insurances" active={location.pathname === '/insurances'} onClick={() => handleNav('/insurances')} collapsed={!open} />
+            <NavItem icon={Umbrella} label={t.sidebar.insurances} active={location.pathname === '/insurances'} onClick={() => handleNav('/insurances')} collapsed={!open} />
           )}
           {hasFeature('subscriptions') && menuSettings.subscriptions && (
-            <NavItem icon={RepeatIcon} label="Subscriptions" active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
+            <NavItem icon={RepeatIcon} label={t.sidebar.subscriptions} active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
           )}
           {hasFeature('challenges') && menuSettings.challenges && (
-            <NavItem icon={Trophy} label="Challenges" active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
+            <NavItem icon={Trophy} label={t.sidebar.challenges} active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
           )}
 
           {/* Collections */}
@@ -78,11 +80,11 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
                 <div className={`mt-4 pt-4 border-t border-white/[0.06] space-y-1`}>
                   {open && (
                     <div className="flex items-center justify-between px-3 mb-1">
-                      <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">Collections</span>
+                      <span className="text-[11px] font-medium text-[#7a7890] uppercase tracking-wider">{t.sidebar.collections}</span>
                       <button
                         onClick={() => setCreateCollectionOpen(true)}
                         className="text-[#7a7890] hover:text-[#ec4899] transition-colors"
-                        title="New collection"
+                        title={t.sidebar.newCollection}
                       >
                         <Plus size={12} />
                       </button>
@@ -110,7 +112,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
                     className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
                   >
                     <Plus size={16} className="shrink-0" />
-                    <span>New Collection</span>
+                    <span>{t.sidebar.newCollection}</span>
                   </button>
                 </div>
               )}
@@ -119,7 +121,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
                   <button
                     onClick={() => setCreateCollectionOpen(true)}
                     className="w-full flex justify-center py-2 text-[#7a7890] hover:text-[#ec4899] transition-colors rounded-lg"
-                    title="New collection"
+                    title={t.sidebar.newCollection}
                   >
                     <Plus size={16} />
                   </button>
@@ -132,7 +134,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
         {/* Admin */}
         {isAdmin && (
           <div className={`${open ? 'px-4' : 'px-2'} mb-1`}>
-            <NavItem icon={Shield} label="Admin" active={location.pathname === '/admin'} onClick={() => handleNav('/admin')} collapsed={!open} />
+            <NavItem icon={Shield} label={t.sidebar.admin} active={location.pathname === '/admin'} onClick={() => handleNav('/admin')} collapsed={!open} />
           </div>
         )}
 
@@ -174,15 +176,30 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
             >
               <Settings size={14} />
-              <span>Settings</span>
+              <span>{t.sidebar.settings}</span>
             </button>
+            <div className="flex items-center gap-1 px-3 py-1.5">
+              {(['en', 'ru', 'he', 'es'] as Language[]).map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                    language === lang
+                      ? 'bg-[#ec4899] text-white'
+                      : 'text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
+                  }`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
             {isChrome && (
               <button
                 onClick={() => { setExtensionModalOpen(true); setUserMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
               >
                 <PanelRight size={14} />
-                <span>Extension</span>
+                <span>{t.sidebar.extension}</span>
               </button>
             )}
             <button
@@ -190,7 +207,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
             >
               <LogOut size={14} />
-              <span>Sign out</span>
+              <span>{t.sidebar.signOut}</span>
             </button>
           </div>
         </>
@@ -218,6 +235,7 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
 const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/petek-notes/ciahcljbpomjlilcenkgbokplgediceb';
 
 function ExtensionModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/60" onClick={onClose} />
@@ -228,26 +246,26 @@ function ExtensionModal({ onClose }: { onClose: () => void }) {
               <PanelRight size={20} className="text-[#ec4899]" />
             </div>
             <div>
-              <h2 className="text-white font-semibold text-base">Petek Notes Extension</h2>
-              <p className="text-[#7a7890] text-xs">Quick access from Chrome sidebar</p>
+              <h2 className="text-white font-semibold text-base">{t.ext.extensionTitle}</h2>
+              <p className="text-[#7a7890] text-xs">{t.ext.extensionSubtitle}</p>
             </div>
           </div>
 
           <div className="space-y-3 text-[13px] text-[#b0adc0]">
-            <p>Access your notes directly from Chrome's side panel without leaving your current tab.</p>
+            <p>{t.ext.extensionDescription}</p>
 
             <ul className="space-y-2 text-[#7a7890]">
               <li className="flex items-start gap-2">
                 <span className="text-[#ec4899] mt-0.5">1.</span>
-                <span>Click <span className="text-[#b0adc0]">Add to Chrome</span> below to install from the Chrome Web Store</span>
+                <span>{t.ext.step1}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#ec4899] mt-0.5">2.</span>
-                <span>Click the extension icon in your toolbar to open the side panel</span>
+                <span>{t.ext.step2}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#ec4899] mt-0.5">3.</span>
-                <span>Your session syncs automatically — no sign-in needed</span>
+                <span>{t.ext.step3}</span>
               </li>
             </ul>
           </div>
@@ -263,14 +281,14 @@ function ExtensionModal({ onClose }: { onClose: () => void }) {
               <path d="M24 14c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10z" fill="#fff"/>
               <circle cx="24" cy="24" r="4" fill="#ec4899"/>
             </svg>
-            Add to Chrome
+            {t.ext.addToChrome}
           </a>
 
           <button
             onClick={onClose}
             className="mt-2 w-full py-2 text-[#7a7890] hover:text-white text-sm transition-colors"
           >
-            Close
+            {t.common.close}
           </button>
         </div>
       </div>

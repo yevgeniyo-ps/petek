@@ -12,6 +12,7 @@ import { useTags } from '../../context/TagsContext';
 import NoteToolbar from './NoteToolbar';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { ICON_MAP } from '../ui/IconPicker';
+import { useLanguage } from '../../i18n';
 
 interface NoteCardProps {
   note: Note;
@@ -20,6 +21,8 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
+  const { t, language } = useLanguage();
+  const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
   const { updateNote, deleteNote } = useNotes();
   const { labels: allLabels, getLabelsForNote, addLabelToNote, removeLabelFromNote } = useLabels();
   const { getTagsForNote } = useTags();
@@ -119,7 +122,7 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             currentLabelId={currentLabelId}
             onLabelChange={handleLabelChange}
           />
-          <span className="text-[11px] text-[#4a4660]">{formatDate(note.updated_at)}</span>
+          <span className="text-[11px] text-[#4a4660]">{formatDate(note.updated_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</span>
         </div>
       </div>
 
@@ -127,8 +130,8 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
         onConfirm={() => deleteNote(note.id)}
-        title="Delete forever?"
-        message="This note will be permanently deleted."
+        title={t.notes.deleteForever}
+        message={t.notes.deleteForeverMessage}
       />
     </>
   );

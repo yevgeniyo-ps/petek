@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@shared/config/supabase';
+import { useLanguage } from '@shared/i18n';
 
 interface ExtAuthContextType {
   session: Session | null;
@@ -156,6 +157,7 @@ export function ExtAuthProvider({ children }: { children: ReactNode }) {
 
 function LoginForm({ initError }: { initError: string }) {
   const { signInWithGoogle } = useExtAuth();
+  const { t } = useLanguage();
   const [error, setError] = useState(initError);
   const [submitting, setSubmitting] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState('');
@@ -183,7 +185,7 @@ function LoginForm({ initError }: { initError: string }) {
         <h1 className="text-2xl font-semibold text-white tracking-tight">
           petek<span className="text-pink-500">.</span>
         </h1>
-        <p className="text-[#7a7890] text-sm mt-1">Sign in to your notes</p>
+        <p className="text-[#7a7890] text-sm mt-1">{t.auth.signInToNotes}</p>
       </div>
 
       <div className="w-full max-w-[280px] space-y-3">
@@ -203,7 +205,7 @@ function LoginForm({ initError }: { initError: string }) {
               <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
             </svg>
           )}
-          Continue with Google
+          {t.auth.continueWithGoogle}
         </button>
 
         {error && (
@@ -212,7 +214,7 @@ function LoginForm({ initError }: { initError: string }) {
             {redirectUrl && (
               <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3 space-y-1.5">
                 <p className="text-[#7a7890] text-[10px] leading-tight">
-                  Add this URL to Supabase → Authentication → URL Configuration → Redirect URLs:
+                  {t.ext.supabaseRedirectMessage}
                 </p>
                 <p className="text-pink-400 text-[10px] break-all font-mono select-all">{redirectUrl}</p>
               </div>

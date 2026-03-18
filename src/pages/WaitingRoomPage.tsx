@@ -1,9 +1,11 @@
 import { Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n';
 import AbstractAnimation from '../components/auth/AbstractAnimation';
 
 export default function WaitingRoomPage() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#0c0a12] flex items-center justify-center relative overflow-hidden">
@@ -21,10 +23,10 @@ export default function WaitingRoomPage() {
         </div>
 
         <h2 className="text-[18px] font-semibold text-white mb-2">
-          You're on the waiting list
+          {t.auth.waitingListTitle}
         </h2>
         <p className="text-[14px] text-[#7a7890] mb-8 leading-relaxed">
-          We'll send you an email at{' '}
+          {t.auth.waitingListMessage}{' '}
           <span className="text-[#e0dfe4]">{user?.email}</span>{' '}
           once your access is approved.
         </p>
@@ -33,7 +35,7 @@ export default function WaitingRoomPage() {
           onClick={signOut}
           className="text-[13px] text-[#7a7890] hover:text-white transition-colors"
         >
-          Sign out
+          {t.auth.signOut}
         </button>
       </div>
     </div>
