@@ -471,12 +471,11 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onLeave?: () => void;
   onRemoveParticipant?: (userId: string) => void;
 }) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const isActive = challenge.status === 'active';
   const isOwner = challenge.user_id === userId;
   const isShared = !!challenge.invite_code;
   const daysRemaining = getDaysRemaining(challenge.end_date);
-  const totalDays = getTotalDays(challenge.start_date, challenge.end_date);
   const [extending, setExtending] = useState(false);
   const [newEndDate, setNewEndDate] = useState(challenge.end_date);
   const [editing, setEditing] = useState(false);
@@ -526,9 +525,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Find owner participant for "by" label
-  const ownerParticipant = challenge.participants?.find(p => p.user_id === challenge.user_id);
 
   return (
     <div className={`rounded-xl border p-5 transition-colors min-w-0 ${
