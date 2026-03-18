@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Petek Notes",
+  "name": "petek.app",
   "version": "1.0.0",
   "description": "Quick access to your Petek notes from the browser sidebar",
   "permissions": ["sidePanel", "storage", "identity", "scripting"],
@@ -17,6 +17,6 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "Open Petek Notes"
+    "default_title": "Open petek.app"
   }
 }
