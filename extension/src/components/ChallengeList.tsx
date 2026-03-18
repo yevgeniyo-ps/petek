@@ -593,7 +593,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             <Pencil size={10} />
           </button>
         )}
-        <div className="relative shrink-0">
+        {expanded && <div className="relative shrink-0">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-0.5 rounded text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-colors"
@@ -641,7 +641,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
               </div>
             </>
           )}
-        </div>
+        </div>}
       </div>
 
       {expanded && (

@@ -592,7 +592,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             <Pencil size={12} />
           </button>
         )}
-        <div className="relative shrink-0">
+        {expanded && <div className="relative shrink-0">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-1 rounded-lg text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-colors"
@@ -650,7 +650,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
               </div>
             </>
           )}
-        </div>
+        </div>}
       </div>
 
       {/* Expanded content */}
