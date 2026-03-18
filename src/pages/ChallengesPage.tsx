@@ -465,7 +465,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onLeave?: () => void;
   onRemoveParticipant?: (userId: string) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isActive = challenge.status === 'active';
   const isOwner = challenge.user_id === userId;
   const isShared = !!challenge.invite_code;
@@ -569,6 +569,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           <span className="text-[13px] text-[#7a7890] ml-2">
             {daysRemaining === 1 ? t.challenges.dayLeft : t.challenges.daysLeft}
           </span>
+          <div className="text-[11px] text-[#4a4660] mt-1">
+            {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
+          </div>
         </div>
       ) : (
         <div className="mb-3">
