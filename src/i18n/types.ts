@@ -142,6 +142,10 @@ export interface Translations {
     removeParticipant: string;
     removeParticipantMessage: string;
     legend: string;
+    oneWeek: string;
+    oneMonth: string;
+    threeMonths: string;
+    custom: string;
   };
   subscriptions: {
     title: string;

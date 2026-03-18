@@ -142,6 +142,10 @@ export const he: Translations = {
     removeParticipant: 'להסיר משתתף?',
     removeParticipantMessage: 'להסיר את {name} מהאתגר הזה?',
     legend: 'מקרא',
+    oneWeek: 'שבוע',
+    oneMonth: 'חודש',
+    threeMonths: '3 חודשים',
+    custom: 'מותאם',
   },
   subscriptions: {
     title: 'מנויים',

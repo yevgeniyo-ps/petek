@@ -142,6 +142,10 @@ export const ru: Translations = {
     removeParticipant: 'Удалить участника?',
     removeParticipantMessage: 'Удалить {name} из этого челленджа?',
     legend: 'Легенда',
+    oneWeek: '1 неделя',
+    oneMonth: '1 месяц',
+    threeMonths: '3 месяца',
+    custom: 'Другое',
   },
   subscriptions: {
     title: 'Подписки',

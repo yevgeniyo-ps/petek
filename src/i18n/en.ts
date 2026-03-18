@@ -142,6 +142,10 @@ export const en: Translations = {
     removeParticipant: 'Remove participant?',
     removeParticipantMessage: 'Remove {name} from this challenge?',
     legend: 'Legend',
+    oneWeek: '1 week',
+    oneMonth: '1 month',
+    threeMonths: '3 months',
+    custom: 'Custom',
   },
   subscriptions: {
     title: 'Subscriptions',

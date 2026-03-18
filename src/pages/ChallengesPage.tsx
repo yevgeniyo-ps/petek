@@ -834,22 +834,34 @@ function CreateChallengeModal({ open, onClose, onSave }: {
   const [name, setName] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saving, setSaving] = useState(false);
+  const [duration, setDuration] = useState<'1w' | '1m' | '3m' | 'custom'>('1m');
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate() + 1).padStart(2, '0')}`;
+
+  const getEndDateForDuration = (d: '1w' | '1m' | '3m') => {
+    const date = new Date();
+    if (d === '1w') date.setDate(date.getDate() + 7);
+    else if (d === '1m') date.setMonth(date.getMonth() + 1);
+    else date.setMonth(date.getMonth() + 3);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const effectiveEndDate = duration === 'custom' ? endDate : getEndDateForDuration(duration);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !endDate) return;
+    if (!name.trim() || !effectiveEndDate) return;
     setSaving(true);
     try {
-      await onSave(name.trim(), endDate);
+      await onSave(name.trim(), effectiveEndDate);
       setName('');
       setEndDate('');
+      setDuration('1m');
     } finally {
       setSaving(false);
     }
   };
-
-  const today = new Date();
-  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate() + 1).padStart(2, '0')}`;
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -873,13 +885,31 @@ function CreateChallengeModal({ open, onClose, onSave }: {
           </div>
           <div>
             <label className="block text-[13px] text-[#7a7890] mb-1.5">{t.challenges.endDate}</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              min={minDate}
-              className="w-full px-4 py-2.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[14px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] transition-colors [color-scheme:dark]"
-            />
+            <div className="flex gap-2 mb-2">
+              {(['1w', '1m', '3m', 'custom'] as const).map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDuration(d)}
+                  className={`px-3 py-1.5 text-[12px] rounded-lg transition-colors ${
+                    duration === d
+                      ? 'bg-[#ec4899]/20 text-[#ec4899] font-medium'
+                      : 'text-[#7a7890] hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  {d === '1w' ? t.challenges.oneWeek : d === '1m' ? t.challenges.oneMonth : d === '3m' ? t.challenges.threeMonths : t.challenges.custom}
+                </button>
+              ))}
+            </div>
+            {duration === 'custom' && (
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                min={minDate}
+                className="w-full px-4 py-2.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[14px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] transition-colors [color-scheme:dark]"
+              />
+            )}
           </div>
         </div>
 
@@ -893,7 +923,7 @@ function CreateChallengeModal({ open, onClose, onSave }: {
           </button>
           <button
             type="submit"
-            disabled={!name.trim() || !endDate || saving}
+            disabled={!name.trim() || !effectiveEndDate || saving}
             className="px-5 py-2 text-[13px] bg-[#ec4899] hover:bg-[#db2777] text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? t.common.creating : t.challenges.createChallenge}
