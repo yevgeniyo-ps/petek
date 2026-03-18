@@ -543,7 +543,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             .sort((a, b) => (a.user_id === userId ? -1 : b.user_id === userId ? 1 : 0))
             .map(participant => (
               <div key={participant.id}>
-                <div className="text-[9px] text-[#4a4660] mb-0.5 truncate">
+                <div className="text-[9px] text-[#7a7890] mb-0.5 truncate">
                   {participant.user_id === userId ? 'You' : `${getDisplayEmail(participant.email)} (${participant.email})`}
                 </div>
                 <DayGrid
