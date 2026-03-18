@@ -89,7 +89,7 @@ function getParticipantLabel(displayName: string, email: string): string {
 
 export function ChallengeList() {
   const { user } = useExtAuth();
-  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge } = useChallenges();
+  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge, removeParticipant } = useChallenges();
   const { t, language } = useLanguage();
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -98,6 +98,8 @@ export function ChallengeList() {
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [removeConfirmUid, setRemoveConfirmUid] = useState<string | null>(null);
+  const [removeConfirmChallengeId, setRemoveConfirmChallengeId] = useState<string | null>(null);
 
   const userId = user?.id || '';
   const activeChallenges = challenges.filter(c => c.status === 'active');
@@ -258,6 +260,7 @@ export function ChallengeList() {
             onToggleDay={(day) => toggleFailedDay(challenge.id, day)}
             onShare={challenge.user_id === userId ? () => generateInviteCode(challenge.id) : undefined}
             onLeave={challenge.user_id !== userId ? () => leaveChallenge(challenge.id) : undefined}
+            onRemoveParticipant={challenge.user_id === userId ? (uid) => { setRemoveConfirmChallengeId(challenge.id); setRemoveConfirmUid(uid); } : undefined}
           />
         ))}
       </div>
@@ -304,6 +307,39 @@ export function ChallengeList() {
           {t.challenges.noChallengesExt}
         </div>
       )}
+
+      {/* Remove participant confirm */}
+      {removeConfirmUid && removeConfirmChallengeId && (() => {
+        const ch = challenges.find(c => c.id === removeConfirmChallengeId);
+        const p = ch?.participants?.find(p => p.user_id === removeConfirmUid);
+        const name = p ? getParticipantLabel(p.display_name, p.email) : '';
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-4 max-w-[280px] w-full">
+              <div className="text-[13px] font-medium text-white mb-2">{t.challenges.removeParticipant}</div>
+              <div className="text-[12px] text-[#7a7890] mb-4">{t.challenges.removeParticipantMessage.replace('{name}', name)}</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setRemoveConfirmUid(null); setRemoveConfirmChallengeId(null); }}
+                  className="flex-1 py-1.5 text-xs text-[#7a7890] hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  {t.common.cancel}
+                </button>
+                <button
+                  onClick={async () => {
+                    await removeParticipant(removeConfirmChallengeId, removeConfirmUid);
+                    setRemoveConfirmUid(null);
+                    setRemoveConfirmChallengeId(null);
+                  }}
+                  className="flex-1 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                >
+                  {t.common.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -428,7 +464,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   );
 }
 
-function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay, onShare, onLeave }: {
+function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant }: {
   challenge: Challenge;
   userId: string;
   onComplete?: () => void;
@@ -439,6 +475,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   onToggleDay: (day: string) => void;
   onShare?: () => Promise<string>;
   onLeave?: () => void;
+  onRemoveParticipant?: (userId: string) => void;
 }) {
   const { t, language } = useLanguage();
   const isOwner = challenge.user_id === userId;
@@ -552,6 +589,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
           const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
           const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
           const passedCount = elapsed - failedCount;
+          const canRemove = !isMe && isOwner && participant.user_id !== challenge.user_id && onRemoveParticipant;
           return (
             <div key={participant.id}>
               <div className="flex items-center gap-1 text-[9px] text-[#7a7890] mb-0.5">
@@ -561,6 +599,15 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
                 <span className="shrink-0">
                   (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
                 </span>
+                {canRemove && (
+                  <button
+                    onClick={() => onRemoveParticipant(participant.user_id)}
+                    className="p-0.5 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors shrink-0"
+                    title={t.challenges.removeParticipant}
+                  >
+                    <X size={9} />
+                  </button>
+                )}
               </div>
               <DayGrid
                 days={days}

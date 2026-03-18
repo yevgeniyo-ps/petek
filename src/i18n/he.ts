@@ -139,6 +139,8 @@ export const he: Translations = {
     participantCount: '+{n} משתתף(ים)',
     activeCount: '{n} פעילים',
     by: 'מאת {name}',
+    removeParticipant: 'להסיר משתתף?',
+    removeParticipantMessage: 'להסיר את {name} מהאתגר הזה?',
   },
   subscriptions: {
     title: 'מנויים',

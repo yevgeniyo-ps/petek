@@ -117,3 +117,13 @@ export async function leaveChallenge(challengeId: string): Promise<void> {
 
   if (error) throw error;
 }
+
+export async function removeParticipant(challengeId: string, participantUserId: string): Promise<void> {
+  const { error } = await supabase
+    .from('challenge_participants')
+    .delete()
+    .eq('challenge_id', challengeId)
+    .eq('user_id', participantUserId);
+
+  if (error) throw error;
+}

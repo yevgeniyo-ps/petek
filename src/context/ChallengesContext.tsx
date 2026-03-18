@@ -14,6 +14,7 @@ interface ChallengesContextType {
   joinChallenge: (inviteCode: string) => Promise<void>;
   toggleFailedDay: (challengeId: string, day: string) => void;
   leaveChallenge: (challengeId: string) => Promise<void>;
+  removeParticipant: (challengeId: string, participantUserId: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -112,12 +113,21 @@ export function ChallengesProvider({ children }: { children: ReactNode }) {
     setChallenges(prev => prev.filter(c => c.id !== challengeId));
   };
 
+  const removeParticipant = async (challengeId: string, participantUserId: string) => {
+    await api.removeParticipant(challengeId, participantUserId);
+    setChallenges(prev => prev.map(c =>
+      c.id === challengeId
+        ? { ...c, participants: c.participants?.filter(p => p.user_id !== participantUserId) }
+        : c
+    ));
+  };
+
   return (
     <ChallengesContext.Provider value={{
       challenges, loading, error,
       createChallenge, updateChallenge, deleteChallenge,
       generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge,
-      refresh,
+      removeParticipant, refresh,
     }}>
       {children}
     </ChallengesContext.Provider>

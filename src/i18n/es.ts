@@ -139,6 +139,8 @@ export const es: Translations = {
     participantCount: '+{n} participante(s)',
     activeCount: '{n} activos',
     by: 'por {name}',
+    removeParticipant: '¿Eliminar participante?',
+    removeParticipantMessage: '¿Eliminar a {name} de este desafío?',
   },
   subscriptions: {
     title: 'Suscripciones',

@@ -139,6 +139,8 @@ export interface Translations {
     participantCount: string;
     activeCount: string;
     by: string;
+    removeParticipant: string;
+    removeParticipantMessage: string;
   };
   subscriptions: {
     title: string;

@@ -94,7 +94,7 @@ function getParticipantLabel(displayName: string, email: string): string {
 export default function ChallengesPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge } = useChallenges();
+  const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge, removeParticipant } = useChallenges();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -102,6 +102,9 @@ export default function ChallengesPage() {
   const [deletingChallenge, setDeletingChallenge] = useState<Challenge | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [leavingChallenge, setLeavingChallenge] = useState<Challenge | null>(null);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [removingChallenge, setRemovingChallenge] = useState<Challenge | null>(null);
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null);
 
   // Handle ?join=CODE query param
   useEffect(() => {
@@ -152,6 +155,21 @@ export default function ChallengesPage() {
       await leaveChallenge(leavingChallenge.id);
       setLeaveConfirmOpen(false);
       setLeavingChallenge(null);
+    }
+  };
+
+  const handleRemoveConfirm = (challenge: Challenge, uid: string) => {
+    setRemovingChallenge(challenge);
+    setRemovingUserId(uid);
+    setRemoveConfirmOpen(true);
+  };
+
+  const handleRemove = async () => {
+    if (removingChallenge && removingUserId) {
+      await removeParticipant(removingChallenge.id, removingUserId);
+      setRemoveConfirmOpen(false);
+      setRemovingChallenge(null);
+      setRemovingUserId(null);
     }
   };
 
@@ -259,6 +277,7 @@ export default function ChallengesPage() {
               onToggleDay={(day) => toggleFailedDay(challenge.id, day)}
               onShare={challenge.user_id === user.id ? () => generateInviteCode(challenge.id) : undefined}
               onLeave={challenge.user_id !== user.id ? () => handleLeaveConfirm(challenge) : undefined}
+              onRemoveParticipant={challenge.user_id === user.id ? (uid) => handleRemoveConfirm(challenge, uid) : undefined}
             />
           ))}
         </div>
@@ -301,6 +320,18 @@ export default function ChallengesPage() {
         title={t.challenges.leaveChallenge}
         message={t.challenges.leaveMessage.replace('{name}', leavingChallenge?.name ?? '')}
         confirmLabel={t.common.leave}
+      />
+
+      <ConfirmDialog
+        open={removeConfirmOpen}
+        onClose={() => setRemoveConfirmOpen(false)}
+        onConfirm={handleRemove}
+        title={t.challenges.removeParticipant}
+        message={t.challenges.removeParticipantMessage.replace('{name}', (() => {
+          const p = removingChallenge?.participants?.find(p => p.user_id === removingUserId);
+          return p ? getParticipantLabel(p.display_name, p.email) : '';
+        })())}
+        confirmLabel={t.common.delete}
       />
     </div>
   );
@@ -427,7 +458,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   );
 }
 
-function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave }: {
+function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant }: {
   challenge: Challenge;
   userId: string;
   onComplete?: () => void;
@@ -438,6 +469,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onToggleDay?: (day: string) => void;
   onShare?: () => Promise<string>;
   onLeave?: () => void;
+  onRemoveParticipant?: (userId: string) => void;
 }) {
   const { t, language } = useLanguage();
   const isActive = challenge.status === 'active';
@@ -577,6 +609,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           const elapsed = isActive ? Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
           const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
           const passedCount = elapsed - failedCount;
+          const canRemove = !isMe && isOwner && isActive && participant.user_id !== challenge.user_id && onRemoveParticipant;
           return (
             <div key={participant.id}>
               <div className="flex items-center gap-1.5 text-[10px] text-[#7a7890] mb-1">
@@ -587,6 +620,15 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   <span className="shrink-0">
                     (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
                   </span>
+                )}
+                {canRemove && (
+                  <button
+                    onClick={() => onRemoveParticipant(participant.user_id)}
+                    className="p-0.5 rounded text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors shrink-0"
+                    title={t.challenges.removeParticipant}
+                  >
+                    <X size={10} />
+                  </button>
                 )}
               </div>
               <DayGrid

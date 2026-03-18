@@ -139,6 +139,8 @@ export const ru: Translations = {
     participantCount: '+{n} участник(ов)',
     activeCount: '{n} активных',
     by: 'от {name}',
+    removeParticipant: 'Удалить участника?',
+    removeParticipantMessage: 'Удалить {name} из этого челленджа?',
   },
   subscriptions: {
     title: 'Подписки',
