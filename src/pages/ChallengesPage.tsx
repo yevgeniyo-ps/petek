@@ -521,13 +521,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* "by owner" for joined challenges */}
-      {!isOwner && ownerParticipant && (
-        <div className="text-[11px] text-[#4a4660] mb-2">
-          by {getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email)}
-        </div>
-      )}
-
       {/* Countdown or badge */}
       {isActive ? (
         <div className="mb-3">
@@ -554,26 +547,40 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
       {/* Day grids */}
       {isShared && challenge.participants ? (
         <div className="space-y-2 mb-3">
-          {/* Current user first */}
           {challenge.participants
             .slice()
             .sort((a, b) => (a.user_id === userId ? -1 : b.user_id === userId ? 1 : 0))
-            .map(participant => (
-              <div key={participant.id}>
-                <div className="text-[10px] text-[#7a7890] mb-1 truncate">
-                  {participant.user_id === userId ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
+            .map(participant => {
+              const pFailed = participant.failed_days || [];
+              const joinDate = participant.user_id !== challenge.user_id ? participant.joined_at?.slice(0, 10) : challenge.start_date;
+              const startFrom = joinDate || challenge.start_date;
+              const elapsed = isActive ? Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
+              const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
+              const passedCount = elapsed - failedCount;
+              return (
+                <div key={participant.id}>
+                  <div className="flex items-center gap-1.5 text-[10px] text-[#7a7890] mb-1">
+                    <span className="truncate">
+                      {participant.user_id === userId ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
+                    </span>
+                    {isActive && (
+                      <span className="shrink-0">
+                        (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
+                      </span>
+                    )}
+                  </div>
+                  <DayGrid
+                    days={days}
+                    failedDays={pFailed}
+                    today={today}
+                    isActive={isActive}
+                    clickable={participant.user_id === userId}
+                    onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
+                    joinedAt={participant.user_id !== challenge.user_id ? participant.joined_at : undefined}
+                  />
                 </div>
-                <DayGrid
-                  days={days}
-                  failedDays={participant.failed_days || []}
-                  today={today}
-                  isActive={isActive}
-                  clickable={participant.user_id === userId}
-                  onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
-                  joinedAt={participant.user_id !== challenge.user_id ? participant.joined_at : undefined}
-                />
-              </div>
-            ))}
+              );
+            })}
           {/* Legend */}
           <div className="flex items-center gap-3 mt-1">
             <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
@@ -603,18 +610,27 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* Date details + counters */}
-      <div className="text-[11px] text-[#4a4660] mb-4">
-        {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
-        {isActive && (() => {
-          const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-          const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
-          const passedCount = elapsed - failedCount;
-          return (
-            <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
-          );
-        })()}
-      </div>
+      {/* Details */}
+      <details className="mb-4 group">
+        <summary className="text-[11px] text-[#4a4660] cursor-pointer hover:text-[#7a7890] transition-colors list-none flex items-center gap-1">
+          <span className="text-[9px] group-open:rotate-90 transition-transform">&#9654;</span>
+          {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)} · {totalDays}d
+          {!isShared && isActive && (() => {
+            const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+            const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
+            const passedCount = elapsed - failedCount;
+            return (
+              <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
+            );
+          })()}
+        </summary>
+        <div className="mt-2 text-[11px] text-[#4a4660] space-y-1">
+          {!isOwner && ownerParticipant && (
+            <div>by {getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email)}</div>
+          )}
+          {isShared && <div>{challenge.participants?.length || 0} participants</div>}
+        </div>
+      </details>
 
       {/* Invite code display */}
       {showInviteCode && inviteCode && (
