@@ -500,7 +500,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   const ownerParticipant = challenge.participants?.find(p => p.user_id === challenge.user_id);
 
   return (
-    <div className="bg-[#13111c] border border-[#1c1928] rounded-lg p-3 min-w-0">
+    <div className="bg-[#13111c] border border-white/10 rounded-lg p-3 min-w-0">
       <div className="flex items-start justify-between gap-2 mb-1.5">
         {editing ? (
           <input

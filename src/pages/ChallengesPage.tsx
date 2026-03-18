@@ -505,8 +505,8 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   return (
     <div className={`rounded-xl border p-5 transition-colors min-w-0 ${
       isActive
-        ? 'bg-[#13111c] border-[#1c1928] hover:border-[#2d2a40]'
-        : 'bg-[#0f0d18] border-[#1c1928] opacity-60'
+        ? 'bg-[#13111c] border-white/10 hover:border-white/20'
+        : 'bg-[#0f0d18] border-white/10 opacity-60'
     }`}>
       {/* Name */}
       {editing ? (
