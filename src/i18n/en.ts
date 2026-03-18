@@ -141,6 +141,7 @@ export const en: Translations = {
     by: 'by {name}',
     removeParticipant: 'Remove participant?',
     removeParticipantMessage: 'Remove {name} from this challenge?',
+    legend: 'Legend',
   },
   subscriptions: {
     title: 'Subscriptions',

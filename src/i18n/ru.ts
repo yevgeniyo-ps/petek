@@ -141,6 +141,7 @@ export const ru: Translations = {
     by: 'от {name}',
     removeParticipant: 'Удалить участника?',
     removeParticipantMessage: 'Удалить {name} из этого челленджа?',
+    legend: 'Легенда',
   },
   subscriptions: {
     title: 'Подписки',

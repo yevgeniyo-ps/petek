@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, MoreHorizontal } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n';
@@ -489,6 +489,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const myFailedDays = getMyFailedDays(challenge, userId);
 
@@ -659,28 +660,23 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                 </div>
               </details>
             )}
-            {/* Legend toggle */}
-            <div className="flex items-center gap-3 mt-1">
-              <button onClick={() => setShowLegend(!showLegend)} className="p-0.5 rounded text-[#4a4660] hover:text-[#7a7890] transition-colors">
-                <Info size={12} />
-              </button>
-              {showLegend && (
-                <>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> {t.challenges.beforeJoin}
-                  </span>
-                </>
-              )}
-            </div>
+            {/* Legend */}
+            {showLegend && (
+              <div className="flex items-center gap-3 mt-1">
+                <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                  <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                  <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                  <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                  <span className="w-[8px] h-[8px] rounded-[2px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> {t.challenges.beforeJoin}
+                </span>
+              </div>
+            )}
           </div>
         );
       })() : (
@@ -693,24 +689,17 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             clickable={true}
             onToggleDay={onToggleDay}
           />
-          {isActive && (
+          {showLegend && (
             <div className="flex items-center gap-3 mt-1">
-              <button onClick={() => setShowLegend(!showLegend)} className="p-0.5 rounded text-[#4a4660] hover:text-[#7a7890] transition-colors">
-                <Info size={12} />
-              </button>
-              {showLegend && (
-                <>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
-                    <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
-                  </span>
-                </>
-              )}
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> {t.challenges.passed}
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> {t.common.failed}
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+                <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> {t.challenges.upcoming}
+              </span>
             </div>
           )}
         </div>
@@ -778,83 +767,66 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* Actions */}
-      {isActive && isOwner && (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onComplete}
-            title={t.challenges.markCompleted}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
-          >
-            <Check size={16} />
-          </button>
-          <button
-            onClick={onFail}
-            title={t.challenges.markFailed}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-          >
-            <X size={16} />
-          </button>
-          <button
-            onClick={() => { setExtending(!extending); setNewEndDate(challenge.end_date); }}
-            title={t.challenges.changeEndDate}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
-          >
-            <CalendarPlus size={16} />
-          </button>
-          <button
-            onClick={isShared ? () => setShowInviteCode(!showInviteCode) : handleShare}
-            disabled={sharing}
-            title={isShared ? t.challenges.showInviteCode : t.challenges.shareChallenge}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-colors"
-          >
-            <Share2 size={16} />
-          </button>
-          <div className="flex-1" />
-          <button
-            onClick={onDelete}
-            title={t.common.delete}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      )}
-      {isActive && !isOwner && (
-        <div className="flex justify-end">
-          <button
-            onClick={onLeave}
-            title={t.challenges.leaveChallenge}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-          >
-            <LogOut size={14} />
-            {t.common.leave}
-          </button>
-        </div>
-      )}
-      {!isActive && isOwner && (
-        <div className="flex justify-end">
-          <button
-            onClick={onDelete}
-            title={t.common.delete}
-            className="p-2 rounded-lg text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      )}
-      {!isActive && !isOwner && (
-        <div className="flex justify-end">
-          <button
-            onClick={onLeave}
-            title={t.challenges.leaveChallenge}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-[#7a7890] hover:text-red-400 hover:bg-red-400/10 transition-colors"
-          >
-            <LogOut size={14} />
-            {t.common.leave}
-          </button>
-        </div>
-      )}
+      {/* Menu */}
+      <div className="flex justify-end relative">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="p-2 rounded-lg text-[#7a7890] hover:text-white hover:bg-white/[0.08] transition-colors"
+        >
+          <MoreHorizontal size={16} />
+        </button>
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="absolute bottom-full right-0 mb-1 z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-44">
+              {isActive && isOwner && (
+                <>
+                  <button onClick={() => { onComplete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <Check size={14} /> {t.challenges.markCompleted}
+                  </button>
+                  <button onClick={() => { onFail?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <X size={14} /> {t.challenges.markFailed}
+                  </button>
+                  <button onClick={() => { setExtending(true); setNewEndDate(challenge.end_date); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <CalendarPlus size={14} /> {t.challenges.changeEndDate}
+                  </button>
+                  <button onClick={() => { if (isShared) setShowInviteCode(!showInviteCode); else handleShare(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <Share2 size={14} /> {isShared ? t.challenges.showInviteCode : t.challenges.shareChallenge}
+                  </button>
+                  <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <Info size={14} /> {t.challenges.legend}
+                  </button>
+                  <div className="border-t border-[#1c1928] my-1" />
+                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <Trash2 size={14} /> {t.common.delete}
+                  </button>
+                </>
+              )}
+              {isActive && !isOwner && (
+                <>
+                  <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                    <Info size={14} /> {t.challenges.legend}
+                  </button>
+                  <div className="border-t border-[#1c1928] my-1" />
+                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <LogOut size={14} /> {t.common.leave}
+                  </button>
+                </>
+              )}
+              {!isActive && isOwner && (
+                <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                  <Trash2 size={14} /> {t.common.delete}
+                </button>
+              )}
+              {!isActive && !isOwner && (
+                <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                  <LogOut size={14} /> {t.common.leave}
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

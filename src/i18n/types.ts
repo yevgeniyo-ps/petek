@@ -141,6 +141,7 @@ export interface Translations {
     by: string;
     removeParticipant: string;
     removeParticipantMessage: string;
+    legend: string;
   };
   subscriptions: {
     title: string;
