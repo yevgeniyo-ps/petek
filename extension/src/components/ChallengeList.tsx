@@ -534,56 +534,72 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
       </div>
 
       {/* Day grids */}
-      {isShared && challenge.participants ? (
-        <div className="space-y-1.5 mb-2">
-          {challenge.participants
-            .slice()
-            .sort((a, b) => (a.user_id === userId ? -1 : b.user_id === userId ? 1 : 0))
-            .map(participant => {
-              const pFailed = participant.failed_days || [];
-              const joinDate = participant.user_id !== challenge.user_id ? participant.joined_at?.slice(0, 10) : challenge.start_date;
-              const startFrom = joinDate || challenge.start_date;
-              const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-              const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
-              const passedCount = elapsed - failedCount;
-              return (
-                <div key={participant.id}>
-                  <div className="flex items-center gap-1 text-[9px] text-[#7a7890] mb-0.5">
-                    <span className="truncate">
-                      {participant.user_id === userId ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
-                    </span>
-                    <span className="shrink-0">
-                      (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
-                    </span>
-                  </div>
-                  <DayGrid
-                    days={days}
-                    failedDays={pFailed}
-                    today={today}
-                    isActive={true}
-                    clickable={participant.user_id === userId}
-                    onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
-                    joinedAt={participant.user_id !== challenge.user_id ? participant.joined_at : undefined}
-                  />
+      {isShared && challenge.participants ? (() => {
+        const me = challenge.participants.find(p => p.user_id === userId);
+        const others = challenge.participants.filter(p => p.user_id !== userId);
+
+        const renderParticipant = (participant: typeof challenge.participants[0], isMe: boolean) => {
+          const pFailed = participant.failed_days || [];
+          const joinDate = participant.user_id !== challenge.user_id ? participant.joined_at?.slice(0, 10) : challenge.start_date;
+          const startFrom = joinDate || challenge.start_date;
+          const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
+          const passedCount = elapsed - failedCount;
+          return (
+            <div key={participant.id}>
+              <div className="flex items-center gap-1 text-[9px] text-[#7a7890] mb-0.5">
+                <span className="truncate">
+                  {isMe ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
+                </span>
+                <span className="shrink-0">
+                  (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
+                </span>
+              </div>
+              <DayGrid
+                days={days}
+                failedDays={pFailed}
+                today={today}
+                isActive={true}
+                clickable={isMe}
+                onToggleDay={isMe ? onToggleDay : undefined}
+                joinedAt={participant.user_id !== challenge.user_id ? participant.joined_at : undefined}
+              />
+            </div>
+          );
+        };
+
+        return (
+          <div className="space-y-1.5 mb-2">
+            {me && renderParticipant(me, true)}
+            {others.length > 0 && (
+              <details className="group">
+                <summary className="text-[9px] text-[#4a4660] cursor-pointer hover:text-[#7a7890] transition-colors list-none flex items-center gap-1">
+                  <span className="text-[8px] group-open:rotate-90 transition-transform">&#9654;</span>
+                  {others.length} other{others.length > 1 ? 's' : ''}
+                </summary>
+                <div className="space-y-1.5 mt-1.5">
+                  {others.map(p => renderParticipant(p, false))}
                 </div>
-              );
-            })}
-          {/* Legend */}
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> passed
-            </span>
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> failed
-            </span>
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> upcoming
-            </span>
-            <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
-              <span className="w-[6px] h-[6px] rounded-[1px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> before join
-            </span>
+              </details>
+            )}
+            {/* Legend */}
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                <span className="w-[6px] h-[6px] rounded-[1px] bg-[#ec4899]" /> passed
+              </span>
+              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                <span className="w-[6px] h-[6px] rounded-[1px] bg-amber-400" /> failed
+              </span>
+              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                <span className="w-[6px] h-[6px] rounded-[1px] bg-white/[0.15]" /> upcoming
+              </span>
+              <span className="flex items-center gap-0.5 text-[9px] text-[#4a4660]">
+                <span className="w-[6px] h-[6px] rounded-[1px] bg-[#1c1928]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)' }} /> before join
+              </span>
+            </div>
           </div>
-        </div>
+        );
+      })()
       ) : (
         <div className="mb-2">
           <DayGrid
