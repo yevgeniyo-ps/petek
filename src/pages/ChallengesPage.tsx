@@ -334,14 +334,17 @@ function TodayCheckin({ challenges, userId, onToggleDay }: {
   );
 }
 
-function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay }: {
+function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, joinedAt }: {
   days: string[];
   failedDays: string[];
   today: string;
   isActive: boolean;
   clickable: boolean;
   onToggleDay?: (day: string) => void;
+  joinedAt?: string;
 }) {
+  // Date the participant joined (days before this are not tracked)
+  const joinDate = joinedAt ? joinedAt.slice(0, 10) : null;
   const firstDate = new Date(days[0] + 'T00:00:00');
   const firstDow = firstDate.getDay();
   const padded: (string | null)[] = Array(firstDow).fill(null).concat(days);
@@ -359,11 +362,14 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay }: 
             const isFailed = failedDays.includes(day);
             const isToday = day === today;
             const isPast = day < today;
-            const canClick = clickable && (isPast || isToday) && isActive;
+            const isBeforeJoin = joinDate ? day < joinDate : false;
+            const canClick = clickable && (isPast || isToday) && isActive && !isBeforeJoin;
 
             let color: string;
             if (!isActive) {
               color = 'bg-[#2a2835]';
+            } else if (isBeforeJoin) {
+              color = 'bg-white/[0.15]';
             } else if (isFailed) {
               color = 'bg-amber-400';
             } else if (isPast || isToday) {
@@ -544,7 +550,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             .map(participant => (
               <div key={participant.id}>
                 <div className="text-[10px] text-[#4a4660] mb-1 truncate">
-                  {participant.user_id === userId ? 'You' : getDisplayEmail(participant.email)}
+                  {participant.user_id === userId ? 'You' : `${getDisplayEmail(participant.email)} (${participant.email})`}
                 </div>
                 <DayGrid
                   days={days}
@@ -553,6 +559,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   isActive={isActive}
                   clickable={participant.user_id === userId}
                   onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
+                  joinedAt={participant.joined_at}
                 />
               </div>
             ))}
