@@ -27,10 +27,11 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLabelPicker, setShowLabelPicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pendingLabelIds, setPendingLabelIds] = useState<Set<string>>(new Set());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const noteLabels = note ? getLabelsForNote(note.id) : [];
-  const noteLabelIds = new Set(noteLabels.map(l => l.id));
+  const noteLabelIds = note ? new Set(noteLabels.map(l => l.id)) : pendingLabelIds;
 
   const autoResize = useCallback(() => {
     const ta = textareaRef.current;
@@ -50,7 +51,10 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
       if (note) {
         await updateNote(note.id, { title, content, emoji });
       } else {
-        await createNote({ title, content, emoji });
+        const created = await createNote({ title, content, emoji });
+        for (const labelId of pendingLabelIds) {
+          await addLabelToNote(created.id, labelId);
+        }
       }
       onClose();
     } catch {
@@ -61,7 +65,15 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
   };
 
   const toggleLabel = async (labelId: string) => {
-    if (!note) return;
+    if (!note) {
+      setPendingLabelIds(prev => {
+        const next = new Set(prev);
+        if (next.has(labelId)) next.delete(labelId);
+        else next.add(labelId);
+        return next;
+      });
+      return;
+    }
     if (noteLabelIds.has(labelId)) {
       await removeLabelFromNote(note.id, labelId);
     } else {
@@ -130,7 +142,7 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
 
         {/* Label chips */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {noteLabels.map(label => (
+          {(note ? noteLabels : labels.filter(l => pendingLabelIds.has(l.id))).map(label => (
             <span key={label.id} className="px-2 py-0.5 bg-pink-500/15 text-pink-400 rounded text-xs">
               {label.name}
             </span>
@@ -152,7 +164,6 @@ export function NoteEditor({ note: initialNote, onClose }: NoteEditorProps) {
                     <button
                       key={label.id}
                       onClick={() => toggleLabel(label.id)}
-                      disabled={!note}
                       className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
                         noteLabelIds.has(label.id)
                           ? 'text-pink-400 bg-pink-500/10'

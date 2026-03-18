@@ -93,7 +93,11 @@ export function SearchBar({
           Starred
         </button>
 
-        {labels.map(label => (
+        {[...labels].sort((a, b) => {
+          const ac = a.name.toLowerCase() === 'challenge' ? 0 : 1;
+          const bc = b.name.toLowerCase() === 'challenge' ? 0 : 1;
+          return ac - bc;
+        }).map(label => (
           <button
             key={label.id}
             onClick={() => onFilterLabelChange(filterLabel === label.id ? null : label.id)}

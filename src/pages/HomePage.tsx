@@ -81,8 +81,13 @@ export default function HomePage() {
   const [newTagName, setNewTagName] = useState('');
   const categoryInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
-  const todoLabel = labels.find(l => l.name.toLowerCase() === 'todo');
-  const selectedTagId = searchParams.get('tag') ?? todoLabel?.id ?? null;
+  const challengeLabel = labels.find(l => l.name.toLowerCase() === 'challenge');
+  const selectedTagId = searchParams.get('tag') ?? challengeLabel?.id ?? null;
+  const sortedLabels = [...labels].sort((a, b) => {
+    const ac = a.name.toLowerCase() === 'challenge' ? 0 : 1;
+    const bc = b.name.toLowerCase() === 'challenge' ? 0 : 1;
+    return ac - bc;
+  });
 
   useEffect(() => {
     if (addingCategory) categoryInputRef.current?.focus();
@@ -127,10 +132,15 @@ export default function HomePage() {
   const handleLabelDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = labels.findIndex(l => l.id === active.id);
-    const newIndex = labels.findIndex(l => l.id === over.id);
+    const sorted = [...labels].sort((a, b) => {
+      const ac = a.name.toLowerCase() === 'challenge' ? 0 : 1;
+      const bc = b.name.toLowerCase() === 'challenge' ? 0 : 1;
+      return ac - bc;
+    });
+    const oldIndex = sorted.findIndex(l => l.id === active.id);
+    const newIndex = sorted.findIndex(l => l.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
-      reorderLabels(arrayMove(labels, oldIndex, newIndex));
+      reorderLabels(arrayMove(sorted, oldIndex, newIndex));
     }
   }, [labels, reorderLabels]);
 
@@ -278,8 +288,8 @@ export default function HomePage() {
           collisionDetection={closestCenter}
           onDragEnd={handleLabelDragEnd}
         >
-          <SortableContext items={labels.map(l => l.id)} strategy={horizontalListSortingStrategy}>
-            {labels.map(label => (
+          <SortableContext items={sortedLabels.map(l => l.id)} strategy={horizontalListSortingStrategy}>
+            {sortedLabels.map(label => (
               <SortableLabelChip
                 key={label.id}
                 label={label}

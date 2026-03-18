@@ -38,11 +38,11 @@ function AppInner() {
   const [isCreating, setIsCreating] = useState(false);
   const defaultApplied = useRef(false);
 
-  // Default to "todo" label once labels load
+  // Default to "challenge" label once labels load
   useEffect(() => {
     if (!defaultApplied.current && labels.length > 0) {
-      const todo = labels.find(l => l.name.toLowerCase() === 'todo');
-      if (todo) setFilterLabel(todo.id);
+      const challenge = labels.find(l => l.name.toLowerCase() === 'challenge');
+      if (challenge) setFilterLabel(challenge.id);
       defaultApplied.current = true;
     }
   }, [labels]);
