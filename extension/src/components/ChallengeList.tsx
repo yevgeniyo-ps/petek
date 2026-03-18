@@ -495,6 +495,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   const [copied, setCopied] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (editing) editRef.current?.focus();
@@ -538,22 +539,24 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
 
   return (
     <div className="bg-[#13111c] border border-white/10 rounded-lg p-3 min-w-0">
-      <div className="flex items-start gap-2 mb-1.5 group">
-        {editing ? (
-          <input
-            ref={editRef}
-            value={editName}
-            onChange={e => setEditName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
-            }}
-            className="flex-1 text-[13px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
-          />
-        ) : (
-          <>
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+      {/* Header: name + days + menu */}
+      <div className="flex items-center gap-2 group">
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => !editing && setExpanded(!expanded)}>
+          {editing ? (
+            <input
+              ref={editRef}
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              onBlur={handleRename}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleRename();
+                if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
+              }}
+              onClick={e => e.stopPropagation()}
+              className="w-full text-[13px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
+            />
+          ) : (
+            <div className="flex items-center gap-1.5">
               <span className="text-[13px] text-white font-medium leading-snug truncate">{challenge.name}</span>
               {isShared && (
                 <span className="flex items-center gap-0.5 text-[10px] text-[#4a4660] shrink-0">
@@ -561,21 +564,21 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
                   {challenge.participants?.length || 0}
                 </span>
               )}
-              {isOwner && onRename && (
-                <button
-                  onClick={() => { setEditName(challenge.name); setEditing(true); }}
-                  className="p-0.5 rounded text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
-                  title={t.challenges.editName}
-                >
-                  <Pencil size={10} />
-                </button>
-              )}
             </div>
-            <span className="shrink-0 leading-none">
-              <span className="text-[18px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
-              <span className="text-[10px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
-            </span>
-          </>
+          )}
+        </div>
+        <span className="shrink-0 leading-none">
+          <span className="text-[16px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
+          <span className="text-[9px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+        </span>
+        {isOwner && onRename && (
+          <button
+            onClick={() => { setEditName(challenge.name); setEditing(true); }}
+            className="p-0.5 rounded text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
+            title={t.challenges.editName}
+          >
+            <Pencil size={10} />
+          </button>
         )}
         <div className="relative shrink-0">
           <button
@@ -627,11 +630,15 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
           )}
         </div>
       </div>
-      <div className="text-[9px] text-[#4a4660] mb-1.5">
+
+      {expanded && (
+      <>
+      <div className="text-[9px] text-[#4a4660] mt-1.5">
         {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
       </div>
 
       {/* Day grids */}
+      <div className="mt-1.5" />
       {isShared && challenge.participants ? (() => {
         const me = challenge.participants.find(p => p.user_id === userId);
         const others = challenge.participants.filter(p => p.user_id !== userId);
@@ -782,6 +789,8 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             {t.common.cancel}
           </button>
         </div>
+      )}
+      </>
       )}
 
     </div>

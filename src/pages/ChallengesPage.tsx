@@ -482,6 +482,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   const [copied, setCopied] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const myFailedDays = getMyFailedDays(challenge, userId);
 
@@ -526,40 +527,57 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         ? 'bg-[#13111c] border-white/10 hover:border-white/20'
         : 'bg-[#0f0d18] border-white/10 opacity-60'
     }`}>
-      {/* Name */}
-      {/* Header: name + menu */}
-      <div className="flex items-start gap-2 mb-3 group">
-        {editing ? (
-          <input
-            ref={editRef}
-            value={editName}
-            onChange={e => setEditName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
-            }}
-            className="flex-1 text-[15px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
-          />
+      {/* Header: name + days + menu */}
+      <div className="flex items-center gap-2 group">
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => !editing && setExpanded(!expanded)}>
+          {editing ? (
+            <input
+              ref={editRef}
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              onBlur={handleRename}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleRename();
+                if (e.key === 'Escape') { setEditName(challenge.name); setEditing(false); }
+              }}
+              onClick={e => e.stopPropagation()}
+              className="w-full text-[15px] font-medium text-white leading-snug bg-transparent border-b border-[#2d2a40] outline-none"
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <h3 className="text-[15px] font-medium text-white leading-snug truncate">{challenge.name}</h3>
+              {isShared && (
+                <span className="flex items-center gap-1 text-[11px] text-[#4a4660] shrink-0">
+                  <Users size={12} />
+                  {challenge.participants?.length || 0}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        {isActive ? (
+          <span className="shrink-0 text-right">
+            <span className="text-[20px] font-bold text-[#ec4899] leading-none">{Math.max(daysRemaining, 0)}</span>
+            <span className="text-[11px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+          </span>
         ) : (
-          <>
-            <h3 className="text-[15px] font-medium text-white leading-snug flex-1">{challenge.name}</h3>
-            {isShared && (
-              <span className="flex items-center gap-1 text-[11px] text-[#4a4660] shrink-0 mt-0.5">
-                <Users size={12} />
-                {challenge.participants?.length || 0}
-              </span>
-            )}
-            {isActive && onRename && (
-              <button
-                onClick={() => { setEditName(challenge.name); setEditing(true); }}
-                className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
-                title={t.challenges.editName}
-              >
-                <Pencil size={12} />
-              </button>
-            )}
-          </>
+          <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
+            challenge.status === 'completed'
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'bg-red-500/10 text-red-400'
+          }`}>
+            {challenge.status === 'completed' ? <Check size={11} /> : <X size={11} />}
+            {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
+          </span>
+        )}
+        {isActive && onRename && (
+          <button
+            onClick={() => { setEditName(challenge.name); setEditing(true); }}
+            className="p-1 rounded-lg text-[#7a7890] opacity-0 group-hover:opacity-100 hover:text-white transition-all shrink-0"
+            title={t.challenges.editName}
+          >
+            <Pencil size={12} />
+          </button>
         )}
         <div className="relative shrink-0">
           <button
@@ -622,33 +640,18 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       </div>
 
-      {/* Countdown or badge */}
-      {isActive ? (
-        <div className="mb-3">
-          <span className="text-[36px] font-bold text-[#ec4899] leading-none">
-            {Math.max(daysRemaining, 0)}
-          </span>
-          <span className="text-[13px] text-[#7a7890] ml-2">
-            {daysRemaining === 1 ? t.challenges.dayLeft : t.challenges.daysLeft}
-          </span>
-          <div className="text-[11px] text-[#4a4660] mt-1">
-            {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
-          </div>
-        </div>
-      ) : (
-        <div className="mb-3">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ${
-            challenge.status === 'completed'
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'bg-red-500/10 text-red-400'
-          }`}>
-            {challenge.status === 'completed' ? <Check size={12} /> : <X size={12} />}
-            {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
-          </span>
+      {/* Expanded content */}
+      {expanded && (
+      <>
+      {/* Date range */}
+      {isActive && (
+        <div className="text-[11px] text-[#4a4660] mt-2">
+          {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
         </div>
       )}
 
       {/* Day grids */}
+      <div className="mt-3" />
       {isShared && challenge.participants ? (() => {
         const me = challenge.participants.find(p => p.user_id === userId);
         const others = challenge.participants.filter(p => p.user_id !== userId);
@@ -801,6 +804,8 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             {t.common.cancel}
           </button>
         </div>
+      )}
+      </>
       )}
 
     </div>
