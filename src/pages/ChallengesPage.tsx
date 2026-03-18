@@ -486,7 +486,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   const today = getTodayStr();
   const [showInviteCode, setShowInviteCode] = useState(false);
   const [inviteCode, setInviteCode] = useState(challenge.invite_code || '');
-  const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -517,14 +516,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
 
   const handleShare = async () => {
     if (!onShare) return;
-    setSharing(true);
-    try {
-      const code = await onShare();
-      setInviteCode(code);
-      setShowInviteCode(true);
-    } finally {
-      setSharing(false);
-    }
+    const code = await onShare();
+    setInviteCode(code);
+    setShowInviteCode(true);
   };
 
   const handleCopyCode = async () => {
