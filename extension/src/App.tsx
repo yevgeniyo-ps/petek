@@ -32,11 +32,9 @@ function AuthenticatedApp() {
 
 function AppInner() {
   const { labels } = useLabels();
-  const { hasFeature } = useFeatures();
+  const { hasFeature, loading: featuresLoading } = useFeatures();
 
-  // Default view: first available feature
-  const defaultView: View = hasFeature('notes') ? 'notes' : 'challenges';
-  const [view, setView] = useState<View>(defaultView);
+  const [view, setView] = useState<View | null>(null);
   const [search, setSearch] = useState('');
   const [filterLabel, setFilterLabel] = useState<string | null>(null);
   const [filterImportant, setFilterImportant] = useState(false);
@@ -45,14 +43,14 @@ function AppInner() {
   const [isCreating, setIsCreating] = useState(false);
   const defaultApplied = useRef(false);
 
-  // If current view's feature is disabled, switch
+  // Set initial view once features load
   useEffect(() => {
-    if (view === 'notes' && !hasFeature('notes') && hasFeature('challenges')) {
-      setView('challenges');
-    } else if (view === 'challenges' && !hasFeature('challenges') && hasFeature('notes')) {
-      setView('notes');
-    }
-  }, [view, hasFeature]);
+    if (featuresLoading) return;
+    setView(prev => {
+      if (prev && ((prev === 'notes' && hasFeature('notes')) || (prev === 'challenges' && hasFeature('challenges')))) return prev;
+      return hasFeature('notes') ? 'notes' : 'challenges';
+    });
+  }, [featuresLoading, hasFeature]);
 
   // Default to "challenge" label once labels load
   useEffect(() => {
@@ -67,6 +65,14 @@ function AppInner() {
     setFilterLabel(labelId);
     setFilterTagIds([]);
   };
+
+  if (!view) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#0c0a12]">
+        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-[#0c0a12]">
