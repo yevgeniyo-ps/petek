@@ -179,6 +179,7 @@ export interface AdminUser {
   collections_count: number;
   labels_count: number;
   policies_count: number;
+  challenges_count: number;
   disk_usage: number;
   notes_this_month: number;
   policies_this_month: number;

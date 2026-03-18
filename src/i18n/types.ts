@@ -237,7 +237,9 @@ export interface Translations {
     totalNotes: string;
     totalPolicies: string;
     totalCollections: string;
+    totalChallenges: string;
     totalDisk: string;
+    stats: string;
     searchPlaceholder: string;
     email: string;
     signedUp: string;

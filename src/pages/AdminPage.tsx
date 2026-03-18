@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock, UserMinus } from 'lucide-react';
+import { Search, Trash2, Users, StickyNote, Shield, HardDrive, Umbrella, FolderOpen, UserX, UserCheck, CheckCircle, Clock, UserMinus, ChevronDown, Trophy } from 'lucide-react';
 import { AdminUser } from '../types';
 import { fetchUsers, deleteUserData, suspendUser, unsuspendUser, approveUser, removeUser, updateUserFeatures } from '../lib/admin';
 import { formatDate } from '../lib/utils';
@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [suspendTarget, setSuspendTarget] = useState<AdminUser | null>(null);
   const [approveTarget, setApproveTarget] = useState<AdminUser | null>(null);
   const [removeTarget, setRemoveTarget] = useState<AdminUser | null>(null);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers()
@@ -33,7 +34,7 @@ export default function AdminPage() {
     setUsers(prev =>
       prev.map(u =>
         u.id === deleteTarget.id
-          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, policies_count: 0, disk_usage: 0, notes_this_month: 0, policies_this_month: 0 }
+          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, policies_count: 0, challenges_count: 0, disk_usage: 0, notes_this_month: 0, policies_this_month: 0 }
           : u
       )
     );
@@ -78,6 +79,7 @@ export default function AdminPage() {
   const totalNotes = users.reduce((sum, u) => sum + u.notes_count, 0);
   const totalPolicies = users.reduce((sum, u) => sum + u.policies_count, 0);
   const totalCollections = users.reduce((sum, u) => sum + u.collections_count, 0);
+  const totalChallenges = users.reduce((sum, u) => sum + u.challenges_count, 0);
   const activeToday = users.filter(u => {
     if (!u.last_sign_in_at) return false;
     const d = new Date(u.last_sign_in_at);
@@ -98,13 +100,14 @@ export default function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <StatCard icon={Users} label={t.admin.totalUsers} value={users.length} />
         <StatCard icon={Clock} label={t.admin.pendingUsers} value={pendingCount} />
         <StatCard icon={Users} label={t.admin.activeToday} value={activeToday} />
         <StatCard icon={StickyNote} label={t.admin.totalNotes} value={totalNotes} />
         <StatCard icon={Umbrella} label={t.admin.totalPolicies} value={totalPolicies} />
         <StatCard icon={FolderOpen} label={t.admin.totalCollections} value={totalCollections} />
+        <StatCard icon={Trophy} label={t.admin.totalChallenges} value={totalChallenges} />
         <StatCard icon={HardDrive} label={t.admin.totalDisk} value={formatBytes(users.reduce((sum, u) => sum + u.disk_usage, 0))} />
       </div>
 
@@ -129,95 +132,110 @@ export default function AdminPage() {
               <th className="px-4 py-3 font-medium">{t.admin.email}</th>
               <th className="px-4 py-3 font-medium">{t.admin.signedUp}</th>
               <th className="px-4 py-3 font-medium">{t.admin.lastActive}</th>
-              <th className="px-4 py-3 font-medium text-right">Notes</th>
-              <th className="px-4 py-3 font-medium text-right">Policies</th>
-              <th className="px-4 py-3 font-medium text-right">Collections</th>
-              <th className="px-4 py-3 font-medium text-right">Labels</th>
-              <th className="px-4 py-3 font-medium text-right">Disk</th>
+              <th className="px-4 py-3 font-medium text-center">{t.admin.stats}</th>
               <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(user => (
-              <tr key={user.id} className="border-t border-[#1c1928] hover:bg-white/[0.02] transition-colors">
-                <td className="px-4 py-3">
-                  <div className="text-white">
-                    {user.email}
-                    {isPending(user) && (
-                      <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">{t.common.pending}</span>
-                    )}
-                    {isSuspended(user) && (
-                      <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{t.common.suspended}</span>
-                    )}
-                  </div>
-                  {!isSelf(user) && (
-                    <FeatureChips
-                      features={user.features ?? ALL_FEATURES}
-                      userId={user.id}
-                      onUpdate={(newFeatures) => {
-                        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, features: newFeatures } : u));
-                      }}
-                    />
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</td>
-                <td className="px-4 py-3 text-[#7a7890]">
-                  {user.last_sign_in_at ? formatDate(user.last_sign_in_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'}
-                </td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">
-                  {user.notes_count}
-                  {user.notes_this_month > 0 && <span className="ml-1.5 text-[11px] text-emerald-400">+{user.notes_this_month}</span>}
-                </td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">
-                  {user.policies_count}
-                  {user.policies_this_month > 0 && <span className="ml-1.5 text-[11px] text-emerald-400">+{user.policies_this_month}</span>}
-                </td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">{user.collections_count}</td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">{user.labels_count}</td>
-                <td className="px-4 py-3 text-[#7a7890] text-right">{formatBytes(user.disk_usage)}</td>
-                <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                  {isSelf(user) ? (
-                    <span className="text-[11px] text-[#4a4660]">{t.common.you}</span>
-                  ) : (
-                    <>
+            {filtered.map(user => {
+              const isExpanded = expandedUser === user.id;
+              const hasStats = user.notes_count > 0 || user.policies_count > 0 || user.collections_count > 0 || user.challenges_count > 0 || user.disk_usage > 0;
+              return (
+                <tr key={user.id} className="border-t border-[#1c1928] hover:bg-white/[0.02] transition-colors align-top">
+                  <td className="px-4 py-3">
+                    <div className="text-white">
+                      {user.email}
                       {isPending(user) && (
-                        <button
-                          onClick={() => setApproveTarget(user)}
-                          className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
-                          title={t.admin.approveUser}
-                        >
-                          <CheckCircle size={14} />
-                        </button>
+                        <span className="ml-2 text-[10px] font-medium bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">{t.common.pending}</span>
                       )}
-                      <button
-                        onClick={() => setSuspendTarget(user)}
-                        className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
-                        title={isSuspended(user) ? t.admin.unsuspendUser : t.admin.suspendUser}
-                      >
-                        {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(user)}
-                        className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                        title={t.admin.deleteUserData}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => setRemoveTarget(user)}
-                        className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
-                        title={t.admin.removeUser}
-                      >
-                        <UserMinus size={14} />
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      {isSuspended(user) && (
+                        <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{t.common.suspended}</span>
+                      )}
+                    </div>
+                    {!isSelf(user) && (
+                      <FeatureChips
+                        features={user.features ?? ALL_FEATURES}
+                        userId={user.id}
+                        onUpdate={(newFeatures) => {
+                          setUsers(prev => prev.map(u => u.id === user.id ? { ...u, features: newFeatures } : u));
+                        }}
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</td>
+                  <td className="px-4 py-3 text-[#7a7890]">
+                    {user.last_sign_in_at ? formatDate(user.last_sign_in_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    {hasStats ? (
+                      <div>
+                        <button
+                          onClick={() => setExpandedUser(isExpanded ? null : user.id)}
+                          className="flex items-center gap-1.5 mx-auto text-[#7a7890] hover:text-white transition-colors"
+                        >
+                          <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isExpanded && (
+                          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] min-w-[160px]">
+                            <StatRow label="Notes" value={user.notes_count} extra={user.notes_this_month} />
+                            <StatRow label="Policies" value={user.policies_count} extra={user.policies_this_month} />
+                            <StatRow label="Collections" value={user.collections_count} />
+                            <StatRow label="Challenges" value={user.challenges_count} />
+                            <StatRow label="Labels" value={user.labels_count} />
+                            <StatRow label="Disk" value={formatBytes(user.disk_usage)} />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[#4a4660] text-[11px] flex justify-center">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      {isSelf(user) ? (
+                        <span className="text-[11px] text-[#4a4660]">{t.common.you}</span>
+                      ) : (
+                        <>
+                          {isPending(user) && (
+                            <button
+                              onClick={() => setApproveTarget(user)}
+                              className="text-[#7a7890] hover:text-emerald-400 transition-colors p-1 rounded"
+                              title={t.admin.approveUser}
+                            >
+                              <CheckCircle size={14} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setSuspendTarget(user)}
+                            className={`transition-colors p-1 rounded ${isSuspended(user) ? 'text-[#7a7890] hover:text-emerald-400' : 'text-[#7a7890] hover:text-[#f87171]'}`}
+                            title={isSuspended(user) ? t.admin.unsuspendUser : t.admin.suspendUser}
+                          >
+                            {isSuspended(user) ? <UserCheck size={14} /> : <UserX size={14} />}
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(user)}
+                            className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
+                            title={t.admin.deleteUserData}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => setRemoveTarget(user)}
+                            className="text-[#7a7890] hover:text-[#f87171] transition-colors p-1 rounded"
+                            title={t.admin.removeUser}
+                          >
+                            <UserMinus size={14} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-[#7a7890]">
+                <td colSpan={5} className="px-4 py-8 text-center text-[#7a7890]">
                   {t.admin.noUsersFound}
                 </td>
               </tr>
@@ -312,6 +330,18 @@ function formatBytes(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + units[i];
+}
+
+function StatRow({ label, value, extra }: { label: string; value: number | string; extra?: number }) {
+  return (
+    <>
+      <span className="text-[#7a7890]">{label}</span>
+      <span className="text-white text-right">
+        {value}
+        {extra != null && extra > 0 && <span className="ml-1 text-emerald-400">+{extra}</span>}
+      </span>
+    </>
+  );
 }
 
 function StatCard({ icon: Icon, label, value }: {
