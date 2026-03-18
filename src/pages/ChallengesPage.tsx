@@ -559,10 +559,22 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   isActive={isActive}
                   clickable={participant.user_id === userId}
                   onToggleDay={participant.user_id === userId ? onToggleDay : undefined}
-                  joinedAt={participant.joined_at}
+                  joinedAt={participant.user_id !== challenge.user_id ? participant.joined_at : undefined}
                 />
               </div>
             ))}
+          {/* Legend */}
+          <div className="flex items-center gap-3 mt-1">
+            <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+              <span className="w-[8px] h-[8px] rounded-[2px] bg-[#ec4899]" /> passed
+            </span>
+            <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+              <span className="w-[8px] h-[8px] rounded-[2px] bg-amber-400" /> failed
+            </span>
+            <span className="flex items-center gap-1 text-[10px] text-[#4a4660]">
+              <span className="w-[8px] h-[8px] rounded-[2px] bg-white/[0.15]" /> upcoming
+            </span>
+          </div>
         </div>
       ) : (
         <div className="mb-3">
