@@ -65,6 +65,16 @@ function getMyFailedDays(challenge: Challenge, userId: string): string[] {
   return challenge.failed_days || [];
 }
 
+function getMyStreakStart(challenge: Challenge, userId: string): string {
+  if (challenge.invite_code && challenge.participants) {
+    const me = challenge.participants.find(p => p.user_id === userId);
+    if (me && me.user_id !== challenge.user_id && me.joined_at) {
+      return me.joined_at.slice(0, 10);
+    }
+  }
+  return challenge.start_date;
+}
+
 function getParticipantLabel(displayName: string, email: string): string {
   if (displayName) {
     const parts = displayName.split(' ');
@@ -311,7 +321,8 @@ function TodayCheckin({ challenges, userId, onToggleDay }: {
         {challenges.map(c => {
           const myFailedDays = getMyFailedDays(c, userId);
           const isFailed = myFailedDays.includes(today);
-          const streak = getStreak(myFailedDays, c.start_date, today);
+          const streakStart = getMyStreakStart(c, userId);
+          const streak = getStreak(myFailedDays, streakStart, today);
           return (
             <button
               key={c.id}
