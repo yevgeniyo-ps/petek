@@ -47,6 +47,7 @@ export const he: Translations = {
     newCollection: 'אוסף חדש',
     settings: 'הגדרות',
     extension: 'תוסף',
+    language: 'שפה',
     signOut: 'התנתק',
   },
   settings: {

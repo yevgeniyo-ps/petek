@@ -47,6 +47,7 @@ export const en: Translations = {
     newCollection: 'New Collection',
     settings: 'Settings',
     extension: 'Extension',
+    language: 'Language',
     signOut: 'Sign out',
   },
   settings: {

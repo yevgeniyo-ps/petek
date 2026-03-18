@@ -47,6 +47,7 @@ export interface Translations {
     newCollection: string;
     settings: string;
     extension: string;
+    language: string;
     signOut: string;
   };
   settings: {

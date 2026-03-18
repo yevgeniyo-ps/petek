@@ -47,6 +47,7 @@ export const ru: Translations = {
     newCollection: 'Новая коллекция',
     settings: 'Настройки',
     extension: 'Расширение',
+    language: 'Язык',
     signOut: 'Выйти',
   },
   settings: {

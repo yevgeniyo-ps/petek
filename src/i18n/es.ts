@@ -47,6 +47,7 @@ export const es: Translations = {
     newCollection: 'Nueva colecci\u00f3n',
     settings: 'Configuraci\u00f3n',
     extension: 'Extensi\u00f3n',
+    language: 'Idioma',
     signOut: 'Cerrar sesi\u00f3n',
   },
   settings: {

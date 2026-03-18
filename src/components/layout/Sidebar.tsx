@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Trophy, Settings, PanelRight } from 'lucide-react';
+import { StickyNote, LogOut, ChevronLeft, ChevronRight, ChevronUp, Plus, Shield, Umbrella, RepeatIcon, Trophy, Settings, PanelRight, Globe } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCollections } from '../../context/CollectionsContext';
@@ -25,13 +25,14 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
   const { collections } = useCollections();
   const { isAdmin } = useAdmin();
   const { features, hasFeature } = useFeatures();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, isRTL } = useLanguage();
   const avatarUrl = useGravatar(user?.email ?? undefined, 64);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [menuSettings, setMenuSettings] = useState<MenuSettings>(loadMenuSettings);
   const [extensionModalOpen, setExtensionModalOpen] = useState(false);
+  const [langSubmenuOpen, setLangSubmenuOpen] = useState(false);
 
   const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
 
@@ -167,9 +168,11 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
       {/* User popover — outside aside to avoid overflow clipping */}
       {userMenuOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => { setUserMenuOpen(false); setLangSubmenuOpen(false); }} />
           <div className={`absolute z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-36 ${
-            open ? 'bottom-4 left-[208px]' : 'bottom-4 left-14'
+            isRTL
+              ? (open ? 'bottom-4 right-[208px]' : 'bottom-4 right-14')
+              : (open ? 'bottom-4 left-[208px]' : 'bottom-4 left-14')
           }`}>
             <button
               onClick={() => { setSettingsOpen(true); setUserMenuOpen(false); }}
@@ -178,21 +181,31 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
               <Settings size={14} />
               <span>{t.sidebar.settings}</span>
             </button>
-            <div className="flex items-center gap-1 px-3 py-1.5">
-              {(['en', 'ru', 'he', 'es'] as Language[]).map(lang => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-                    language === lang
-                      ? 'bg-[#ec4899] text-white'
-                      : 'text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
-                  }`}
-                >
-                  {lang.toUpperCase()}
-                </button>
-              ))}
-            </div>
+            <button
+              onClick={() => setLangSubmenuOpen(!langSubmenuOpen)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors rounded-lg"
+            >
+              <Globe size={14} />
+              <span className="flex-1 text-left">{t.sidebar.language}</span>
+              <span className="text-[10px] font-medium text-[#7a7890]">{language.toUpperCase()}</span>
+            </button>
+            {langSubmenuOpen && (
+              <div className="py-1 px-2">
+                {(['en', 'ru', 'he', 'es'] as Language[]).map(lang => (
+                  <button
+                    key={lang}
+                    onClick={() => { setLanguage(lang); setLangSubmenuOpen(false); setUserMenuOpen(false); }}
+                    className={`w-full flex items-center px-3 py-1.5 rounded text-[12px] font-medium transition-colors ${
+                      language === lang
+                        ? 'text-[#ec4899]'
+                        : 'text-[#7a7890] hover:text-white hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
             {isChrome && (
               <button
                 onClick={() => { setExtensionModalOpen(true); setUserMenuOpen(false); }}
