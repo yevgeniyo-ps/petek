@@ -699,28 +699,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* Details */}
-      <details className="mb-4 group">
-        <summary className="text-[11px] text-[#4a4660] cursor-pointer hover:text-[#7a7890] transition-colors list-none flex items-center gap-1">
-          <span className="text-[9px] group-open:rotate-90 transition-transform">&#9654;</span>
-          {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)} · {totalDays}d
-          {!isShared && isActive && (() => {
-            const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-            const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
-            const passedCount = elapsed - failedCount;
-            return (
-              <span> (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)</span>
-            );
-          })()}
-        </summary>
-        <div className="mt-2 text-[11px] text-[#4a4660] space-y-1">
-          {!isOwner && ownerParticipant && (
-            <div>{t.challenges.by.replace('{name}', getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email))}</div>
-          )}
-          {isShared && <div>{challenge.participants?.length || 0} {t.common.participants}</div>}
-        </div>
-      </details>
-
       {/* Invite code display */}
       {showInviteCode && inviteCode && (
         <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-[#0c0a12] border border-[#1c1928]">
