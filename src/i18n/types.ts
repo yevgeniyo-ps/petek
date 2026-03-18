@@ -146,6 +146,7 @@ export interface Translations {
     oneMonth: string;
     threeMonths: string;
     custom: string;
+    tapIfFailed: string;
   };
   subscriptions: {
     title: string;

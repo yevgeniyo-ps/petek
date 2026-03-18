@@ -146,6 +146,7 @@ export const en: Translations = {
     oneMonth: '1 month',
     threeMonths: '3 months',
     custom: 'Custom',
+    tapIfFailed: 'Tap a challenge if you failed today',
   },
   subscriptions: {
     title: 'Subscriptions',
