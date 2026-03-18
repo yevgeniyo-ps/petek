@@ -4,7 +4,7 @@
   "description": "Keep everything in one place.",
   "start_url": "/#/challenges",
   "scope": "/",
-  "display": "standalone",
+  "display": "minimal-ui",
   "background_color": "#0c0a12",
   "theme_color": "#0c0a12",
   "icons": [
