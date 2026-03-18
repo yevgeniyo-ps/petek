@@ -2,7 +2,7 @@
   "name": "Petek",
   "short_name": "Petek",
   "description": "Keep everything in one place.",
-  "start_url": "/",
+  "start_url": "/#/challenges",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0c0a12",
