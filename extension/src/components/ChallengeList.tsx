@@ -711,6 +711,16 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
         );
       })() : (
         <div className="mb-2">
+          {(() => {
+            const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+            const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
+            const passedCount = elapsed - failedCount;
+            return (
+              <div className="text-[9px] text-[#7a7890] mb-0.5">
+                <span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>
+              </div>
+            );
+          })()}
           <DayGrid
             days={days}
             failedDays={myFailedDays}
