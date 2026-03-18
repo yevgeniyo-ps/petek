@@ -599,8 +599,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             </div>
           </div>
         );
-      })()
-      ) : (
+      })() : (
         <div className="mb-2">
           <DayGrid
             days={days}
