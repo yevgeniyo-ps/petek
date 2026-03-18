@@ -149,6 +149,7 @@ export interface ChallengeParticipant {
   challenge_id: string;
   user_id: string;
   email: string;
+  display_name: string;
   failed_days: string[];
   joined_at: string;
 }

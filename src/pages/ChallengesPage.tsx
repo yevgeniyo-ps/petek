@@ -66,8 +66,9 @@ function getMyFailedDays(challenge: Challenge, userId: string): string[] {
   return challenge.failed_days || [];
 }
 
-function getDisplayEmail(email: string): string {
-  return email.split('@')[0] || email;
+function getParticipantLabel(displayName: string, email: string): string {
+  const name = displayName || email.split('@')[0] || email;
+  return displayName ? `${name} (${email})` : name;
 }
 
 export default function ChallengesPage() {
@@ -518,7 +519,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
       {/* "by owner" for joined challenges */}
       {!isOwner && ownerParticipant && (
         <div className="text-[11px] text-[#4a4660] mb-2">
-          by {getDisplayEmail(ownerParticipant.email)}
+          by {ownerParticipant.display_name || ownerParticipant.email}
         </div>
       )}
 
@@ -555,7 +556,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             .map(participant => (
               <div key={participant.id}>
                 <div className="text-[10px] text-[#7a7890] mb-1 truncate">
-                  {participant.user_id === userId ? 'You' : `${getDisplayEmail(participant.email)} (${participant.email})`}
+                  {participant.user_id === userId ? 'You' : getParticipantLabel(participant.display_name, participant.email)}
                 </div>
                 <DayGrid
                   days={days}
