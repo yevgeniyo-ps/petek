@@ -567,9 +567,22 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             </div>
           )}
         </div>
-        <span className="shrink-0 leading-none">
-          <span className="text-[16px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
-          <span className="text-[9px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+        <span className="shrink-0 flex items-center gap-1.5">
+          {(() => {
+            const streakStart = getMyStreakStart(challenge, userId);
+            const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(streakStart + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+            const failedCount = myFailedDays.filter(d => d >= streakStart && d <= today).length;
+            const passedCount = elapsed - failedCount;
+            return (
+              <span className="text-[9px]">
+                <span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>
+              </span>
+            );
+          })()}
+          <span className="leading-none">
+            <span className="text-[16px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
+            <span className="text-[9px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+          </span>
         </span>
         {isOwner && onRename && (
           <button

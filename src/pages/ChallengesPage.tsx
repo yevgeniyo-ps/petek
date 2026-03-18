@@ -556,9 +556,22 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           )}
         </div>
         {isActive ? (
-          <span className="shrink-0 text-right">
-            <span className="text-[20px] font-bold text-[#ec4899] leading-none">{Math.max(daysRemaining, 0)}</span>
-            <span className="text-[11px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+          <span className="shrink-0 flex items-center gap-2">
+            {(() => {
+              const streakStart = getMyStreakStart(challenge, userId);
+              const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(streakStart + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+              const failedCount = myFailedDays.filter(d => d >= streakStart && d <= today).length;
+              const passedCount = elapsed - failedCount;
+              return (
+                <span className="text-[11px]">
+                  <span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>
+                </span>
+              );
+            })()}
+            <span>
+              <span className="text-[20px] font-bold text-[#ec4899] leading-none">{Math.max(daysRemaining, 0)}</span>
+              <span className="text-[11px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
+            </span>
           </span>
         ) : (
           <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
