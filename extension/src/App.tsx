@@ -1,4 +1,5 @@
 import { ExtAuthProvider, useExtAuth } from './components/LoginForm';
+import { FeaturesProvider, useFeatures } from '@shared/context/FeaturesContext';
 import { NotesProvider } from '@shared/context/NotesContext';
 import { LabelsProvider, useLabels } from '@shared/context/LabelsContext';
 import { TagsProvider } from '@shared/context/TagsContext';
@@ -14,22 +15,28 @@ import { Note } from '@shared/types';
 
 function AuthenticatedApp() {
   return (
-    <NotesProvider>
-      <LabelsProvider>
-      <TagsProvider>
-      <ChallengesProvider>
-        <SyncOnFocus />
-        <AppInner />
-      </ChallengesProvider>
-      </TagsProvider>
-      </LabelsProvider>
-    </NotesProvider>
+    <FeaturesProvider>
+      <NotesProvider>
+        <LabelsProvider>
+        <TagsProvider>
+        <ChallengesProvider>
+          <SyncOnFocus />
+          <AppInner />
+        </ChallengesProvider>
+        </TagsProvider>
+        </LabelsProvider>
+      </NotesProvider>
+    </FeaturesProvider>
   );
 }
 
 function AppInner() {
   const { labels } = useLabels();
-  const [view, setView] = useState<View>('notes');
+  const { hasFeature } = useFeatures();
+
+  // Default view: first available feature
+  const defaultView: View = hasFeature('notes') ? 'notes' : 'challenges';
+  const [view, setView] = useState<View>(defaultView);
   const [search, setSearch] = useState('');
   const [filterLabel, setFilterLabel] = useState<string | null>(null);
   const [filterImportant, setFilterImportant] = useState(false);
@@ -37,6 +44,15 @@ function AppInner() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const defaultApplied = useRef(false);
+
+  // If current view's feature is disabled, switch
+  useEffect(() => {
+    if (view === 'notes' && !hasFeature('notes') && hasFeature('challenges')) {
+      setView('challenges');
+    } else if (view === 'challenges' && !hasFeature('challenges') && hasFeature('notes')) {
+      setView('notes');
+    }
+  }, [view, hasFeature]);
 
   // Default to "challenge" label once labels load
   useEffect(() => {

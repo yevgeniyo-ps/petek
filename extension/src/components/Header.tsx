@@ -1,5 +1,6 @@
 import { useExtAuth } from './LoginForm';
 import { useGravatar } from '@shared/hooks/useGravatar';
+import { useFeatures } from '@shared/context/FeaturesContext';
 import { LogOut } from 'lucide-react';
 
 export type View = 'notes' | 'challenges';
@@ -9,15 +10,15 @@ interface HeaderProps {
   onViewChange: (view: View) => void;
 }
 
-const tabs: { key: View; label: string }[] = [
-  { key: 'notes', label: 'Notes' },
-  { key: 'challenges', label: 'Challenges' },
-];
-
 export function Header({ view, onViewChange }: HeaderProps) {
   const { user, signOut } = useExtAuth();
+  const { hasFeature } = useFeatures();
 
   const avatarUrl = useGravatar(user?.email ?? undefined, 48);
+
+  const tabs: { key: View; label: string }[] = [];
+  if (hasFeature('notes')) tabs.push({ key: 'notes', label: 'Notes' });
+  if (hasFeature('challenges')) tabs.push({ key: 'challenges', label: 'Challenges' });
 
   return (
     <div className="flex-shrink-0 border-b border-[#1c1928]">
@@ -44,22 +45,24 @@ export function Header({ view, onViewChange }: HeaderProps) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex px-4 gap-1">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => onViewChange(tab.key)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              view === tab.key
-                ? 'bg-[#1a1730] text-white'
-                : 'text-[#7a7890] hover:text-white hover:bg-white/5'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Tabs — only show if more than 1 */}
+      {tabs.length > 1 && (
+        <div className="flex px-4 gap-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => onViewChange(tab.key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                view === tab.key
+                  ? 'bg-[#1a1730] text-white'
+                  : 'text-[#7a7890] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
