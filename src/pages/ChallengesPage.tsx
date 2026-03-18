@@ -14,12 +14,6 @@ function getDaysRemaining(endDate: string): number {
   return Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function getTotalDays(startDate: string, endDate: string): number {
-  const start = new Date(startDate + 'T00:00:00');
-  const end = new Date(endDate + 'T00:00:00');
-  return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-}
-
 function getDateRange(startDate: string, endDate: string): string[] {
   const dates: string[] = [];
   const current = new Date(startDate + 'T00:00:00');
