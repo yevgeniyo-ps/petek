@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.type === 'GET_EXISTING_SESSION') {
-    chrome.tabs.query({ url: 'https://petek.app/*' })
+    chrome.tabs.query({ url: ['https://petek.app/*', 'https://yevgeniyo-ps.github.io/petek/*'] })
       .then((tabs) => {
         if (!tabs || tabs.length === 0) {
           sendResponse({ session: null });

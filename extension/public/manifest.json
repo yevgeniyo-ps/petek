@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Quick access to your Petek notes from the browser sidebar",
   "permissions": ["sidePanel", "storage", "identity", "scripting"],
-  "host_permissions": ["https://petek.app/*"],
+  "host_permissions": ["https://petek.app/*", "https://yevgeniyo-ps.github.io/*"],
   "side_panel": {
     "default_path": "index.html"
   },
