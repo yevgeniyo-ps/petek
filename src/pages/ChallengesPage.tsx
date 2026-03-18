@@ -67,8 +67,13 @@ function getMyFailedDays(challenge: Challenge, userId: string): string[] {
 }
 
 function getParticipantLabel(displayName: string, email: string): string {
-  const name = displayName || email.split('@')[0] || email;
-  return displayName ? `${name} (${email})` : name;
+  if (displayName) {
+    const parts = displayName.split(' ');
+    const first = parts[0];
+    const lastInitial = parts[1]?.[0] ? ` ${parts[1][0]}.` : '';
+    return `${first}${lastInitial}`;
+  }
+  return email.split('@')[0] || email;
 }
 
 export default function ChallengesPage() {
@@ -519,7 +524,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
       {/* "by owner" for joined challenges */}
       {!isOwner && ownerParticipant && (
         <div className="text-[11px] text-[#4a4660] mb-2">
-          by {ownerParticipant.display_name || ownerParticipant.email}
+          by {getParticipantLabel(ownerParticipant.display_name, ownerParticipant.email)}
         </div>
       )}
 
