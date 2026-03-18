@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, MoreHorizontal } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n';
@@ -738,7 +738,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           onClick={() => setMenuOpen(!menuOpen)}
           className="p-2 rounded-lg text-[#7a7890] hover:text-white hover:bg-white/[0.08] transition-colors"
         >
-          <MoreHorizontal size={16} />
+          <Menu size={16} />
         </button>
         {menuOpen && (
           <>

@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
 import { useExtAuth } from './LoginForm';
 import { useLanguage } from '@shared/i18n';
-import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, MoreHorizontal } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu } from 'lucide-react';
 import { Challenge, ChallengeStatus } from '@shared/types';
 import React from 'react';
 
@@ -730,7 +730,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
           onClick={() => setMenuOpen(!menuOpen)}
           className="p-1 rounded text-[#7a7890] hover:text-white hover:bg-white/[0.08] transition-colors"
         >
-          <MoreHorizontal size={13} />
+          <Menu size={13} />
         </button>
         {menuOpen && (
           <>
