@@ -536,8 +536,6 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const ownerParticipant = challenge.participants?.find(p => p.user_id === challenge.user_id);
-
   return (
     <div className="bg-[#13111c] border border-white/10 rounded-lg p-3 min-w-0">
       <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -577,6 +575,9 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
           <span className="text-[18px] font-bold text-[#ec4899]">{Math.max(daysRemaining, 0)}</span>
           <span className="text-[10px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
         </span>
+      </div>
+      <div className="text-[9px] text-[#4a4660] mb-1.5">
+        {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
       </div>
 
       {/* Day grids */}
