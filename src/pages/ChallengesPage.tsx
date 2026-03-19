@@ -613,11 +613,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                 </span>
               );
             })()}
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
-              challenge.status === 'completed'
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-red-500/10 text-red-400'
-            }`}>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/[0.08] text-[#c0bfd0]">
               {challenge.status === 'completed' ? <Check size={11} /> : <X size={11} />}
               {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
             </span>

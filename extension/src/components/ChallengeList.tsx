@@ -612,11 +612,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
               <span className="text-[9px] text-[#7a7890] ml-1">{t.challenges.daysLeft}</span>
             </span>
           ) : (
-            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
-              challenge.status === 'completed'
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-red-500/10 text-red-400'
-            }`}>
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-white/[0.08] text-[#c0bfd0]">
               {challenge.status === 'completed' ? <Check size={9} /> : <X size={9} />}
               {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
             </span>
