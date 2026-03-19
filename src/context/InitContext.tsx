@@ -28,10 +28,12 @@ export function InitProvider({ children }: { children: ReactNode }) {
     loading: !DEV_BYPASS_AUTH,
   });
 
+  const userId = user?.id;
+
   useEffect(() => {
     if (DEV_BYPASS_AUTH) return;
 
-    if (!user) {
+    if (!userId) {
       setState({ isApproved: false, isAdmin: false, features: [], loading: false });
       return;
     }
@@ -46,7 +48,7 @@ export function InitProvider({ children }: { children: ReactNode }) {
     ]).then(([isApproved, isAdmin, features]) => {
       setState({ isApproved, isAdmin, features, loading: false });
     });
-  }, [user]);
+  }, [userId]);
 
   const hasFeature = (name: string) => state.features.includes(name);
   const value = { ...state, hasFeature };
