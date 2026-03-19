@@ -10,6 +10,13 @@
     font-size: 14px;
     line-height: 1.5;
   }
+  html, body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
 }
 
 /* Markdown prose styles for note cards */
