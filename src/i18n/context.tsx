@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Language, Translations } from './types';
 import { en } from './en';
 import { ru } from './ru';
@@ -43,8 +43,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = language;
   }, [language, isRTL]);
 
+  const value = useMemo(() => ({ language, setLanguage, t: translations[language], isRTL }), [language]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t: translations[language], isRTL }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

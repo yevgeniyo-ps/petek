@@ -17,6 +17,25 @@ export function truncateMarkdown(content: string, maxLength = 200): string {
   return content.slice(0, maxLength) + '...';
 }
 
+/** Strip markdown syntax for plain-text preview (avoids importing react-markdown). */
+export function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, '')        // headings
+    .replace(/\*\*(.+?)\*\*/g, '$1')    // bold
+    .replace(/\*(.+?)\*/g, '$1')        // italic
+    .replace(/__(.+?)__/g, '$1')        // bold alt
+    .replace(/_(.+?)_/g, '$1')          // italic alt
+    .replace(/~~(.+?)~~/g, '$1')        // strikethrough
+    .replace(/`(.+?)`/g, '$1')          // inline code
+    .replace(/```[\s\S]*?```/g, '')     // code blocks
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1') // links/images
+    .replace(/^\s*[-*+]\s+/gm, '')      // unordered lists
+    .replace(/^\s*\d+\.\s+/gm, '')      // ordered lists
+    .replace(/^\s*>\s+/gm, '')          // blockquotes
+    .replace(/\n{2,}/g, '\n')           // collapse blank lines
+    .trim();
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

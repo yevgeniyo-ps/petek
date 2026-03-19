@@ -1,11 +1,9 @@
-import { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { useState, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Star } from 'lucide-react';
 import { Note } from '../../types';
-import { truncateMarkdown, formatDate } from '../../lib/utils';
+import { stripMarkdown, truncateMarkdown, formatDate } from '../../lib/utils';
 import { useNotes } from '../../context/NotesContext';
 import { useLabels } from '../../context/LabelsContext';
 import { useTags } from '../../context/TagsContext';
@@ -20,7 +18,7 @@ interface NoteCardProps {
   overlay?: boolean;
 }
 
-export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
+function NoteCard({ note, onClick, overlay }: NoteCardProps) {
   const { t, language } = useLanguage();
   const localeMap: Record<string, string> = { en: 'en-US', ru: 'ru-RU', he: 'he-IL', es: 'es-ES' };
   const { updateNote, deleteNote } = useNotes();
@@ -83,11 +81,9 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
             </h3>
           )}
           {note.content && (
-            <div className="text-[13px] text-[#9896a8] line-clamp-6 leading-relaxed markdown-prose">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {truncateMarkdown(note.content, 200)}
-              </ReactMarkdown>
-            </div>
+            <p className="text-[13px] text-[#9896a8] line-clamp-6 leading-relaxed whitespace-pre-line">
+              {truncateMarkdown(stripMarkdown(note.content), 200)}
+            </p>
           )}
         </div>
 
@@ -136,3 +132,5 @@ export default function NoteCard({ note, onClick, overlay }: NoteCardProps) {
     </>
   );
 }
+
+export default memo(NoteCard);
