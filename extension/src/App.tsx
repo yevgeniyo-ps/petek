@@ -47,10 +47,7 @@ function AppInner() {
   // Set initial view once features load
   useEffect(() => {
     if (featuresLoading) return;
-    setView(prev => {
-      if (prev && ((prev === 'notes' && hasFeature('notes')) || (prev === 'challenges' && hasFeature('challenges')))) return prev;
-      return hasFeature('challenges') ? 'challenges' : 'notes';
-    });
+    setView(hasFeature('challenges') ? 'challenges' : 'notes');
   }, [featuresLoading, hasFeature]);
 
   // Default to "challenge" label once labels load
