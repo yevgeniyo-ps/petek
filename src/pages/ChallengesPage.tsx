@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu, RotateCcw } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, MoreHorizontal } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n';
@@ -272,7 +272,6 @@ export default function ChallengesPage() {
                 userId={user.id}
                 onDelete={challenge.user_id === user.id ? () => handleDeleteConfirm(challenge) : undefined}
                 onLeave={challenge.user_id !== user.id ? () => handleLeaveConfirm(challenge) : undefined}
-                onReactivate={challenge.user_id === user.id ? (newEndDate) => updateChallenge(challenge.id, { status: 'active', end_date: newEndDate }) : undefined}
               />
             ))}
           </div>
@@ -467,7 +466,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   );
 }
 
-function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant, onReactivate }: {
+function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant }: {
   challenge: Challenge;
   userId: string;
   onComplete?: () => void;
@@ -479,7 +478,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onShare?: () => Promise<string>;
   onLeave?: () => void;
   onRemoveParticipant?: (userId: string) => void;
-  onReactivate?: (newEndDate: string) => void;
 }) {
   const { t, language } = useLanguage();
   const isActive = challenge.status === 'active';
@@ -499,9 +497,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [reactivating, setReactivating] = useState(false);
-  const [reactivateEndDate, setReactivateEndDate] = useState('');
-
   const myFailedDays = getMyFailedDays(challenge, userId);
 
   useEffect(() => {
@@ -537,15 +532,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
     await navigator.clipboard.writeText(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleReactivateClick = () => {
-    const orig = Math.ceil((new Date(challenge.end_date + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24));
-    const d = new Date();
-    d.setDate(d.getDate() + orig);
-    setReactivateEndDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
-    setReactivating(true);
-    setMenuOpen(false);
   };
 
   return (
@@ -644,12 +630,12 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-1 rounded-lg text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-colors"
           >
-            <Menu size={14} />
+            <MoreHorizontal size={14} />
           </button>
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-              <div className="absolute top-full right-0 mt-1 z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-44">
+              <div className="absolute top-full right-0 mt-1 z-50 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-40">
                 {isActive && isOwner && (
                   <>
                     <button onClick={() => { onComplete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
@@ -685,31 +671,14 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   </>
                 )}
                 {!isActive && isOwner && (
-                  <>
-                    {onReactivate && (
-                      <button onClick={handleReactivateClick} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                        <RotateCcw size={14} /> {t.challenges.reactivate}
-                      </button>
-                    )}
-                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                      <Info size={14} /> {t.challenges.legend}
-                    </button>
-                    <div className="border-t border-[#1c1928] my-1" />
-                    <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                      <Trash2 size={14} /> {t.common.delete}
-                    </button>
-                  </>
+                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <Trash2 size={14} /> {t.common.delete}
+                  </button>
                 )}
                 {!isActive && !isOwner && (
-                  <>
-                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                      <Info size={14} /> {t.challenges.legend}
-                    </button>
-                    <div className="border-t border-[#1c1928] my-1" />
-                    <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                      <LogOut size={14} /> {t.common.leave}
-                    </button>
-                  </>
+                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <LogOut size={14} /> {t.common.leave}
+                  </button>
                 )}
               </div>
             </>
@@ -881,31 +850,6 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         </div>
       )}
 
-      {/* Reactivate inline */}
-      {reactivating && (
-        <div className="flex items-center gap-2 mb-3">
-          <input
-            type="date"
-            value={reactivateEndDate}
-            onChange={e => setReactivateEndDate(e.target.value)}
-            min={today}
-            className="flex-1 px-3 py-1.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[12px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
-          />
-          <button
-            onClick={() => { if (reactivateEndDate >= today) { onReactivate?.(reactivateEndDate); setReactivating(false); } }}
-            disabled={!reactivateEndDate || reactivateEndDate < today}
-            className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-lg transition-colors disabled:opacity-50"
-          >
-            {t.challenges.reactivate}
-          </button>
-          <button
-            onClick={() => setReactivating(false)}
-            className="px-2 py-1.5 text-[12px] text-[#7a7890] hover:text-white transition-colors"
-          >
-            {t.common.cancel}
-          </button>
-        </div>
-      )}
       </>
       )}
 

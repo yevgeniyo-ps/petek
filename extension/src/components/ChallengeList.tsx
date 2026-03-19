@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useChallenges } from '@shared/context/ChallengesContext';
 import { useExtAuth } from './LoginForm';
 import { useLanguage } from '@shared/i18n';
-import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu, RotateCcw } from 'lucide-react';
+import { Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, MoreHorizontal } from 'lucide-react';
 import { Challenge, ChallengeStatus } from '@shared/types';
 import React from 'react';
 
@@ -308,7 +308,6 @@ export function ChallengeList() {
                 onDelete={challenge.user_id === userId ? () => deleteChallenge(challenge.id) : undefined}
                 onLeave={challenge.user_id !== userId ? () => leaveChallenge(challenge.id) : undefined}
                 onToggleDay={() => {}}
-                onReactivate={challenge.user_id === userId ? (newEnd) => updateChallenge(challenge.id, { status: 'active', end_date: newEnd }) : undefined}
                 onRemoveParticipant={challenge.user_id === userId ? (uid) => { setRemoveConfirmChallengeId(challenge.id); setRemoveConfirmUid(uid); } : undefined}
               />
             ))}
@@ -478,7 +477,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   );
 }
 
-function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant, onReactivate }: {
+function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onDelete, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant }: {
   challenge: Challenge;
   userId: string;
   onComplete?: () => void;
@@ -490,7 +489,6 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   onShare?: () => Promise<string>;
   onLeave?: () => void;
   onRemoveParticipant?: (userId: string) => void;
-  onReactivate?: (newEndDate: string) => void;
 }) {
   const { t, language } = useLanguage();
   const isOwner = challenge.user_id === userId;
@@ -512,9 +510,6 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [reactivating, setReactivating] = useState(false);
-  const [reactivateEndDate, setReactivateEndDate] = useState('');
-
   useEffect(() => {
     if (editing) editRef.current?.focus();
   }, [editing]);
@@ -553,15 +548,6 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
     await navigator.clipboard.writeText(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleReactivateClick = () => {
-    const orig = Math.ceil((new Date(challenge.end_date + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24));
-    const d = new Date();
-    d.setDate(d.getDate() + orig);
-    setReactivateEndDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
-    setReactivating(true);
-    setMenuOpen(false);
   };
 
   return (
@@ -643,7 +629,7 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-0.5 rounded text-[#4a4660] hover:text-white hover:bg-white/[0.08] transition-colors"
           >
-            <Menu size={12} />
+            <MoreHorizontal size={12} />
           </button>
           {menuOpen && (
             <>
@@ -684,31 +670,14 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
                   </>
                 )}
                 {!isActive && isOwner && (
-                  <>
-                    {onReactivate && (
-                      <button onClick={handleReactivateClick} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                        <RotateCcw size={13} /> {t.challenges.reactivate}
-                      </button>
-                    )}
-                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                      <Info size={13} /> {t.challenges.legend}
-                    </button>
-                    <div className="border-t border-[#1c1928] my-1" />
-                    <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                      <Trash2 size={13} /> {t.common.delete}
-                    </button>
-                  </>
+                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <Trash2 size={13} /> {t.common.delete}
+                  </button>
                 )}
                 {!isActive && !isOwner && (
-                  <>
-                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
-                      <Info size={13} /> {t.challenges.legend}
-                    </button>
-                    <div className="border-t border-[#1c1928] my-1" />
-                    <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                      <LogOut size={13} /> {t.common.leave}
-                    </button>
-                  </>
+                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                    <LogOut size={13} /> {t.common.leave}
+                  </button>
                 )}
               </div>
             </>
@@ -878,31 +847,6 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
         </div>
       )}
 
-      {/* Reactivate inline */}
-      {reactivating && (
-        <div className="flex items-center gap-1.5 mb-2">
-          <input
-            type="date"
-            value={reactivateEndDate}
-            onChange={e => setReactivateEndDate(e.target.value)}
-            min={today}
-            className="flex-1 px-2 py-1 bg-[#0c0a12] border border-[#1c1928] rounded text-[11px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
-          />
-          <button
-            onClick={() => { if (reactivateEndDate >= today) { onReactivate?.(reactivateEndDate); setReactivating(false); } }}
-            disabled={!reactivateEndDate || reactivateEndDate < today}
-            className="px-2 py-1 text-[11px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded transition-colors disabled:opacity-50"
-          >
-            {t.challenges.reactivate}
-          </button>
-          <button
-            onClick={() => setReactivating(false)}
-            className="px-1 py-1 text-[11px] text-[#7a7890] hover:text-white transition-colors"
-          >
-            {t.common.cancel}
-          </button>
-        </div>
-      )}
       </>
       )}
 
