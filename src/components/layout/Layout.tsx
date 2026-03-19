@@ -35,7 +35,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="h-screen flex bg-[#0c0a12] md:p-3 md:gap-3">
+    <div className="min-h-screen md:h-screen md:flex bg-[#0c0a12] md:p-3 md:gap-3">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
@@ -63,7 +63,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </>
       )}
 
-      <main className="flex-1 overflow-y-auto mobile-safe-top md:!pt-0">
+      <main className="mobile-safe-top md:!pt-0 md:flex-1 md:overflow-y-auto pb-[env(safe-area-inset-bottom)]">
         {children}
       </main>
     </div>
