@@ -21,10 +21,6 @@
   padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
 }
 
-/* Prevent iOS scroll bounce/stuck */
-html, body {
-  overscroll-behavior: none;
-}
 
 /* Markdown prose styles for note cards */
 .markdown-prose h1 { font-size: 1.25em; font-weight: 700; margin-bottom: 0.25em; color: #e0dfe4; }
