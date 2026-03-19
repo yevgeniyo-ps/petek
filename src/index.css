@@ -19,7 +19,11 @@
 /* Mobile safe area padding */
 .mobile-safe-top {
   padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
-  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS scroll bounce/stuck */
+html, body {
+  overscroll-behavior: none;
 }
 
 /* Markdown prose styles for note cards */

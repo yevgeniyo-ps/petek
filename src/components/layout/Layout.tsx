@@ -63,7 +63,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </>
       )}
 
-      <main className="flex-1 overflow-y-auto mobile-safe-top md:!pt-0">
+      <main className="flex-1 overflow-y-auto overscroll-contain mobile-safe-top md:!pt-0">
         {children}
       </main>
     </div>
