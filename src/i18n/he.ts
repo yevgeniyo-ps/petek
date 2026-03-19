@@ -147,6 +147,7 @@ export const he: Translations = {
     threeMonths: '3 חודשים',
     custom: 'מותאם',
     tapIfFailed: 'לחץ על אתגר אם נכשלת היום',
+    reactivate: 'הפעל מחדש',
   },
   subscriptions: {
     title: 'מנויים',

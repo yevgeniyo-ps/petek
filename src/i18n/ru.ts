@@ -147,6 +147,7 @@ export const ru: Translations = {
     threeMonths: '3 месяца',
     custom: 'Другое',
     tapIfFailed: 'Нажмите на челлендж, если сегодня не удалось',
+    reactivate: 'Возобновить',
   },
   subscriptions: {
     title: 'Подписки',

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu } from 'lucide-react';
+import { Trophy, Plus, Check, X, Trash2, CalendarPlus, Pencil, Flame, Share2, Users, Copy, LogOut, UserPlus, Info, Menu, RotateCcw } from 'lucide-react';
 import { useChallenges } from '../context/ChallengesContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n';
@@ -272,6 +272,7 @@ export default function ChallengesPage() {
                 userId={user.id}
                 onDelete={challenge.user_id === user.id ? () => handleDeleteConfirm(challenge) : undefined}
                 onLeave={challenge.user_id !== user.id ? () => handleLeaveConfirm(challenge) : undefined}
+                onReactivate={challenge.user_id === user.id ? (newEndDate) => updateChallenge(challenge.id, { status: 'active', end_date: newEndDate }) : undefined}
               />
             ))}
           </div>
@@ -433,9 +434,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
 
             let color: string;
             let style: React.CSSProperties | undefined;
-            if (!isActive) {
-              color = 'bg-[#2a2835]';
-            } else if (isBeforeJoin) {
+            if (isBeforeJoin) {
               color = 'bg-[#1c1928]';
               style = {
                 backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 3px)',
@@ -467,7 +466,7 @@ function DayGrid({ days, failedDays, today, isActive, clickable, onToggleDay, jo
   );
 }
 
-function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant }: {
+function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExtend, onRename, onToggleDay, onShare, onLeave, onRemoveParticipant, onReactivate }: {
   challenge: Challenge;
   userId: string;
   onComplete?: () => void;
@@ -479,6 +478,7 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   onShare?: () => Promise<string>;
   onLeave?: () => void;
   onRemoveParticipant?: (userId: string) => void;
+  onReactivate?: (newEndDate: string) => void;
 }) {
   const { t, language } = useLanguage();
   const isActive = challenge.status === 'active';
@@ -498,6 +498,8 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
   const [showLegend, setShowLegend] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateEndDate, setReactivateEndDate] = useState('');
 
   const myFailedDays = getMyFailedDays(challenge, userId);
 
@@ -536,11 +538,20 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleReactivateClick = () => {
+    const orig = Math.ceil((new Date(challenge.end_date + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24));
+    const d = new Date();
+    d.setDate(d.getDate() + orig);
+    setReactivateEndDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    setReactivating(true);
+    setMenuOpen(false);
+  };
+
   return (
     <div className={`rounded-xl border p-5 transition-colors min-w-0 ${
       isActive
         ? 'bg-[#13111c] border-white/10 hover:border-white/20'
-        : 'bg-[#0f0d18] border-white/10 opacity-60'
+        : 'bg-[#0f0d18] border-white/10'
     }`}>
       {/* Header: name + days + menu */}
       <div className="flex items-center gap-2 group">
@@ -589,13 +600,27 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
             </span>
           </span>
         ) : (
-          <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
-            challenge.status === 'completed'
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'bg-red-500/10 text-red-400'
-          }`}>
-            {challenge.status === 'completed' ? <Check size={11} /> : <X size={11} />}
-            {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
+          <span className="shrink-0 flex items-center gap-2">
+            {(() => {
+              const streakStart = getMyStreakStart(challenge, userId);
+              const endRef = challenge.end_date;
+              const elapsed = Math.max(0, Math.ceil((new Date(endRef + 'T00:00:00').getTime() - new Date(streakStart + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+              const failedCount = myFailedDays.filter(d => d >= streakStart && d <= endRef).length;
+              const passedCount = elapsed - failedCount;
+              return (
+                <span className="text-[11px]">
+                  <span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>
+                </span>
+              );
+            })()}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
+              challenge.status === 'completed'
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-red-500/10 text-red-400'
+            }`}>
+              {challenge.status === 'completed' ? <Check size={11} /> : <X size={11} />}
+              {challenge.status === 'completed' ? t.challenges.completed : t.common.failed}
+            </span>
           </span>
         )}
         {isActive && onRename && (
@@ -653,14 +678,31 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   </>
                 )}
                 {!isActive && isOwner && (
-                  <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                    <Trash2 size={14} /> {t.common.delete}
-                  </button>
+                  <>
+                    {onReactivate && (
+                      <button onClick={handleReactivateClick} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                        <RotateCcw size={14} /> {t.challenges.reactivate}
+                      </button>
+                    )}
+                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Info size={14} /> {t.challenges.legend}
+                    </button>
+                    <div className="border-t border-[#1c1928] my-1" />
+                    <button onClick={() => { onDelete?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                      <Trash2 size={14} /> {t.common.delete}
+                    </button>
+                  </>
                 )}
                 {!isActive && !isOwner && (
-                  <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
-                    <LogOut size={14} /> {t.common.leave}
-                  </button>
+                  <>
+                    <button onClick={() => { setShowLegend(!showLegend); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors">
+                      <Info size={14} /> {t.challenges.legend}
+                    </button>
+                    <div className="border-t border-[#1c1928] my-1" />
+                    <button onClick={() => { onLeave?.(); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-white/[0.08] hover:text-red-400 transition-colors">
+                      <LogOut size={14} /> {t.common.leave}
+                    </button>
+                  </>
                 )}
               </div>
             </>
@@ -672,11 +714,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
       {expanded && (
       <>
       {/* Date range */}
-      {isActive && (
-        <div className="text-[11px] text-[#4a4660] mt-2">
-          {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
-        </div>
-      )}
+      <div className="text-[11px] text-[#4a4660] mt-2">
+        {formatDate(challenge.start_date, language)} – {formatDate(challenge.end_date, language)}
+      </div>
 
       {/* Day grids */}
       <div className="mt-3" />
@@ -688,8 +728,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           const pFailed = participant.failed_days || [];
           const joinDate = participant.user_id !== challenge.user_id ? participant.joined_at?.slice(0, 10) : challenge.start_date;
           const startFrom = joinDate || challenge.start_date;
-          const elapsed = isActive ? Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
-          const failedCount = pFailed.filter(d => d >= startFrom && d <= today).length;
+          const endRef = isActive ? today : challenge.end_date;
+          const elapsed = Math.max(0, Math.ceil((new Date(endRef + 'T00:00:00').getTime() - new Date(startFrom + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          const failedCount = pFailed.filter(d => d >= startFrom && d <= endRef).length;
           const passedCount = elapsed - failedCount;
           const canRemove = !isMe && isOwner && isActive && participant.user_id !== challenge.user_id && onRemoveParticipant;
           return (
@@ -698,11 +739,9 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                 <span className="truncate">
                   {isMe ? t.common.you : getParticipantLabel(participant.display_name, participant.email)}
                 </span>
-                {isActive && (
-                  <span className="shrink-0">
-                    (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
-                  </span>
-                )}
+                <span className="shrink-0">
+                  (<span className="text-[#ec4899]">{passedCount}</span>/<span className="text-amber-400">{failedCount}</span>)
+                </span>
                 {canRemove && (
                   <button
                     onClick={() => onRemoveParticipant(participant.user_id)}
@@ -760,9 +799,10 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
         );
       })() : (
         <div className="mb-3">
-          {isActive && (() => {
-            const elapsed = Math.max(0, Math.ceil((new Date(today + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
-            const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= today).length;
+          {(() => {
+            const endRef = isActive ? today : challenge.end_date;
+            const elapsed = Math.max(0, Math.ceil((new Date(endRef + 'T00:00:00').getTime() - new Date(challenge.start_date + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1);
+            const failedCount = myFailedDays.filter(d => d >= challenge.start_date && d <= endRef).length;
             const passedCount = elapsed - failedCount;
             return (
               <div className="text-[10px] text-[#7a7890] mb-1">
@@ -827,6 +867,32 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
           </button>
           <button
             onClick={() => { setExtending(false); setNewEndDate(challenge.end_date); }}
+            className="px-2 py-1.5 text-[12px] text-[#7a7890] hover:text-white transition-colors"
+          >
+            {t.common.cancel}
+          </button>
+        </div>
+      )}
+
+      {/* Reactivate inline */}
+      {reactivating && (
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="date"
+            value={reactivateEndDate}
+            onChange={e => setReactivateEndDate(e.target.value)}
+            min={today}
+            className="flex-1 px-3 py-1.5 bg-[#0c0a12] border border-[#1c1928] rounded-lg text-[12px] text-[#e0dfe4] outline-none focus:border-[#2d2a40] [color-scheme:dark]"
+          />
+          <button
+            onClick={() => { if (reactivateEndDate >= today) { onReactivate?.(reactivateEndDate); setReactivating(false); } }}
+            disabled={!reactivateEndDate || reactivateEndDate < today}
+            className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-lg transition-colors disabled:opacity-50"
+          >
+            {t.challenges.reactivate}
+          </button>
+          <button
+            onClick={() => setReactivating(false)}
             className="px-2 py-1.5 text-[12px] text-[#7a7890] hover:text-white transition-colors"
           >
             {t.common.cancel}
