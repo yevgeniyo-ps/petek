@@ -234,7 +234,7 @@ export interface Translations {
     title: string;
     totalUsers: string;
     pendingUsers: string;
-    activeToday: string;
+    activeThisWeek: string;
     totalNotes: string;
     totalPolicies: string;
     totalCollections: string;
@@ -261,6 +261,10 @@ export interface Translations {
     approve: string;
     deleteData: string;
     removeUserLabel: string;
+    lastLogin: string;
+    active: string;
+    idle: string;
+    dormant: string;
   };
   ext: {
     extensionTitle: string;

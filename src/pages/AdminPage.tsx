@@ -34,7 +34,7 @@ export default function AdminPage() {
     setUsers(prev =>
       prev.map(u =>
         u.id === deleteTarget.id
-          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, policies_count: 0, challenges_count: 0, disk_usage: 0, notes_this_month: 0, policies_this_month: 0 }
+          ? { ...u, notes_count: 0, collections_count: 0, labels_count: 0, policies_count: 0, challenges_count: 0, disk_usage: 0, notes_this_month: 0, policies_this_month: 0, last_activity_at: null }
           : u
       )
     );
@@ -80,12 +80,18 @@ export default function AdminPage() {
   const totalPolicies = users.reduce((sum, u) => sum + u.policies_count, 0);
   const totalCollections = users.reduce((sum, u) => sum + u.collections_count, 0);
   const totalChallenges = users.reduce((sum, u) => sum + u.challenges_count, 0);
-  const activeToday = users.filter(u => {
-    if (!u.last_sign_in_at) return false;
-    const d = new Date(u.last_sign_in_at);
-    const now = new Date();
-    return d.toDateString() === now.toDateString();
-  }).length;
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const activeThisWeek = users.filter(u => u.last_activity_at && new Date(u.last_activity_at) >= weekAgo).length;
+
+  const getActivityStatus = (u: AdminUser) => {
+    if (!u.last_activity_at) return 'dormant';
+    const d = new Date(u.last_activity_at);
+    if (d >= weekAgo) return 'active';
+    if (d >= monthAgo) return 'idle';
+    return 'dormant';
+  };
 
   if (loading) {
     return <div className="text-[#7a7890] text-[14px] text-center pt-40">{t.common.loading}</div>;
@@ -103,7 +109,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <StatCard icon={Users} label={t.admin.totalUsers} value={users.length} />
         <StatCard icon={Clock} label={t.admin.pendingUsers} value={pendingCount} />
-        <StatCard icon={Users} label={t.admin.activeToday} value={activeToday} />
+        <StatCard icon={Users} label={t.admin.activeThisWeek} value={activeThisWeek} />
         <StatCard icon={StickyNote} label={t.admin.totalNotes} value={totalNotes} />
         <StatCard icon={Umbrella} label={t.admin.totalPolicies} value={totalPolicies} />
         <StatCard icon={FolderOpen} label={t.admin.totalCollections} value={totalCollections} />
@@ -151,6 +157,15 @@ export default function AdminPage() {
                       {isSuspended(user) && (
                         <span className="ml-2 text-[10px] font-medium bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{t.common.suspended}</span>
                       )}
+                      {(() => {
+                        const status = getActivityStatus(user);
+                        const cfg = status === 'active'
+                          ? { bg: 'bg-emerald-500/15', text: 'text-emerald-400', label: t.admin.active }
+                          : status === 'idle'
+                          ? { bg: 'bg-yellow-500/15', text: 'text-yellow-400', label: t.admin.idle }
+                          : { bg: 'bg-red-500/15', text: 'text-red-400', label: t.admin.dormant };
+                        return <span className={`ml-2 text-[10px] font-medium ${cfg.bg} ${cfg.text} px-1.5 py-0.5 rounded`}>{cfg.label}</span>;
+                      })()}
                     </div>
                     {!isSelf(user) && (
                       <FeatureChips
@@ -164,7 +179,7 @@ export default function AdminPage() {
                   </td>
                   <td className="px-4 py-3 text-[#7a7890]">{formatDate(user.created_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo })}</td>
                   <td className="px-4 py-3 text-[#7a7890]">
-                    {user.last_sign_in_at ? formatDate(user.last_sign_in_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'}
+                    {user.last_activity_at ? formatDate(user.last_activity_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     {hasStats ? (
@@ -183,6 +198,7 @@ export default function AdminPage() {
                             <StatRow label="Challenges" value={user.challenges_count} />
                             <StatRow label="Labels" value={user.labels_count} />
                             <StatRow label="Disk" value={formatBytes(user.disk_usage)} />
+                            <StatRow label={t.admin.lastLogin} value={user.last_sign_in_at ? formatDate(user.last_sign_in_at, localeMap[language], { yesterday: t.common.yesterday, daysAgo: t.common.daysAgo }) : '—'} />
                           </div>
                         )}
                       </div>

@@ -183,6 +183,7 @@ export interface AdminUser {
   disk_usage: number;
   notes_this_month: number;
   policies_this_month: number;
+  last_activity_at: string | null;
   approved_at: string | null;
   features: string[];
 }
