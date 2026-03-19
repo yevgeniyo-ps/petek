@@ -39,7 +39,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden w-10 h-10 rounded-lg bg-[#1a1726] border border-[#0c0a12] flex items-center justify-center text-[#7a7890] hover:text-white transition-colors"
+        className="fixed left-4 z-40 md:hidden w-10 h-10 rounded-lg bg-[#1a1726] border border-[#0c0a12] flex items-center justify-center text-[#7a7890] hover:text-white transition-colors"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
       >
         <Menu size={20} />
       </button>
@@ -62,7 +63,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </>
       )}
 
-      <main className="flex-1 overflow-y-auto pt-16 md:pt-0">
+      <main className="flex-1 overflow-y-auto mobile-safe-top md:!pt-0">
         {children}
       </main>
     </div>

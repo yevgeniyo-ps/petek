@@ -279,7 +279,7 @@ export default function ChallengesPage() {
       )}
 
       {/* FAB */}
-      <div className="fixed bottom-6 right-6 z-30">
+      <div className="fixed right-6 z-30" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
         {fabOpen && (
           <>
             <div className="fixed inset-0 z-30" onClick={() => setFabOpen(false)} />

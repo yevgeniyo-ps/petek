@@ -14,9 +14,12 @@
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
   }
-  body {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
+}
+
+/* Mobile safe area padding */
+.mobile-safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Markdown prose styles for note cards */
