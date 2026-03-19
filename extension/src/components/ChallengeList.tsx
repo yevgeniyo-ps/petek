@@ -392,17 +392,18 @@ function TodayCheckin({ challenges, userId, onToggleDay }: {
               <span className={`w-4 h-4 rounded-[2px] flex-shrink-0 transition-colors ${
                 isFailed ? 'bg-amber-400' : 'bg-[#ec4899]'
               }`} />
-              <span className={`text-[12px] truncate flex-1 transition-colors ${
+              <span className={`text-[12px] truncate transition-colors ${
                 isFailed ? 'text-amber-400/80' : 'text-white'
               }`}>{c.name}</span>
-              {c.invite_code && (
-                <span className="text-[#4a4660]"><Users size={11} /></span>
-              )}
               {streak >= 3 && (
                 <span className="flex items-center gap-0.5 text-[10px] text-[#ec4899] font-medium shrink-0">
                   <Flame size={11} />
                   {streak}
                 </span>
+              )}
+              <span className="flex-1" />
+              {c.invite_code && (
+                <span className="text-[#4a4660]"><Users size={11} /></span>
               )}
             </button>
           );
