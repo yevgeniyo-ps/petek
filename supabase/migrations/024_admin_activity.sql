@@ -51,7 +51,12 @@ BEGIN
       + COALESCE(p.sz, 0) + COALESCE(ch.sz, 0) + COALESCE(cp.sz, 0) AS disk_usage,
     COALESCE(n.this_month, 0) AS notes_this_month,
     COALESCE(p.this_month, 0) AS policies_this_month,
-    GREATEST(n.last_at, c.last_at, p.last_at, ch.last_at) AS last_activity_at
+    NULLIF(GREATEST(
+      COALESCE(n.last_at, '-infinity'::timestamptz),
+      COALESCE(c.last_at, '-infinity'::timestamptz),
+      COALESCE(p.last_at, '-infinity'::timestamptz),
+      COALESCE(ch.last_at, '-infinity'::timestamptz)
+    ), '-infinity'::timestamptz) AS last_activity_at
   FROM auth.users u
   LEFT JOIN approved_users a ON a.user_id = u.id
   LEFT JOIN (
@@ -93,6 +98,11 @@ BEGIN
     FROM challenge_participants cp2
     GROUP BY cp2.user_id
   ) cp ON cp.user_id = u.id
-  ORDER BY GREATEST(n.last_at, c.last_at, p.last_at, ch.last_at) DESC NULLS LAST;
+  ORDER BY NULLIF(GREATEST(
+    COALESCE(n.last_at, '-infinity'::timestamptz),
+    COALESCE(c.last_at, '-infinity'::timestamptz),
+    COALESCE(p.last_at, '-infinity'::timestamptz),
+    COALESCE(ch.last_at, '-infinity'::timestamptz)
+  ), '-infinity'::timestamptz) DESC NULLS LAST;
 END;
 $$;
