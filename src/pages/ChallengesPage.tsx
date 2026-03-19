@@ -91,6 +91,7 @@ export default function ChallengesPage() {
   const { challenges, loading, createChallenge, updateChallenge, deleteChallenge, generateInviteCode, joinChallenge, toggleFailedDay, leaveChallenge, removeParticipant } = useChallenges();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingChallenge, setDeletingChallenge] = useState<Challenge | null>(null);
@@ -218,31 +219,13 @@ export default function ChallengesPage() {
   return (
     <div className="max-w-[1200px] px-4 py-6 md:px-12 md:py-10">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <Trophy size={24} className="text-[#ec4899]" />
-          <div>
-            <h1 className="text-[26px] font-bold text-white leading-tight">{t.challenges.title}</h1>
-            <p className="text-[14px] text-[#7a7890] mt-1">
-              {t.challenges.activeCount.replace('{n}', String(activeChallenges.length))}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setJoinOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-[#7a7890] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-full transition-colors"
-          >
-            <UserPlus size={16} />
-            {t.common.join}
-          </button>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#ec4899] hover:bg-[#db2777] rounded-full transition-colors"
-          >
-            <Plus size={16} />
-            {t.challenges.newChallenge}
-          </button>
+      <div className="mb-8 flex items-center gap-3">
+        <Trophy size={24} className="text-[#ec4899]" />
+        <div>
+          <h1 className="text-[26px] font-bold text-white leading-tight">{t.challenges.title}</h1>
+          <p className="text-[14px] text-[#7a7890] mt-1">
+            {t.challenges.activeCount.replace('{n}', String(activeChallenges.length))}
+          </p>
         </div>
       </div>
 
@@ -294,6 +277,37 @@ export default function ChallengesPage() {
           </div>
         </>
       )}
+
+      {/* FAB */}
+      <div className="fixed bottom-6 right-6 z-30">
+        {fabOpen && (
+          <>
+            <div className="fixed inset-0 z-30" onClick={() => setFabOpen(false)} />
+            <div className="absolute bottom-14 right-0 z-40 bg-[#1e1b2e] border border-[#3a3650] rounded-lg shadow-xl py-1 w-44">
+              <button
+                onClick={() => { setFabOpen(false); setCreateOpen(true); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors"
+              >
+                <Plus size={15} />
+                {t.challenges.newChallenge}
+              </button>
+              <button
+                onClick={() => { setFabOpen(false); setJoinOpen(true); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#c0bfd0] hover:bg-white/[0.08] hover:text-white transition-colors"
+              >
+                <UserPlus size={15} />
+                {t.challenges.joinChallenge}
+              </button>
+            </div>
+          </>
+        )}
+        <button
+          onClick={() => setFabOpen(!fabOpen)}
+          className={`w-12 h-12 rounded-full bg-[#ec4899] hover:bg-[#db2777] text-white shadow-lg flex items-center justify-center transition-all ${fabOpen ? 'rotate-45' : ''}`}
+        >
+          <Plus size={22} />
+        </button>
+      </div>
 
       <CreateChallengeModal open={createOpen} onClose={() => setCreateOpen(false)} onSave={handleCreate} />
       <JoinChallengeModal open={joinOpen} onClose={() => { setJoinOpen(false); setJoinCode(''); }} onJoin={handleJoin} initialCode={joinCode} />
