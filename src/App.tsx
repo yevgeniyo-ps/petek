@@ -32,16 +32,15 @@ function PageLoader() {
 }
 
 const FEATURE_ROUTES: Record<string, string> = {
-  notes: '/',
   challenges: '/challenges',
+  notes: '/notes',
   insurances: '/insurances',
   subscriptions: '/subscriptions',
 };
 
 function FeatureHome() {
-  const { features, hasFeature } = useFeatures();
-  if (hasFeature('notes')) return <HomePage />;
-  for (const feat of ['challenges', 'insurances', 'subscriptions'] as const) {
+  const { features } = useFeatures();
+  for (const feat of ['challenges', 'notes', 'insurances', 'subscriptions'] as const) {
     const route = FEATURE_ROUTES[feat];
     if (features.includes(feat) && route) {
       return <Navigate to={route} replace />;
@@ -71,11 +70,12 @@ export default function App() {
                       <Suspense fallback={<PageLoader />}>
                         <Routes>
                           <Route path="/" element={<FeatureHome />} />
+                          <Route path="/challenges" element={<ChallengesPage />} />
+                          <Route path="/notes" element={<HomePage />} />
                           <Route path="/archive" element={<ArchivePage />} />
                           <Route path="/c/:slug" element={<CollectionPage />} />
                           <Route path="/insurances" element={<InsurancesPage />} />
                           <Route path="/subscriptions" element={<SubscriptionsPage />} />
-                          <Route path="/challenges" element={<ChallengesPage />} />
                           <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
                         </Routes>
                       </Suspense>

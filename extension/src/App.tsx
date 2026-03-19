@@ -49,7 +49,7 @@ function AppInner() {
     if (featuresLoading) return;
     setView(prev => {
       if (prev && ((prev === 'notes' && hasFeature('notes')) || (prev === 'challenges' && hasFeature('challenges')))) return prev;
-      return hasFeature('notes') ? 'notes' : 'challenges';
+      return hasFeature('challenges') ? 'challenges' : 'notes';
     });
   }, [featuresLoading, hasFeature]);
 

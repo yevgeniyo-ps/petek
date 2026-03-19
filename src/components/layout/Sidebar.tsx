@@ -61,17 +61,17 @@ export default function Sidebar({ open, onToggle, onClose, isMobile }: SidebarPr
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 ${open ? 'px-4' : 'px-2'}`}>
+          {hasFeature('challenges') && menuSettings.challenges && (
+            <NavItem icon={Trophy} label={t.sidebar.challenges} active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
+          )}
           {hasFeature('notes') && menuSettings.notes && (
-            <NavItem icon={StickyNote} label={t.sidebar.notes} active={location.pathname === '/' || location.pathname === '/archive'} onClick={() => handleNav('/')} collapsed={!open} />
+            <NavItem icon={StickyNote} label={t.sidebar.notes} active={location.pathname === '/notes' || location.pathname === '/archive'} onClick={() => handleNav('/notes')} collapsed={!open} />
           )}
           {hasFeature('insurances') && menuSettings.insurances && (
             <NavItem icon={Umbrella} label={t.sidebar.insurances} active={location.pathname === '/insurances'} onClick={() => handleNav('/insurances')} collapsed={!open} />
           )}
           {hasFeature('subscriptions') && menuSettings.subscriptions && (
             <NavItem icon={RepeatIcon} label={t.sidebar.subscriptions} active={location.pathname === '/subscriptions'} onClick={() => handleNav('/subscriptions')} collapsed={!open} />
-          )}
-          {hasFeature('challenges') && menuSettings.challenges && (
-            <NavItem icon={Trophy} label={t.sidebar.challenges} active={location.pathname === '/challenges'} onClick={() => handleNav('/challenges')} collapsed={!open} />
           )}
 
           {/* Collections */}

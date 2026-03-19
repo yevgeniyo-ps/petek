@@ -21,8 +21,8 @@ export function Header({ view, onViewChange }: HeaderProps) {
   const avatarUrl = useGravatar(user?.email ?? undefined, 48);
 
   const tabs: { key: View; label: string }[] = [];
-  if (hasFeature('notes')) tabs.push({ key: 'notes', label: t.sidebar.notes });
   if (hasFeature('challenges')) tabs.push({ key: 'challenges', label: t.sidebar.challenges });
+  if (hasFeature('notes')) tabs.push({ key: 'notes', label: t.sidebar.notes });
 
   return (
     <div className="flex-shrink-0 border-b border-[#1c1928]">
