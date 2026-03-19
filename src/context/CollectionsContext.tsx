@@ -154,8 +154,20 @@ export function CollectionsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const EMPTY_COLLECTIONS: CollectionsContextType = {
+  collections: [],
+  fieldsByCollection: {},
+  loading: false,
+  createCollection: async () => { throw new Error('CollectionsProvider not mounted'); },
+  updateCollection: async () => {},
+  deleteCollection: async () => {},
+  createField: async () => {},
+  updateField: async () => {},
+  deleteField: async () => {},
+  refreshFields: async () => {},
+};
+
 export function useCollections() {
   const context = useContext(CollectionsContext);
-  if (!context) throw new Error('useCollections must be used within CollectionsProvider');
-  return context;
+  return context ?? EMPTY_COLLECTIONS;
 }

@@ -41,7 +41,13 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFeatures() {
-  const context = useContext(FeaturesContext);
-  if (!context) throw new Error('useFeatures must be used within FeaturesProvider');
+  // Try InitContext first (web app), fall back to FeaturesContext (extension)
+  const initContext = useContext(InitFeaturesContext);
+  const featContext = useContext(FeaturesContext);
+  const context = initContext ?? featContext;
+  if (!context) throw new Error('useFeatures must be used within FeaturesProvider or InitProvider');
   return context;
 }
+
+// Allows InitContext to provide features without circular dependency
+export const InitFeaturesContext = createContext<FeaturesContextType | undefined>(undefined);

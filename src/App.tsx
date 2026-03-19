@@ -1,9 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, ReactNode } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './i18n';
 import { AuthProvider } from './context/AuthContext';
-import { AdminProvider } from './context/AdminContext';
-import { FeaturesProvider } from './context/FeaturesContext';
+import { InitProvider } from './context/InitContext';
 import { NotesProvider } from './context/NotesContext';
 import { LabelsProvider } from './context/LabelsContext';
 import { TagsProvider } from './context/TagsContext';
@@ -12,7 +11,6 @@ import { InsurancesProvider } from './context/InsurancesContext';
 import { SubscriptionsProvider } from './context/SubscriptionsContext';
 import { ChallengesProvider } from './context/ChallengesContext';
 import AuthGuard from './components/auth/AuthGuard';
-import { ApprovalProvider } from './context/ApprovalContext';
 import ApprovalGuard from './components/auth/ApprovalGuard';
 import AdminGuard from './components/admin/AdminGuard';
 import { useFeatures } from './context/FeaturesContext';
@@ -49,48 +47,68 @@ function FeatureHome() {
   return <PageLoader />;
 }
 
+// Only wrap children with providers for features the user has
+function DataProviders({ children }: { children: ReactNode }) {
+  const { hasFeature, loading } = useFeatures();
+
+  if (loading) {
+    return <>{children}</>;
+  }
+
+  let node = children;
+
+  if (hasFeature('challenges')) {
+    node = <ChallengesProvider>{node}</ChallengesProvider>;
+  }
+  if (hasFeature('subscriptions')) {
+    node = <SubscriptionsProvider>{node}</SubscriptionsProvider>;
+  }
+  if (hasFeature('insurances')) {
+    node = <InsurancesProvider>{node}</InsurancesProvider>;
+  }
+  if (hasFeature('notes') || hasFeature('collections')) {
+    node = (
+      <NotesProvider>
+        <LabelsProvider>
+        <TagsProvider>
+          <CollectionsProvider>
+            {node}
+          </CollectionsProvider>
+        </TagsProvider>
+        </LabelsProvider>
+      </NotesProvider>
+    );
+  }
+
+  return <>{node}</>;
+}
+
 export default function App() {
   return (
     <LanguageProvider>
     <HashRouter>
       <AuthProvider>
         <AuthGuard>
-          <ApprovalProvider>
+          <InitProvider>
           <ApprovalGuard>
-          <AdminProvider>
-          <FeaturesProvider>
-            <NotesProvider>
-              <LabelsProvider>
-              <TagsProvider>
-                <CollectionsProvider>
-                  <InsurancesProvider>
-                  <SubscriptionsProvider>
-                  <ChallengesProvider>
-                    <Layout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Routes>
-                          <Route path="/" element={<FeatureHome />} />
-                          <Route path="/challenges" element={<ChallengesPage />} />
-                          <Route path="/notes" element={<HomePage />} />
-                          <Route path="/archive" element={<ArchivePage />} />
-                          <Route path="/c/:slug" element={<CollectionPage />} />
-                          <Route path="/insurances" element={<InsurancesPage />} />
-                          <Route path="/subscriptions" element={<SubscriptionsPage />} />
-                          <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
-                        </Routes>
-                      </Suspense>
-                    </Layout>
-                  </ChallengesProvider>
-                  </SubscriptionsProvider>
-                  </InsurancesProvider>
-                </CollectionsProvider>
-              </TagsProvider>
-              </LabelsProvider>
-            </NotesProvider>
-          </FeaturesProvider>
-          </AdminProvider>
+            <DataProviders>
+              <Layout>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<FeatureHome />} />
+                    <Route path="/challenges" element={<ChallengesPage />} />
+                    <Route path="/notes" element={<HomePage />} />
+                    <Route path="/archive" element={<ArchivePage />} />
+                    <Route path="/c/:slug" element={<CollectionPage />} />
+                    <Route path="/insurances" element={<InsurancesPage />} />
+                    <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                    <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </DataProviders>
           </ApprovalGuard>
-          </ApprovalProvider>
+          </InitProvider>
         </AuthGuard>
       </AuthProvider>
     </HashRouter>
