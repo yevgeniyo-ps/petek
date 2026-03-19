@@ -578,6 +578,16 @@ function ChallengeCard({ challenge, userId, onComplete, onFail, onDelete, onExte
                   {challenge.participants?.length || 0}
                 </span>
               )}
+              {(() => {
+                const streakStart = getMyStreakStart(challenge, userId);
+                const streak = isActive ? getStreak(myFailedDays, streakStart, today) : getStreak(myFailedDays, streakStart, challenge.end_date);
+                return streak >= 3 ? (
+                  <span className="flex items-center gap-0.5 text-[12px] text-[#ec4899] font-medium shrink-0">
+                    <Flame size={13} />
+                    {streak}
+                  </span>
+                ) : null;
+              })()}
             </div>
           )}
         </div>

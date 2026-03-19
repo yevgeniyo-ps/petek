@@ -590,6 +590,16 @@ function ExtChallengeCard({ challenge, userId, onComplete, onFail, onExtend, onD
                   {challenge.participants?.length || 0}
                 </span>
               )}
+              {(() => {
+                const streakStart = getMyStreakStart(challenge, userId);
+                const streak = isActive ? getStreak(myFailedDays, streakStart, today) : getStreak(myFailedDays, streakStart, challenge.end_date);
+                return streak >= 3 ? (
+                  <span className="flex items-center gap-0.5 text-[10px] text-[#ec4899] font-medium shrink-0">
+                    <Flame size={11} />
+                    {streak}
+                  </span>
+                ) : null;
+              })()}
             </div>
           )}
         </div>
